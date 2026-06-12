@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: #0F172A;
+    background: #F0F7FF;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+
+  ::selection {
+    background: rgba(37, 99, 235, 0.2);
+    color: #1E3A8A;
+  }
+}
+
+@layer components {
+  /* ── Gradients ─────────────────────────────────── */
+  .gradient-hero {
+    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 45%, #3B82F6 100%);
+  }
+
+  .gradient-hero-2 {
+    background: radial-gradient(ellipse at 70% 50%, #3B82F6 0%, #1D4ED8 50%, #1E3A8A 100%);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  }
+
+  .gradient-primary-hover {
+    background: linear-gradient(135deg, #1D4ED8 0%, #1E3A8A 100%);
+  }
+
+  .gradient-shimmer {
+    background: linear-gradient(
+      90deg,
+      #DBEAFE 0%,
+      #BFDBFE 40%,
+      #93C5FD 60%,
+      #DBEAFE 100%
+    );
+    background-size: 200% auto;
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+
+  .gradient-card-top {
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #2563EB 0%, #60A5FA 50%, #1D4ED8 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 8s ease-in-out infinite;
+  }
+
+  /* ── Glass / Blur ──────────────────────────────── */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass-blue {
+    background: rgba(219, 234, 254, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ── Cards ─────────────────────────────────────── */
+  .card-white {
+    background: #FFFFFF;
+    border: 1px solid #DBEAFE;
+    box-shadow: 0 4px 24px rgba(30, 58, 138, 0.08);
+  }
+
+  .card-white-hover:hover {
+    border-color: #93C5FD;
+    box-shadow: 0 12px 40px rgba(30, 58, 138, 0.16);
+    transform: translateY(-3px);
+  }
+
+  .card-blue {
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    border: 1px solid #BFDBFE;
+  }
+
+  /* ── Backgrounds ───────────────────────────────── */
+  .bg-page  { background: #F0F7FF; }
+  .bg-light { background: #EFF6FF; }
+  .bg-white-section { background: #FFFFFF; }
+
+  /* ── Dot grid pattern ──────────────────────────── */
+  .dot-grid {
+    background-image: radial-gradient(circle, #BFDBFE 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* ── Wave divider ──────────────────────────────── */
+  .wave-bottom::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60'%3E%3Cpath fill='%23F0F7FF' d='M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z'/%3E%3C/svg%3E") no-repeat bottom center;
+    background-size: cover;
+  }
+
+  /* ── Banner image placeholder ──────────────────── */
+  .banner-skeleton {
+    background: linear-gradient(90deg, #DBEAFE 0%, #BFDBFE 40%, #93C5FD 60%, #DBEAFE 100%);
+    background-size: 200% auto;
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-float-delayed,
+    .animate-float-slow,
+    .animate-pulse-blue,
+    .animate-shimmer,
+    .animate-gradient-shift,
+    .animate-orbit,
+    .animate-orbit-reverse {
+      animation: none !important;
+    }
+
+    .gradient-text {
+      animation: none !important;
+    }
+  }
+}

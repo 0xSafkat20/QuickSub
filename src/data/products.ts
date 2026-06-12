@@ -1,0 +1,151 @@
+export type ProductCategory = 'streaming' | 'music' | 'gaming' | 'ai';
+
+export interface Product {
+  id: string;
+  slug: string;
+  name: string;
+  category: ProductCategory;
+  shortDescription: string;
+  cardCopy: string;
+  startingPrice: string;
+  deliveryEstimate: string;
+  cta: string;
+  badges: string[];
+  accentColor: string;
+  icon: string;
+  popularPlan?: string;
+  bannerImage: string;
+  isNew?: boolean;
+}
+
+export const products: Product[] = [
+  {
+    id: '1',
+    slug: 'netflix-premium',
+    name: 'Netflix Premium',
+    category: 'streaming',
+    shortDescription: 'Premium entertainment — movies, shows, documentaries, and family streaming.',
+    cardCopy: 'Choose a Netflix Premium plan based on your preferred duration. Support guides you through activation and renewal.',
+    startingPrice: 'Starting from ৳299',
+    deliveryEstimate: '30 min – 2 hours',
+    cta: 'View Netflix Plans',
+    badges: ['Popular', 'Streaming'],
+    accentColor: '#E50914',
+    icon: 'tv',
+    popularPlan: '1 Month Premium',
+    bannerImage: 'https://images.pexels.com/photos/1444416/pexels-photo-1444416.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '2',
+    slug: 'spotify-premium',
+    name: 'Spotify Premium',
+    category: 'music',
+    shortDescription: 'Stream music, podcasts, and playlists with a seamless listening experience.',
+    cardCopy: 'Get Spotify Premium access with clear package options and support for setup or renewal questions.',
+    startingPrice: 'Starting from ৳149',
+    deliveryEstimate: '30 min – 1 hour',
+    cta: 'View Spotify Plans',
+    badges: ['Trending', 'Music'],
+    accentColor: '#1DB954',
+    icon: 'music',
+    popularPlan: '1 Month Individual',
+    bannerImage: 'https://images.pexels.com/photos/3944091/pexels-photo-3944091.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '3',
+    slug: 'pubg-uc',
+    name: 'PUBG UC',
+    category: 'gaming',
+    shortDescription: 'Top up PUBG UC for in-game items, upgrades, events, and premium gaming content.',
+    cardCopy: 'Select your UC package, provide the required game details securely, and track your delivery status.',
+    startingPrice: 'Starting from ৳199',
+    deliveryEstimate: '15 min – 1 hour',
+    cta: 'Top Up PUBG UC',
+    badges: ['Gaming', 'Fast Delivery'],
+    accentColor: '#F59E0B',
+    icon: 'crosshair',
+    popularPlan: '325 UC',
+    bannerImage: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '4',
+    slug: 'freefire-diamonds',
+    name: 'Freefire Diamonds',
+    category: 'gaming',
+    shortDescription: 'Buy Freefire Diamonds for skins, passes, bundles, and in-game upgrades.',
+    cardCopy: 'Choose a Diamond package and submit accurate player details for smooth top-up processing.',
+    startingPrice: 'Starting from ৳99',
+    deliveryEstimate: '10 min – 45 min',
+    cta: 'Buy Freefire Diamonds',
+    badges: ['Gaming', 'Quick Top-Up'],
+    accentColor: '#FF6B35',
+    icon: 'diamond',
+    popularPlan: '100 Diamonds',
+    bannerImage: 'https://images.pexels.com/photos/2007647/pexels-photo-2007647.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '5',
+    slug: 'efootball-coins',
+    name: 'eFootball Coins',
+    category: 'gaming',
+    shortDescription: 'Get eFootball Coins for player packs, upgrades, campaigns, and in-game purchases.',
+    cardCopy: 'Select your coin package and follow the guided order process for a reliable top-up experience.',
+    startingPrice: 'Starting from ৳249',
+    deliveryEstimate: '15 min – 1 hour',
+    cta: 'Buy eFootball Coins',
+    badges: ['Gaming'],
+    accentColor: '#0066FF',
+    icon: 'trophy',
+    popularPlan: '100 Coins',
+    bannerImage: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '6',
+    slug: 'mobile-legend-coins',
+    name: 'Mobile Legend Coins',
+    category: 'gaming',
+    shortDescription: 'Purchase ML Coins or Diamonds for heroes, skins, events, and battle upgrades.',
+    cardCopy: 'Submit your correct player details and choose a package that matches your gaming needs.',
+    startingPrice: 'Starting from ৳89',
+    deliveryEstimate: '10 min – 30 min',
+    cta: 'Buy ML Coins',
+    badges: ['Gaming', 'Popular'],
+    accentColor: '#4169E1',
+    icon: 'swords',
+    popularPlan: '86 Diamonds',
+    bannerImage: 'https://images.pexels.com/photos/1462726/pexels-photo-1462726.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '7',
+    slug: 'chatgpt-subscription',
+    name: 'ChatGPT Subscription',
+    category: 'ai',
+    shortDescription: 'Advanced AI for studying, writing, productivity, coding, planning, and business.',
+    cardCopy: 'Choose a ChatGPT subscription package and get support for activation, renewal, and usage guidance.',
+    startingPrice: 'Starting from ৳499',
+    deliveryEstimate: '30 min – 2 hours',
+    cta: 'View ChatGPT Plans',
+    badges: ['AI Tools', 'Productivity'],
+    accentColor: '#10A37F',
+    icon: 'bot',
+    popularPlan: '1 Month Plus',
+    bannerImage: 'https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=600',
+  },
+  {
+    id: '8',
+    slug: 'quillbot-premium',
+    name: 'QuillBot Premium',
+    category: 'ai',
+    shortDescription: 'AI-powered paraphrasing, grammar checking, summarizing, and writing enhancement.',
+    cardCopy: 'Unlock QuillBot Premium for unlimited paraphrasing modes, advanced grammar checks, summarizer, and plagiarism detection.',
+    startingPrice: 'Starting from ৳349',
+    deliveryEstimate: '30 min – 1.5 hours',
+    cta: 'Get QuillBot Premium',
+    badges: ['AI Tools', 'New'],
+    accentColor: '#6366F1',
+    icon: 'pen-tool',
+    popularPlan: '1 Month Premium',
+    bannerImage: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=600',
+    isNew: true,
+  },
+];
