@@ -66,7 +66,7 @@ export const products: Product[] = [
     accentColor: '#F59E0B',
     icon: 'crosshair',
     popularPlan: '325 UC',
-    bannerImage: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: 'https://images.pexels.com/photos/14711674/pexels-photo-14711674.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     id: '4',
@@ -131,7 +131,7 @@ export const products: Product[] = [
     accentColor: '#10A37F',
     icon: 'bot',
     popularPlan: '1 Month Plus',
-    bannerImage: 'https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: 'https://images.pexels.com/photos/8386437/pexels-photo-8386437.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     id: '8',
@@ -264,7 +264,7 @@ export const products: Product[] = [
     accentColor: '#D4A017',
     icon: 'sword',
     popularPlan: '80 Gems',
-    bannerImage: 'https://images.pexels.com/photos/2116506/pexels-photo-2116506.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: 'https://images.pexels.com/photos/274593/pexels-photo-274593.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     id: '16',

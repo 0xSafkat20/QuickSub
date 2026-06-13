@@ -65,7 +65,7 @@ export default function CategorySection({ activeFilter, onFilterChange }: Catego
     cat === 'all' ? products.length : products.filter(p => p.category === cat).length;
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-page">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <motion.div

@@ -36,7 +36,7 @@ const bundles = [
 
 export default function PromoBanner() {
   return (
-    <section className="py-16 bg-white relative overflow-hidden">
+    <section className="py-16 bg-page relative overflow-hidden">
       {/* Decorative background circles */}
       <div className="absolute -top-24 -left-24 w-64 h-64 bg-brand-50 rounded-full opacity-60" />
       <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-brand-100 rounded-full opacity-40" />

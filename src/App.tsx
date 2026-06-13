@@ -25,7 +25,7 @@ export default function App() {
         <StatsSection />
         <TrustFeatures />
         <CategorySection activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-        <ProductGrid activeFilter={activeFilter} />
+        <ProductGrid activeFilter={activeFilter} onFilterChange={setActiveFilter} />
         <PromoBanner />
         <HowItWorks />
         <Reviews />

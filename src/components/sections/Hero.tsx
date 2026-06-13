@@ -3,10 +3,46 @@ import { motion } from 'framer-motion';
 import { Shield, MessageCircle, Clock, Tv, Music, Crosshair, Bot, CheckCircle2, ArrowRight, Zap, Star } from 'lucide-react';
 
 const floatingProducts = [
-  { name: 'Netflix',   icon: Tv,       color: '#E50914', price: '৳299',  delay: 0,   x: 'left-0',  y: 'top-4'   },
-  { name: 'Spotify',   icon: Music,    color: '#1DB954', price: '৳149',  delay: 0.6, x: 'right-4', y: 'top-0'   },
-  { name: 'PUBG UC',   icon: Crosshair,color: '#F59E0B', price: '৳199',  delay: 1.2, x: 'left-8',  y: 'bottom-8'},
-  { name: 'ChatGPT',   icon: Bot,      color: '#10A37F', price: '৳499',  delay: 1.8, x: 'right-0', y: 'bottom-4'},
+  {
+    name: 'Netflix',
+    icon: Tv,
+    color: '#E50914',
+    price: '৳299',
+    delay: 0,
+    x: 'left-0',
+    y: 'top-4',
+    banner: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
+  },
+  {
+    name: 'Spotify',
+    icon: Music,
+    color: '#1DB954',
+    price: '৳149',
+    delay: 0.6,
+    x: 'right-4',
+    y: 'top-0',
+    banner: 'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
+  },
+  {
+    name: 'PUBG UC',
+    icon: Crosshair,
+    color: '#F59E0B',
+    price: '৳199',
+    delay: 1.2,
+    x: 'left-8',
+    y: 'bottom-8',
+    banner: 'https://i.pinimg.com/736x/7b/65/d0/7b65d0a87b5c1386232dfd337015feca.jpg',
+  },
+  {
+    name: 'ChatGPT',
+    icon: Bot,
+    color: '#10A37F',
+    price: '৳499',
+    delay: 2.8,
+    x: 'right-0',
+    y: 'bottom-4',
+    banner: 'https://i.pinimg.com/736x/5f/2c/4a/5f2c4aba3c3a5ea70accc081a6ed1154.jpg',
+  },
 ];
 
 const stats = [
@@ -21,7 +57,8 @@ export default function Hero() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setCurrentStep(s => (s + 1) % 4), 2200);
+    const total = progressSteps.length;
+    const t = setInterval(() => setCurrentStep(s => (s + 1) % (total + 1)), 2200);
     return () => clearInterval(t);
   }, []);
 
@@ -152,7 +189,6 @@ export default function Hero() {
             {/* Floating product cards */}
             <div className="relative h-[420px]">
               {floatingProducts.map((p, i) => {
-                const Icon = p.icon;
                 return (
                   <motion.div
                     key={p.name}
@@ -162,16 +198,21 @@ export default function Hero() {
                     transition={{ duration: 0.5, delay: 0.4 + i * 0.15 }}
                   >
                     <div
-                      className="w-36 bg-white rounded-2xl p-4 shadow-xl border border-brand-100 hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+                      className="w-44 bg-white rounded-2xl p-4 shadow-xl border border-brand-100 hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden"
                       style={{ animation: `float ${6 + i}s ease-in-out ${p.delay}s infinite` }}
                     >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                        style={{ backgroundColor: `${p.color}18` }}
-                      >
-                        <Icon size={20} style={{ color: p.color }} />
-                      </div>
-                      <p className="text-sm font-bold text-ink-800">{p.name}</p>
+                      {/* Banner image for the product */}
+                      {p.banner && (
+                        <img
+                          src={p.banner}
+                          alt={`${p.name} banner`}
+                          className="w-full h-16 object-contain rounded-md mb-3 bg-white/0 p-1"
+                          style={{ maxHeight: 80 }}
+                        />
+                      )}
+
+                      {/* Icon removed to let banner occupy top of card */}
+                      <p className="text-sm font-bold text-ink-800 mt-1">{p.name}</p>
                       <p className="text-xs font-semibold mt-1" style={{ color: p.color }}>{p.price}</p>
                       <div className="flex items-center gap-1 mt-2">
                         <span className="w-2 h-2 rounded-full bg-accent-green" />
@@ -188,48 +229,58 @@ export default function Hero() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.25 }}
-                  className="w-52 bg-white/15 backdrop-blur-md border border-white/25 rounded-3xl p-5 text-center shadow-2xl"
+                  className="w-52 bg-white/15 backdrop-blur-md border border-white/25 rounded-3xl p-4 text-center shadow-2xl overflow-hidden relative"
                 >
-                  <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-                    <Zap size={26} className="text-brand-600" />
+                  {/* Background banner image */}
+                  <img
+                    src="https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"
+                    alt="QuickSub background"
+                    className="absolute inset-0 w-full h-full object-cover opacity-15"
+                  />
+                  
+                  {/* Content overlay */}
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+                      <Zap size={26} className="text-brand-600" />
+                    </div>
+                    <p className="text-white font-heading font-bold text-base">QuickSub</p>
+                    <p className="text-blue-200 text-[11px] mt-0.5">Fast. Safe. Reliable.</p>
                   </div>
-                  <p className="text-white font-heading font-bold text-base">QuickSub</p>
-                  <p className="text-blue-200 text-[11px] mt-0.5">Fast. Safe. Reliable.</p>
                 </motion.div>
               </div>
             </div>
 
             {/* Order Progress Widget */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.9 }}
-              className="mt-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-5"
-            >
-              <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">Live Order Status</p>
-              <div className="flex items-center gap-2">
-                {progressSteps.map((step, i) => (
-                  <div key={step} className="flex-1 flex flex-col items-center gap-1.5">
-                    <div
-                      className={`w-full h-1.5 rounded-full transition-all duration-700 ${
-                        i <= currentStep ? 'bg-yellow-300' : 'bg-white/15'
-                      }`}
-                    />
-                    <span
-                      className={`text-[9px] font-medium leading-tight text-center transition-colors duration-500 ${
-                        i <= currentStep ? 'text-yellow-300' : 'text-white/40'
-                      }`}
-                    >
-                      {step}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.9 }}
+                  className="mt-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-5"
+                >
+                  <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">Live Order Status</p>
+                  <div className="flex items-center gap-2">
+                    {progressSteps.map((step, i) => {
+                      const completed = currentStep > i; // strictly greater means finished that step
+                      const finishedAll = currentStep === progressSteps.length;
+                      const barClass = completed ? (finishedAll ? 'bg-green-300' : 'bg-yellow-300') : 'bg-white/15';
+                      const textClass = completed ? (finishedAll ? 'text-green-300' : 'text-yellow-300') : 'text-white/40';
+                      return (
+                        <div key={step} className="flex-1 flex flex-col items-center gap-1.5">
+                          <div className={`w-full h-1.5 rounded-full transition-all duration-700 ${barClass}`} />
+                          <span className={`text-[9px] font-medium leading-tight text-center transition-colors duration-500 ${textClass}`}>
+                            {step}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 text-xs">
+                    <CheckCircle2 size={12} className={currentStep === progressSteps.length ? 'text-green-300' : 'text-yellow-300'} />
+                    <span className={currentStep === progressSteps.length ? 'text-green-200' : 'text-yellow-200'}>
+                      {currentStep === progressSteps.length ? 'All completed' : 'Processing on track'}
                     </span>
                   </div>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center gap-2 text-xs">
-                <CheckCircle2 size={12} className="text-green-300" />
-                <span className="text-green-200">Processing on track</span>
-              </div>
-            </motion.div>
+                </motion.div>
           </div>
         </div>
       </div>

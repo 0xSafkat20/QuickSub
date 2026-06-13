@@ -10,7 +10,7 @@ const navLinks = [
   { label: 'Contact',     href: '#contact' },
 ];
 
-const LOGO_SRC = '/ChatGPT_Image_Jun_12,_2026,_09_10_06_PM copy.png';
+const LOGO_SRC = '/Logo.png';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);

@@ -6,7 +6,7 @@ import {
   Tv, Music, Crosshair, Diamond, Trophy, Swords, Bot, PenTool,
   Clapperboard, PlayCircle, Zap, Palette, LayoutGrid,
   Sword, Box, Image, FileText, CheckCircle, Layers,
-  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX,
+  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff,
 } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -31,10 +31,23 @@ const iconMap: Record<string, LucideIcon> = {
   layers: Layers,
 };
 
-function ProductCard({ product, index }: { product: Product; index: number }) {
+function ProductCard({
+  product,
+  index,
+  isFavorite,
+  isNotified,
+  onToggleFavorite,
+  onRequestNotify,
+}: {
+  product: Product;
+  index: number;
+  isFavorite: boolean;
+  isNotified: boolean;
+  onToggleFavorite: (id: string) => void;
+  onRequestNotify: (product: Product) => void;
+}) {
   const Icon = iconMap[product.icon] || Tv;
   const [imgError, setImgError] = useState(false);
-  const [notified, setNotified] = useState(false);
   const oos = !!product.outOfStock;
 
   return (
@@ -58,7 +71,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             alt={product.name}
             loading="lazy"
             onError={() => setImgError(true)}
-            className={`w-full h-full object-cover transition-transform duration-500 ${
+            className={`w-full h-full object-contain transition-transform duration-500 ${
               oos ? 'grayscale' : 'group-hover:scale-105'
             }`}
           />
@@ -126,11 +139,23 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
           <h3 className={`font-heading font-bold text-base leading-tight ${oos ? 'text-ink-400' : 'text-ink-900'}`}>
             {product.name}
           </h3>
-          {oos && (
-            <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[10px] font-bold text-red-500 uppercase tracking-wide">
-              Unavailable
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onToggleFavorite(product.id)}
+              className={`w-9 h-9 rounded-2xl border flex items-center justify-center transition-colors ${
+                isFavorite ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-200 bg-white text-ink-500 hover:bg-brand-50'
+              }`}
+              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {isFavorite ? <Heart size={16} /> : <HeartOff size={16} />}
+            </button>
+            {oos && (
+              <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[10px] font-bold text-red-500 uppercase tracking-wide">
+                Unavailable
+              </span>
+            )}
+          </div>
         </div>
 
         <p className={`text-xs leading-relaxed mb-3 flex-1 line-clamp-3 ${oos ? 'text-ink-300' : 'text-ink-400'}`}>
@@ -160,20 +185,23 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
               <PackageX size={14} /> Out of Stock
             </button>
             <button
-              onClick={() => setNotified(true)}
-              disabled={notified}
+              onClick={() => onRequestNotify(product)}
+              disabled={isNotified}
               className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 ${
-                notified
+                isNotified
                   ? 'border-brand-200 bg-brand-50 text-brand-600 cursor-default'
                   : 'border-brand-200 text-brand-600 hover:bg-brand-50'
               }`}
             >
               <Bell size={12} />
-              {notified ? 'Notification set!' : 'Notify me when available'}
+              {isNotified ? 'Notification set!' : 'Notify me when available'}
             </button>
           </div>
         ) : (
-          <button
+          <a
+            href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200"
             style={{ borderColor: product.accentColor, color: product.accentColor }}
             onMouseEnter={e => {
@@ -188,7 +216,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             }}
           >
             {product.cta} <ArrowRight size={13} />
-          </button>
+          </a>
         )}
       </div>
     </motion.article>
@@ -197,11 +225,14 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 
 interface ProductGridProps {
   activeFilter: string;
+  onFilterChange: (filter: string) => void;
 }
 
-export default function ProductGrid({ activeFilter }: ProductGridProps) {
+export default function ProductGrid({ activeFilter, onFilterChange }: ProductGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [notifiedProducts, setNotifiedProducts] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     let list = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
@@ -222,6 +253,21 @@ export default function ProductGrid({ activeFilter }: ProductGridProps) {
     () => (activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter)).filter(p => p.outOfStock).length,
     [activeFilter]
   );
+
+  const toggleFavorite = (productId: string) => {
+    setFavorites(prev =>
+      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+  };
+
+  const requestNotify = (product: Product) => {
+    setNotifiedProducts(prev => (prev.includes(product.id) ? prev : [...prev, product.id]));
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: product.id, productName: product.name }),
+    }).catch(() => {});
+  };
 
   return (
     <section id="products" className="py-20 bg-page">
@@ -285,26 +331,43 @@ export default function ProductGrid({ activeFilter }: ProductGridProps) {
             </span>
           </div>
 
-          {/* In-Stock Toggle */}
-          {totalOos > 0 && (
-            <button
-              onClick={() => setInStockOnly(v => !v)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-200 ${
-                inStockOnly
-                  ? 'bg-brand-600 border-brand-600 text-white shadow-blue-sm'
-                  : 'bg-white border-brand-200 text-ink-500 hover:border-brand-400 hover:text-brand-700'
-              }`}
-            >
-              <PackageX size={13} />
-              {inStockOnly ? 'Showing in-stock only' : `Hide out of stock (${totalOos})`}
-            </button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {activeFilter !== 'all' && (
+              <button
+                onClick={() => onFilterChange('all')}
+                className="px-4 py-2 rounded-xl text-xs font-semibold border-2 border-brand-200 bg-white text-brand-700 hover:bg-brand-50 transition-all duration-200"
+              >
+                Clear category
+              </button>
+            )}
+            {totalOos > 0 && (
+              <button
+                onClick={() => setInStockOnly(v => !v)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-200 ${
+                  inStockOnly
+                    ? 'bg-brand-600 border-brand-600 text-white shadow-blue-sm'
+                    : 'bg-white border-brand-200 text-ink-500 hover:border-brand-400 hover:text-brand-700'
+                }`}
+              >
+                <PackageX size={13} />
+                {inStockOnly ? 'Showing in-stock only' : `Hide out of stock (${totalOos})`}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence mode="popLayout">
             {filtered.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                index={i}
+                isFavorite={favorites.includes(product.id)}
+                isNotified={notifiedProducts.includes(product.id)}
+                onToggleFavorite={toggleFavorite}
+                onRequestNotify={requestNotify}
+              />
             ))}
           </AnimatePresence>
         </div>
@@ -328,6 +391,7 @@ export default function ProductGrid({ activeFilter }: ProductGridProps) {
             </p>
           </motion.div>
         )}
+
       </div>
     </section>
   );

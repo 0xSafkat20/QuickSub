@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, ChevronRight } from 'lucide-react';
 
 const quickReplies = [
   'Netflix Premium', 'Spotify Premium', 'PUBG UC',
   'Freefire Diamonds', 'ChatGPT', 'Track My Order',
+  'Contact on WhatsApp',
 ];
 
 interface Message {
   id: number;
   text: string;
   isBot: boolean;
+  url?: string;
 }
 
 export default function Chatbot() {
@@ -18,19 +20,34 @@ export default function Chatbot() {
     { id: 0, text: 'Hi! What are you looking for today? 👋', isBot: true },
   ]);
   const [input, setInput] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const addBotReply = (text: string) => {
-    setMessages(prev => [...prev, { id: Date.now(), text, isBot: true }]);
+  const addBotReply = (text: string, url?: string) => {
+    setMessages(prev => [...prev, { id: Date.now(), text, isBot: true, url }]);
   };
 
   const handleQuickReply = (reply: string) => {
+    if (reply === 'Contact on WhatsApp') {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text: 'You can contact us directly on WhatsApp for purchase or support.',
+        isBot: true,
+        url: '/buy',
+      }]);
+      return;
+    }
+
     setMessages(prev => [...prev, { id: Date.now(), text: reply, isBot: false }]);
     setTimeout(() => {
-      addBotReply(
-        reply.includes('Track')
-          ? 'Please enter your order ID or payment reference number.'
-          : `Great choice! ${reply} is available. Visit the Products section to see packages and BDT pricing, or I can connect you to support.`
-      );
+      if (reply.includes('Track')) {
+        addBotReply('Please enter your order ID or payment reference number.');
+      } else {
+        const message = `Hi, I want to order ${reply}. Please send me the package details and price.`;
+        addBotReply(
+          `Great choice! ${reply} is available. Click here to place your order on WhatsApp.`,
+          `/buy?text=${encodeURIComponent(message)}`
+        );
+      }
     }, 600);
   };
 
@@ -43,6 +60,12 @@ export default function Chatbot() {
       addBotReply("Thanks for your message! Our support team will get back to you shortly. You can also check the FAQ section for quick answers.");
     }, 700);
   };
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages]);
 
   return (
     <>
@@ -98,20 +121,32 @@ export default function Chatbot() {
                     : 'gradient-primary text-white rounded-br-sm shadow-sm'
                 }`}
               >
-                {msg.text}
+                {msg.url ? (
+                  <a
+                    href={msg.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-blue-600 underline hover:text-blue-800"
+                  >
+                    {msg.text}
+                  </a>
+                ) : (
+                  msg.text
+                )}
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Quick Replies */}
         <div className="px-4 pb-2 pt-2 flex-shrink-0 border-t border-brand-50">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex flex-wrap gap-1.5 pb-1">
             {quickReplies.map(reply => (
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors whitespace-nowrap flex-shrink-0 font-medium"
+                className="flex items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors whitespace-nowrap font-medium"
               >
                 {reply} <ChevronRight size={10} />
               </button>

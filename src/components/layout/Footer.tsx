@@ -1,6 +1,6 @@
 import { Facebook, Instagram, MessageCircle, Send, Mail } from 'lucide-react';
 
-const LOGO_SRC = '/ChatGPT_Image_Jun_12,_2026,_09_10_06_PM copy.png';
+const LOGO_SRC = '/Logo.png';
 
 const productLinks = [
   'Netflix Premium', 'Spotify Premium', 'PUBG UC',
