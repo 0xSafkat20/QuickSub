@@ -4,7 +4,7 @@ import { type LucideIcon, Users, ShoppingBag, Clock, Star } from 'lucide-react';
 
 const stats = [
   { icon: Users,       value: 10000, suffix: '+', label: 'Happy Customers', color: '#2563EB' },
-  { icon: ShoppingBag, value: 13, suffix: '+', label: 'Products Available', color: '#7C3AED' },
+  { icon: ShoppingBag, value: 21, suffix: '+', label: 'Products Available', color: '#7C3AED' },
   { icon: Clock,       value: 30,    suffix: ' min', label: 'Avg Delivery Time', color: '#D97706' },
   { icon: Star,        value: 98,    suffix: '%',  label: 'Satisfaction Rate', color: '#16A34A' },
 ];

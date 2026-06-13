@@ -5,6 +5,7 @@ import {
   type LucideIcon,
   Tv, Music, Crosshair, Diamond, Trophy, Swords, Bot, PenTool,
   Clapperboard, PlayCircle, Zap, Palette, LayoutGrid,
+  Sword, Box, Image, FileText, CheckCircle, Layers,
   ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX,
 } from 'lucide-react';
 
@@ -22,6 +23,12 @@ const iconMap: Record<string, LucideIcon> = {
   zap: Zap,
   palette: Palette,
   'layout-grid': LayoutGrid,
+  sword: Sword,
+  box: Box,
+  image: Image,
+  'file-text': FileText,
+  'check-circle': CheckCircle,
+  layers: Layers,
 };
 
 function ProductCard({ product, index }: { product: Product; index: number }) {
