@@ -11,7 +11,7 @@ const floatingProducts = [
 
 const stats = [
   { label: 'Happy Customers', value: '10,000+' },
-  { label: 'Products Available', value: '8+' },
+  { label: 'Products Available', value: '13+' },
   { label: 'Avg Delivery', value: '<1 hour' },
 ];
 
