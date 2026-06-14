@@ -11,7 +11,7 @@ const floatingProducts = [
     delay: 0,
     x: 'left-0',
     y: 'top-4',
-    banner: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
+    banner: 'https://images.pexels.com/photos/1444416/pexels-photo-1444416.jpeg?auto=compress&cs=tinysrgb&w=300',
   },
   {
     name: 'Spotify',
@@ -21,7 +21,7 @@ const floatingProducts = [
     delay: 0.6,
     x: 'right-4',
     y: 'top-0',
-    banner: 'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
+    banner: 'https://images.pexels.com/photos/164488/pexels-photo-164488.jpeg?auto=compress&cs=tinysrgb&w=300',
   },
   {
     name: 'PUBG UC',
@@ -31,7 +31,7 @@ const floatingProducts = [
     delay: 1.2,
     x: 'left-8',
     y: 'bottom-8',
-    banner: 'https://i.pinimg.com/736x/7b/65/d0/7b65d0a87b5c1386232dfd337015feca.jpg',
+    banner: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=300',
   },
   {
     name: 'ChatGPT',
@@ -41,7 +41,7 @@ const floatingProducts = [
     delay: 2.8,
     x: 'right-0',
     y: 'bottom-4',
-    banner: 'https://i.pinimg.com/736x/5f/2c/4a/5f2c4aba3c3a5ea70accc081a6ed1154.jpg',
+    banner: 'https://images.pexels.com/photos/8386437/pexels-photo-8386437.jpeg?auto=compress&cs=tinysrgb&w=300',
   },
 ];
 
@@ -206,8 +206,7 @@ export default function Hero() {
                         <img
                           src={p.banner}
                           alt={`${p.name} banner`}
-                          className="w-full h-16 object-contain rounded-md mb-3 bg-white/0 p-1"
-                          style={{ maxHeight: 80 }}
+                          className="w-full h-20 object-cover rounded-lg mb-3"
                         />
                       )}
 

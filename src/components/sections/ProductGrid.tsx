@@ -76,14 +76,14 @@ function ProductCard({
       }`}
     >
       {/* Banner Image */}
-      <div className="relative h-40 overflow-hidden flex-shrink-0 bg-white">
+      <div className="relative h-40 overflow-hidden flex-shrink-0">
         {!imgError ? (
           <img
             src={product.bannerImage}
             alt={product.name}
             loading="lazy"
             onError={() => setImgError(true)}
-            className={`w-full h-full object-contain transition-transform duration-500 ${
+            className={`w-full h-full object-cover transition-transform duration-500 ${
               oos ? 'grayscale' : 'group-hover:scale-105'
             }`}
           />
@@ -105,7 +105,7 @@ function ProductCard({
 
         {/* Gradient overlay */}
         {!oos && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         )}
 
         {/* Bottom accent strip */}
