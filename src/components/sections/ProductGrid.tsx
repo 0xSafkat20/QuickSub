@@ -2,12 +2,13 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products, type Product } from '../../data/products';
 import ProductDetailModal from './ProductDetailModal';
+import { useCompare } from './CompareDrawer';
 import {
   type LucideIcon,
   Tv, Music, Crosshair, Diamond, Trophy, Swords, Bot, PenTool,
   Clapperboard, PlayCircle, Zap, Palette, LayoutGrid,
   Sword, Box, Image, FileText, CheckCircle, Layers,
-  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff, ChevronDown,
+  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff, ChevronDown, GitCompare,
 } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -40,6 +41,23 @@ const priceMap: Record<string, number> = {
   '13': 599, '14': 169, '15': 149, '16': 99, '17': 449, '18': 399,
   '19': 299, '20': 799, '21': 199,
 };
+
+function CompareButton({ product }: { product: Product }) {
+  const { addToCompare, isInCompare } = useCompare();
+  const inCompare = isInCompare(product.id);
+  return (
+    <button
+      type="button"
+      onClick={e => { e.stopPropagation(); addToCompare(product); }}
+      className={`w-9 h-9 rounded-2xl border flex items-center justify-center transition-colors ${
+        inCompare ? 'border-brand-300 bg-brand-50 text-brand-600' : 'border-slate-200 bg-white text-ink-500 hover:bg-brand-50'
+      }`}
+      aria-label={inCompare ? 'Already in compare' : 'Add to compare'}
+    >
+      <GitCompare size={14} />
+    </button>
+  );
+}
 
 function ProductCard({
   product,
@@ -151,7 +169,8 @@ function ProductCard({
           <h3 className={`font-heading font-bold text-base leading-tight ${oos ? 'text-ink-400' : 'text-ink-900'}`}>
             {product.name}
           </h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <CompareButton product={product} />
             <button
               type="button"
               onClick={() => onToggleFavorite(product.id)}

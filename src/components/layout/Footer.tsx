@@ -1,4 +1,5 @@
-import { Facebook, Instagram, MessageCircle, Send, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { Facebook, Instagram, MessageCircle, Send, Mail, CheckCircle } from 'lucide-react';
 
 const LOGO_SRC = '/Logo.png';
 
@@ -11,6 +12,31 @@ const supportLinks = ['FAQ', 'Contact', 'Order Status', 'Refund Policy', 'Delive
 const legalLinks   = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subState, setSubState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !email.includes('@')) return;
+    setSubState('loading');
+    try {
+      const res = await fetch('https://mqznrijupzuwlsloncxn.supabase.co/functions/v1/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubState('success');
+        setEmail('');
+      } else {
+        setSubState('error');
+      }
+    } catch {
+      setSubState('error');
+    }
+  };
+
   return (
     <footer className="bg-brand-950 text-white">
       <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
@@ -93,21 +119,34 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-bold text-sm text-white mb-5">Get Offer Updates</h4>
             <p className="text-sm text-brand-300 mb-4">Subscribe for deals and new product alerts.</p>
-            <form onSubmit={e => e.preventDefault()} className="space-y-2.5">
+            <form onSubmit={handleSubscribe} className="space-y-2.5">
               <div className="relative">
                 <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400" />
                 <input
                   type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full pl-9 pr-3 py-2.5 bg-white/8 border border-white/10 rounded-xl text-sm text-white placeholder-brand-400 focus:outline-none focus:border-brand-400 focus:bg-white/12 transition-all"
+                  disabled={subState === 'loading'}
+                  className="w-full pl-9 pr-3 py-2.5 bg-white/8 border border-white/10 rounded-xl text-sm text-white placeholder-brand-400 focus:outline-none focus:border-brand-400 focus:bg-white/12 transition-all disabled:opacity-60"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-2.5 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all"
+                disabled={subState === 'loading' || subState === 'success'}
+                className="w-full py-2.5 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all flex items-center justify-center gap-2 disabled:opacity-80"
               >
-                Subscribe
+                {subState === 'loading' && 'Subscribing...'}
+                {subState === 'success' && <><CheckCircle size={14} /> Subscribed!</>}
+                {subState === 'idle' && 'Subscribe'}
+                {subState === 'error' && 'Try Again'}
               </button>
+              {subState === 'success' && (
+                <p className="text-xs text-green-300 mt-1">You'll receive our best deals.</p>
+              )}
+              {subState === 'error' && (
+                <p className="text-xs text-red-300 mt-1">Something went wrong. Please try again.</p>
+              )}
             </form>
           </div>
         </div>
