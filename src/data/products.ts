@@ -34,7 +34,7 @@ export const products: Product[] = [
     accentColor: '#E50914',
     icon: 'tv',
     popularPlan: '1 Month Premium',
-    bannerImage: 'https://images.pexels.com/photos/1444416/pexels-photo-1444416.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/netflix.svg',
   },
   {
     id: '2',
@@ -50,7 +50,7 @@ export const products: Product[] = [
     accentColor: '#1DB954',
     icon: 'music',
     popularPlan: '1 Month Individual',
-    bannerImage: 'https://images.pexels.com/photos/3944091/pexels-photo-3944091.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/spotify.svg',
   },
   {
     id: '3',
@@ -66,7 +66,7 @@ export const products: Product[] = [
     accentColor: '#F59E0B',
     icon: 'crosshair',
     popularPlan: '325 UC',
-    bannerImage: 'https://images.pexels.com/photos/14711674/pexels-photo-14711674.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/pubg.svg',
   },
   {
     id: '4',
@@ -82,7 +82,7 @@ export const products: Product[] = [
     accentColor: '#FF6B35',
     icon: 'diamond',
     popularPlan: '100 Diamonds',
-    bannerImage: 'https://images.pexels.com/photos/2007647/pexels-photo-2007647.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/freefire.svg',
   },
   {
     id: '5',
@@ -98,7 +98,7 @@ export const products: Product[] = [
     accentColor: '#0066FF',
     icon: 'trophy',
     popularPlan: '100 Coins',
-    bannerImage: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/efootball.svg',
     outOfStock: true,
   },
   {
@@ -115,7 +115,7 @@ export const products: Product[] = [
     accentColor: '#4169E1',
     icon: 'swords',
     popularPlan: '86 Diamonds',
-    bannerImage: 'https://images.pexels.com/photos/1462726/pexels-photo-1462726.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/mobilelegend.svg',
   },
   {
     id: '7',
@@ -131,7 +131,7 @@ export const products: Product[] = [
     accentColor: '#10A37F',
     icon: 'bot',
     popularPlan: '1 Month Plus',
-    bannerImage: 'https://images.pexels.com/photos/8386437/pexels-photo-8386437.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/chatgpt.svg',
   },
   {
     id: '8',
@@ -147,7 +147,7 @@ export const products: Product[] = [
     accentColor: '#6366F1',
     icon: 'pen-tool',
     popularPlan: '1 Month Premium',
-    bannerImage: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/quillbot.svg',
     isNew: true,
   },
   {
@@ -164,7 +164,7 @@ export const products: Product[] = [
     accentColor: '#113CCF',
     icon: 'clapperboard',
     popularPlan: '1 Month Premium',
-    bannerImage: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/disneyhotstar.svg',
     isNew: true,
   },
   {
@@ -181,7 +181,7 @@ export const products: Product[] = [
     accentColor: '#FF0000',
     icon: 'play-circle',
     popularPlan: '1 Month Individual',
-    bannerImage: 'https://images.pexels.com/photos/1038916/pexels-photo-1038916.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/youtube.svg',
   },
   {
     id: '11',
@@ -197,7 +197,7 @@ export const products: Product[] = [
     accentColor: '#FF4655',
     icon: 'zap',
     popularPlan: '475 VP',
-    bannerImage: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/valorant.svg',
     outOfStock: true,
   },
   {
@@ -214,7 +214,7 @@ export const products: Product[] = [
     accentColor: '#7D2AE8',
     icon: 'palette',
     popularPlan: '1 Month Pro',
-    bannerImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/canva.svg',
     isNew: true,
   },
   {
@@ -231,7 +231,7 @@ export const products: Product[] = [
     accentColor: '#0078D4',
     icon: 'layout-grid',
     popularPlan: '1 Month Personal',
-    bannerImage: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/microsoft365.svg',
   },
   {
     id: '14',
@@ -247,7 +247,7 @@ export const products: Product[] = [
     accentColor: '#FC3C44',
     icon: 'music',
     popularPlan: '1 Month Individual',
-    bannerImage: 'https://images.pexels.com/photos/164488/pexels-photo-164488.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/applemusic.svg',
     isNew: true,
   },
   {
@@ -264,7 +264,7 @@ export const products: Product[] = [
     accentColor: '#D4A017',
     icon: 'sword',
     popularPlan: '80 Gems',
-    bannerImage: 'https://images.pexels.com/photos/274593/pexels-photo-274593.jpeg?auto=compress&cs=tinysrgb&w=600',
+    bannerImage: '/banners/clashofclans.svg',
   },
   {
     id: '16',

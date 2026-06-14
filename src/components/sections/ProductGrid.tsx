@@ -76,7 +76,7 @@ function ProductCard({
       }`}
     >
       {/* Banner Image */}
-      <div className="relative h-40 overflow-hidden flex-shrink-0">
+      <div className="relative h-40 overflow-hidden flex-shrink-0 bg-white">
         {!imgError ? (
           <img
             src={product.bannerImage}
