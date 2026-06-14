@@ -34,11 +34,13 @@
       "name": "QuickSub",
       "url": "https://quicksub.com",
       "description": "Digital product store for subscriptions, gaming top-ups, and AI access in Bangladesh",
+      "logo": "https://quicksub.com/Logo.png",
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer support",
         "availableLanguage": ["English", "Bengali"]
-      }
+      },
+      "sameAs": []
     }
     </script>
     <script type="application/ld+json">
@@ -52,6 +54,121 @@
         "target": "https://quicksub.com/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://quicksub.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://quicksub.com/#products" },
+        { "@type": "ListItem", "position": 3, "name": "Deals", "item": "https://quicksub.com/#deals" },
+        { "@type": "ListItem", "position": 4, "name": "FAQ", "item": "https://quicksub.com/#faq" }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How fast will I receive my product?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Delivery time depends on the product type, package availability, payment confirmation, and the accuracy of the submitted details. Each product card shows an estimated delivery time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What details do I need to provide for gaming top-ups?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gaming top-ups may require your Player ID, Server ID, region, platform, or contact information. The form clearly shows which fields are required for each product."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I renew my subscription through QuickSub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The website includes renewal options for supported subscriptions. You can also contact support before expiry for renewal assistance."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is payment secure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The landing page uses HTTPS, trusted payment handling, clear payment instructions, and order confirmation messages. Sensitive details are not exposed in frontend code."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer refunds?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Refund rules are clearly defined by product type. Some digital products may not be refundable after successful processing. The policy is visible before checkout."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is QuickSub affiliated with the brands listed?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "QuickSub is an independent digital product and service provider. Product names, logos, and trademarks belong to their respective owners. QuickSub is not affiliated with or endorsed by those brands unless stated officially."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I contact support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can contact support through live chat, WhatsApp, Messenger, email, or the contact form depending on the business setup."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I track my order?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can check whether an order is pending, processing, completed, delayed, or cancelled through the order status system."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "QuickSub Digital Products",
+      "numberOfItems": 21,
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "item": { "@type": "Product", "name": "Netflix Premium", "description": "Premium entertainment — movies, shows, documentaries, and family streaming.", "brand": { "@type": "Brand", "name": "Netflix" }, "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "299", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 2, "item": { "@type": "Product", "name": "Spotify Premium", "description": "Stream music, podcasts, and playlists with a seamless listening experience.", "brand": { "@type": "Brand", "name": "Spotify" }, "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "149", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 3, "item": { "@type": "Product", "name": "PUBG UC", "description": "Top up PUBG UC for in-game items, upgrades, events, and premium gaming content.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "199", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 4, "item": { "@type": "Product", "name": "Freefire Diamonds", "description": "Buy Freefire Diamonds for skins, passes, bundles, and in-game upgrades.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "99", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 5, "item": { "@type": "Product", "name": "eFootball Coins", "description": "Get eFootball Coins for player packs, upgrades, campaigns, and in-game purchases.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "249", "availability": "https://schema.org/OutOfStock" } } },
+        { "@type": "ListItem", "position": 6, "item": { "@type": "Product", "name": "Mobile Legend Coins", "description": "Purchase ML Coins or Diamonds for heroes, skins, events, and battle upgrades.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "89", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 7, "item": { "@type": "Product", "name": "ChatGPT Subscription", "description": "Advanced AI for studying, writing, productivity, coding, planning, and business.", "brand": { "@type": "Brand", "name": "OpenAI" }, "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "499", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 8, "item": { "@type": "Product", "name": "QuillBot Premium", "description": "AI-powered paraphrasing, grammar checking, summarizing, and writing enhancement.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "349", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 9, "item": { "@type": "Product", "name": "Disney+ Hotstar", "description": "Stream Disney, Marvel, Star Wars, Pixar, National Geographic, and live sports.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "199", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 10, "item": { "@type": "Product", "name": "YouTube Premium", "description": "Ad-free YouTube, background play, YouTube Music, and YouTube Originals access.", "brand": { "@type": "Brand", "name": "YouTube" }, "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "179", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 11, "item": { "@type": "Product", "name": "Valorant VP", "description": "Purchase Valorant Points for skins, agents, battle passes, and in-game bundles.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "149", "availability": "https://schema.org/OutOfStock" } } },
+        { "@type": "ListItem", "position": 12, "item": { "@type": "Product", "name": "Canva Pro", "description": "Professional design platform with AI tools, premium templates, and brand kits.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "399", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 13, "item": { "@type": "Product", "name": "Microsoft 365", "description": "Full Office suite — Word, Excel, PowerPoint, Teams, OneDrive, and Copilot AI.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "599", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 14, "item": { "@type": "Product", "name": "Apple Music", "description": "Over 100 million songs, spatial audio, lyrics view, and offline downloads.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "169", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 15, "item": { "@type": "Product", "name": "Clash of Clans Gems", "description": "Top up CoC Gems for builder boosts, hero upgrades, and speed-ups.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "149", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 16, "item": { "@type": "Product", "name": "Roblox Robux", "description": "Purchase Robux for avatars, game passes, limiteds, and premium experiences.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "99", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 17, "item": { "@type": "Product", "name": "Midjourney", "description": "AI-powered image generation for creative projects, concept art, and visual design.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "449", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 18, "item": { "@type": "Product", "name": "Notion AI", "description": "AI writing, summarizing, brainstorming, and project management inside Notion.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "399", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 19, "item": { "@type": "Product", "name": "Grammarly Premium", "description": "Advanced grammar, tone detection, plagiarism check, and AI-powered writing assistance.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "299", "availability": "https://schema.org/InStock" } } },
+        { "@type": "ListItem", "position": 20, "item": { "@type": "Product", "name": "Adobe Creative Cloud", "description": "Photoshop, Illustrator, Premiere Pro, After Effects, and Adobe Firefly AI.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "799", "availability": "https://schema.org/OutOfStock" } } },
+        { "@type": "ListItem", "position": 21, "item": { "@type": "Product", "name": "Amazon Prime Video", "description": "Stream movies, originals, live sports, and rent new releases on Prime Video.", "offers": { "@type": "Offer", "priceCurrency": "BDT", "price": "199", "availability": "https://schema.org/InStock" } } }
+      ]
     }
     </script>
   </head>

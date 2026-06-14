@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products, type Product } from '../../data/products';
+import ProductDetailModal from './ProductDetailModal';
 import {
   type LucideIcon,
   Tv, Music, Crosshair, Diamond, Trophy, Swords, Bot, PenTool,
   Clapperboard, PlayCircle, Zap, Palette, LayoutGrid,
   Sword, Box, Image, FileText, CheckCircle, Layers,
-  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff,
+  ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff, ChevronDown,
 } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -31,6 +32,15 @@ const iconMap: Record<string, LucideIcon> = {
   layers: Layers,
 };
 
+type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'newest';
+
+const priceMap: Record<string, number> = {
+  '1': 299, '2': 149, '3': 199, '4': 99, '5': 249, '6': 89,
+  '7': 499, '8': 349, '9': 199, '10': 179, '11': 149, '12': 399,
+  '13': 599, '14': 169, '15': 149, '16': 99, '17': 449, '18': 399,
+  '19': 299, '20': 799, '21': 199,
+};
+
 function ProductCard({
   product,
   index,
@@ -38,6 +48,7 @@ function ProductCard({
   isNotified,
   onToggleFavorite,
   onRequestNotify,
+  onOpenDetail,
 }: {
   product: Product;
   index: number;
@@ -45,6 +56,7 @@ function ProductCard({
   isNotified: boolean;
   onToggleFavorite: (id: string) => void;
   onRequestNotify: (product: Product) => void;
+  onOpenDetail: (product: Product) => void;
 }) {
   const Icon = iconMap[product.icon] || Tv;
   const [imgError, setImgError] = useState(false);
@@ -134,7 +146,7 @@ function ProductCard({
       </div>
 
       {/* Card Body */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1 cursor-pointer" onClick={() => onOpenDetail(product)}>
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className={`font-heading font-bold text-base leading-tight ${oos ? 'text-ink-400' : 'text-ink-900'}`}>
             {product.name}
@@ -233,9 +245,12 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
   const [inStockOnly, setInStockOnly] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [notifiedProducts, setNotifiedProducts] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    let list = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
+    let list = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
     if (inStockOnly) list = list.filter(p => !p.outOfStock);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -246,8 +261,22 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
           p.badges.some(b => b.toLowerCase().includes(q))
       );
     }
+    switch (sortBy) {
+      case 'price-asc':
+        list.sort((a, b) => (priceMap[a.id] ?? 0) - (priceMap[b.id] ?? 0));
+        break;
+      case 'price-desc':
+        list.sort((a, b) => (priceMap[b.id] ?? 0) - (priceMap[a.id] ?? 0));
+        break;
+      case 'name-asc':
+        list.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'newest':
+        list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+        break;
+    }
     return list;
-  }, [activeFilter, searchQuery, inStockOnly]);
+  }, [activeFilter, searchQuery, inStockOnly, sortBy]);
 
   const totalOos = useMemo(
     () => (activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter)).filter(p => p.outOfStock).length,
@@ -332,6 +361,42 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Sort dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setSortOpen(v => !v)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-2 border-brand-200 bg-white text-ink-500 hover:border-brand-400 hover:text-brand-700 transition-all duration-200"
+              >
+                <SlidersHorizontal size={13} />
+                Sort: {{ 'default': 'Default', 'price-asc': 'Price: Low', 'price-desc': 'Price: High', 'name-asc': 'A-Z', 'newest': 'Newest' }[sortBy]}
+                <ChevronDown size={12} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {sortOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setSortOpen(false)} />
+                  <div className="absolute right-0 mt-1 w-44 bg-white border border-brand-100 rounded-xl shadow-lg z-20 py-1">
+                    {([
+                      ['default', 'Default'],
+                      ['price-asc', 'Price: Low to High'],
+                      ['price-desc', 'Price: High to Low'],
+                      ['name-asc', 'Name: A to Z'],
+                      ['newest', 'Newest First'],
+                    ] as [SortOption, string][]).map(([val, label]) => (
+                      <button
+                        key={val}
+                        onClick={() => { setSortBy(val); setSortOpen(false); }}
+                        className={`w-full text-left px-4 py-2 text-xs font-medium transition-colors ${
+                          sortBy === val ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-brand-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {activeFilter !== 'all' && (
               <button
                 onClick={() => onFilterChange('all')}
@@ -367,6 +432,7 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
                 isNotified={notifiedProducts.includes(product.id)}
                 onToggleFavorite={toggleFavorite}
                 onRequestNotify={requestNotify}
+                onOpenDetail={setDetailProduct}
               />
             ))}
           </AnimatePresence>
@@ -393,6 +459,8 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
         )}
 
       </div>
+
+      <ProductDetailModal product={detailProduct} onClose={() => setDetailProduct(null)} />
     </section>
   );
 }

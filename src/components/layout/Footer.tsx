@@ -4,7 +4,8 @@ const LOGO_SRC = '/Logo.png';
 
 const productLinks = [
   'Netflix Premium', 'Spotify Premium', 'PUBG UC',
-  'Freefire Diamonds', 'eFootball Coins', 'Mobile Legend Coins', 'ChatGPT Subscription',
+  'Freefire Diamonds', 'ChatGPT Subscription', 'Disney+ Hotstar',
+  'YouTube Premium', 'Canva Pro', 'Apple Music',
 ];
 const supportLinks = ['FAQ', 'Contact', 'Order Status', 'Refund Policy', 'Delivery Policy'];
 const legalLinks   = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];

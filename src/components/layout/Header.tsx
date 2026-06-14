@@ -4,6 +4,7 @@ import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 const navLinks = [
   { label: 'Home',        href: '#home' },
   { label: 'Products',    href: '#products' },
+  { label: 'Deals',       href: '#deals' },
   { label: 'How It Works',href: '#how-it-works' },
   { label: 'Reviews',     href: '#reviews' },
   { label: 'FAQ',         href: '#faq' },

@@ -11,7 +11,9 @@ import HowItWorks from './components/sections/HowItWorks';
 import Reviews from './components/sections/Reviews';
 import FAQ from './components/sections/FAQ';
 import FinalCTA from './components/sections/FinalCTA';
+import DealsSection from './components/sections/DealsSection';
 import Chatbot from './components/chatbot/Chatbot';
+import BackToTop from './components/ui/BackToTop';
 
 export default function App() {
   const [activeFilter, setActiveFilter] = useState('all');
@@ -27,6 +29,7 @@ export default function App() {
         <CategorySection activeFilter={activeFilter} onFilterChange={setActiveFilter} />
         <ProductGrid activeFilter={activeFilter} onFilterChange={setActiveFilter} />
         <PromoBanner />
+        <DealsSection />
         <HowItWorks />
         <Reviews />
         <FAQ />
@@ -35,6 +38,7 @@ export default function App() {
 
       <Footer />
       <Chatbot />
+      <BackToTop />
     </div>
   );
 }
