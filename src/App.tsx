@@ -16,17 +16,15 @@ import Chatbot from './components/chatbot/Chatbot';
 import BackToTop from './components/ui/BackToTop';
 import ScrollProgress from './components/ui/ProgressBar';
 import CompareDrawer, { CompareProvider } from './components/sections/CompareDrawer';
-import useDarkMode from './components/ui/ScrollProgress';
 
 export default function App() {
   const [activeFilter, setActiveFilter] = useState('all');
-  const [dark, setDark] = useDarkMode();
 
   return (
     <CompareProvider>
-      <div className={`min-h-screen font-body ${dark ? 'bg-slate-950' : 'bg-page'}`}>
+      <div className="min-h-screen bg-page font-body">
         <ScrollProgress />
-        <Header dark={dark} setDark={setDark} />
+        <Header />
 
         <main>
           <Hero />

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
-import { DarkModeToggle } from '../ui/ScrollProgress';
 import OrderTracking from '../sections/OrderTracking';
 
 const navLinks = [
@@ -15,12 +14,7 @@ const navLinks = [
 
 const LOGO_SRC = '/Logo.png';
 
-interface HeaderProps {
-  dark: boolean;
-  setDark: (v: boolean) => void;
-}
-
-export default function Header({ dark, setDark }: HeaderProps) {
+export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -41,14 +35,14 @@ export default function Header({ dark, setDark }: HeaderProps) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const headerBg = dark
-    ? scrolled ? 'bg-slate-900/95 backdrop-blur-xl shadow-sm border-b border-slate-700' : 'bg-transparent'
-    : scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-brand-100' : 'bg-transparent';
-
-  const textColor = dark && !scrolled ? 'text-white' : scrolled ? (dark ? 'text-slate-100' : 'text-brand-900') : 'text-white';
-
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBg}`}>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-brand-100'
+          : 'bg-transparent'
+      }`}
+    >
       {/* Top Announcement Bar */}
       <div className="bg-brand-600 hidden sm:block">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-center gap-6 text-xs text-white/90 font-medium">
@@ -70,41 +64,41 @@ export default function Header({ dark, setDark }: HeaderProps) {
             className="h-10 w-auto object-contain"
             onError={e => { e.currentTarget.style.display = 'none'; }}
           />
-          <span className={`font-heading font-extrabold text-xl tracking-tight transition-colors ${textColor}`}>
+          <span
+            className={`font-heading font-extrabold text-xl tracking-tight transition-colors ${
+              scrolled ? 'text-brand-900' : 'text-white'
+            }`}
+          >
             QuickSub
           </span>
         </a>
 
         {/* Desktop Nav Links */}
         <div className="hidden lg:flex items-center gap-0.5">
-          {navLinks.map(link => {
-            const isActive = activeSection === link.href.slice(1);
-            const baseClasses = dark && scrolled
-              ? isActive ? 'text-brand-400 bg-brand-900/50' : 'text-slate-300 hover:text-brand-400 hover:bg-slate-800'
-              : dark
-              ? isActive ? 'text-white bg-white/15' : 'text-white/80 hover:text-white hover:bg-white/10'
-              : isActive && scrolled
-              ? 'text-brand-600 bg-brand-50'
-              : isActive
-              ? 'text-white bg-white/15'
-              : scrolled
-              ? 'text-ink-500 hover:text-brand-700 hover:bg-brand-50'
-              : 'text-white/80 hover:text-white hover:bg-white/10';
-
-            return (
-              <a key={link.href} href={link.href} className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${baseClasses}`}>
-                {link.label}
-              </a>
-            );
-          })}
+          {navLinks.map(link => (
+            <a
+              key={link.href}
+              href={link.href}
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeSection === link.href.slice(1)
+                  ? scrolled
+                    ? 'text-brand-600 bg-brand-50'
+                    : 'text-white bg-white/15'
+                  : scrolled
+                    ? 'text-ink-500 hover:text-brand-700 hover:bg-brand-50'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-2">
-          <DarkModeToggle dark={dark} setDark={setDark} />
           <button
             className={`p-2 rounded-lg transition-colors ${
-              dark && scrolled ? 'text-slate-400 hover:text-brand-400 hover:bg-slate-800' : scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
+              scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
             aria-label="Search"
           >
@@ -112,7 +106,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
           </button>
           <button
             className={`p-2 rounded-lg transition-colors relative ${
-              dark && scrolled ? 'text-slate-400 hover:text-brand-400 hover:bg-slate-800' : scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
+              scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
             aria-label="Cart"
           >
@@ -130,13 +124,12 @@ export default function Header({ dark, setDark }: HeaderProps) {
 
         {/* Mobile Actions */}
         <div className="flex lg:hidden items-center gap-1">
-          <DarkModeToggle dark={dark} setDark={setDark} />
-          <button className={`p-2 ${dark && scrolled ? 'text-slate-300' : scrolled ? 'text-ink-400' : 'text-white/70'}`} aria-label="Cart">
+          <button className={`p-2 ${scrolled ? 'text-ink-400' : 'text-white/70'}`} aria-label="Cart">
             <ShoppingCart size={18} />
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`p-2 ${dark && scrolled ? 'text-slate-100' : scrolled ? 'text-ink-700' : 'text-white'}`}
+            className={`p-2 ${scrolled ? 'text-ink-700' : 'text-white'}`}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -146,7 +139,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className={`lg:hidden border-t shadow-lg ${dark ? 'bg-slate-900 border-slate-700' : 'bg-white border-brand-100'}`}>
+        <div className="lg:hidden bg-white border-t border-brand-100 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
             {navLinks.map(link => (
               <a
@@ -155,8 +148,8 @@ export default function Header({ dark, setDark }: HeaderProps) {
                 onClick={() => setMobileOpen(false)}
                 className={`px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
                   activeSection === link.href.slice(1)
-                    ? dark ? 'text-brand-400 bg-brand-900/50' : 'text-brand-600 bg-brand-50'
-                    : dark ? 'text-slate-300 hover:text-brand-400 hover:bg-slate-800' : 'text-ink-500 hover:text-brand-700 hover:bg-brand-50'
+                    ? 'text-brand-600 bg-brand-50'
+                    : 'text-ink-500 hover:text-brand-700 hover:bg-brand-50'
                 }`}
               >
                 {link.label}

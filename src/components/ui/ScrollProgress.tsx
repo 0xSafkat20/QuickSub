@@ -1,48 +1,23 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function useDarkMode() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('quicksub-dark') === 'true';
-    }
-    return false;
-  });
+export default function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (dark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('quicksub-dark', String(dark));
-  }, [dark]);
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  return [dark, setDark] as const;
-}
-
-export function DarkModeToggle({ dark, setDark }: { dark: boolean; setDark: (v: boolean) => void }) {
   return (
-    <button
-      onClick={() => setDark(!dark)}
-      className={`p-2 rounded-lg transition-colors ${
-        dark ? 'text-yellow-300 hover:bg-white/10' : 'text-ink-400 hover:text-brand-600 hover:bg-brand-50'
-      }`}
-      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        {dark ? (
-          <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-            <Sun size={18} />
-          </motion.div>
-        ) : (
-          <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-            <Moon size={18} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </button>
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[3px] z-[60] origin-left"
+      style={{ scaleX: progress / 100, background: 'linear-gradient(90deg, #2563EB, #7C3AED)' }}
+    />
   );
 }
