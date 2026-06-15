@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Search, ShoppingCart } from 'lucide-react';
 import OrderTracking from '../sections/OrderTracking';
+import { useWishlist } from '../../context/WishlistContext';
 
 const navLinks = [
   { label: 'Home',        href: '#home' },
@@ -14,10 +15,16 @@ const navLinks = [
 
 const LOGO_SRC = '/Logo.png';
 
-export default function Header() {
+interface HeaderProps {
+  onSearchOpen: () => void;
+  onWishlistOpen: () => void;
+}
+
+export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const { favorites } = useWishlist();
 
   useEffect(() => {
     const onScroll = () => {
@@ -34,6 +41,17 @@ export default function Header() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        onSearchOpen();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onSearchOpen]);
 
   return (
     <header
@@ -97,21 +115,28 @@ export default function Header() {
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-2">
           <button
+            onClick={onSearchOpen}
             className={`p-2 rounded-lg transition-colors ${
               scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
-            aria-label="Search"
+            aria-label="Search products"
+            title="Search (Ctrl+K)"
           >
             <Search size={18} />
           </button>
           <button
+            onClick={onWishlistOpen}
             className={`p-2 rounded-lg transition-colors relative ${
               scrolled ? 'text-ink-400 hover:text-brand-600 hover:bg-brand-50' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
-            aria-label="Cart"
+            aria-label="Saved products"
           >
             <ShoppingCart size={18} />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+            {favorites.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {favorites.length}
+              </span>
+            )}
           </button>
           <OrderTracking />
           <a
@@ -124,8 +149,24 @@ export default function Header() {
 
         {/* Mobile Actions */}
         <div className="flex lg:hidden items-center gap-1">
-          <button className={`p-2 ${scrolled ? 'text-ink-400' : 'text-white/70'}`} aria-label="Cart">
+          <button
+            onClick={onSearchOpen}
+            className={`p-2 ${scrolled ? 'text-ink-400' : 'text-white/70'}`}
+            aria-label="Search"
+          >
+            <Search size={18} />
+          </button>
+          <button
+            onClick={onWishlistOpen}
+            className={`p-2 relative ${scrolled ? 'text-ink-400' : 'text-white/70'}`}
+            aria-label="Saved products"
+          >
             <ShoppingCart size={18} />
+            {favorites.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-brand-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {favorites.length}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

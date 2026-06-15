@@ -135,12 +135,12 @@ export default function Hero() {
               >
                 Browse Products <ArrowRight size={16} />
               </a>
-              <a
-                href="#faq"
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('quicksub:open-chat'))}
                 className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/40 text-white font-semibold rounded-xl hover:bg-white/10 hover:border-white/60 transition-all duration-200 text-sm"
               >
                 <MessageCircle size={16} /> Chat Support
-              </a>
+              </button>
             </motion.div>
 
             {/* Trust chips */}

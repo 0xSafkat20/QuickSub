@@ -67,6 +67,12 @@ export default function Chatbot() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('quicksub:open-chat', handler);
+    return () => window.removeEventListener('quicksub:open-chat', handler);
+  }, []);
+
   return (
     <>
       {/* Floating Button */}

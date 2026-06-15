@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { products, type Product } from '../../data/products';
 import ProductDetailModal from './ProductDetailModal';
 import { useCompare } from './CompareDrawer';
+import { useWishlist } from '../../context/WishlistContext';
 import {
   type LucideIcon,
   Tv, Music, Crosshair, Diamond, Trophy, Swords, Bot, PenTool,
@@ -62,23 +63,22 @@ function CompareButton({ product }: { product: Product }) {
 function ProductCard({
   product,
   index,
-  isFavorite,
-  isNotified,
-  onToggleFavorite,
+  isHighlighted,
   onRequestNotify,
   onOpenDetail,
 }: {
   product: Product;
   index: number;
-  isFavorite: boolean;
-  isNotified: boolean;
-  onToggleFavorite: (id: string) => void;
+  isHighlighted: boolean;
   onRequestNotify: (product: Product) => void;
   onOpenDetail: (product: Product) => void;
 }) {
   const Icon = iconMap[product.icon] || Tv;
   const [imgError, setImgError] = useState(false);
+  const { isFavorite, toggleFavorite } = useWishlist();
+  const isFav = isFavorite(product.id);
   const oos = !!product.outOfStock;
+  const [isNotified, setIsNotified] = useState(false);
 
   return (
     <motion.article
@@ -87,10 +87,13 @@ function ProductCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.38, delay: index * 0.05 }}
+      id={`product-${product.id}`}
       className={`bg-white rounded-2xl overflow-hidden border shadow-card flex flex-col transition-all duration-300 ${
-        oos
-          ? 'border-slate-200 opacity-80'
-          : 'border-brand-100 hover:shadow-card-hover hover:-translate-y-1.5 group'
+        isHighlighted
+          ? 'border-brand-400 ring-2 ring-brand-300 ring-offset-2'
+          : oos
+            ? 'border-slate-200 opacity-80'
+            : 'border-brand-100 hover:shadow-card-hover hover:-translate-y-1.5 group'
       }`}
     >
       {/* Banner Image */}
@@ -111,7 +114,6 @@ function ProductCard({
           </div>
         )}
 
-        {/* Dark overlay on OOS */}
         {oos && (
           <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
@@ -121,18 +123,15 @@ function ProductCard({
           </div>
         )}
 
-        {/* Gradient overlay */}
         {!oos && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         )}
 
-        {/* Bottom accent strip */}
         <div
           className={`absolute bottom-0 left-0 right-0 h-1 transition-opacity ${oos ? 'opacity-30' : 'opacity-100'}`}
           style={{ background: `linear-gradient(90deg, ${product.accentColor}, ${product.accentColor}60)` }}
         />
 
-        {/* Icon badge — hidden when OOS overlay is showing */}
         {!oos && (
           <div className="absolute top-3 left-3">
             <div
@@ -144,7 +143,6 @@ function ProductCard({
           </div>
         )}
 
-        {/* Status + type badges (top-right) */}
         <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
           {product.isNew && !oos && (
             <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-brand-600 text-white shadow-sm">
@@ -163,7 +161,6 @@ function ProductCard({
         </div>
       </div>
 
-      {/* Card Body */}
       <div className="p-5 flex flex-col flex-1 cursor-pointer" onClick={() => onOpenDetail(product)}>
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <h3 className={`font-heading font-bold text-base leading-tight ${oos ? 'text-ink-400' : 'text-ink-900'}`}>
@@ -173,13 +170,13 @@ function ProductCard({
             <CompareButton product={product} />
             <button
               type="button"
-              onClick={() => onToggleFavorite(product.id)}
+              onClick={e => { e.stopPropagation(); toggleFavorite(product.id); }}
               className={`w-9 h-9 rounded-2xl border flex items-center justify-center transition-colors ${
-                isFavorite ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-200 bg-white text-ink-500 hover:bg-brand-50'
+                isFav ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-200 bg-white text-ink-500 hover:bg-brand-50'
               }`}
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
             >
-              {isFavorite ? <Heart size={16} /> : <HeartOff size={16} />}
+              {isFav ? <Heart size={16} /> : <HeartOff size={16} />}
             </button>
             {oos && (
               <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[10px] font-bold text-red-500 uppercase tracking-wide">
@@ -193,7 +190,6 @@ function ProductCard({
           {product.cardCopy}
         </p>
 
-        {/* Meta */}
         <div className="flex items-center gap-3 mb-4 text-xs">
           <span
             className={`flex items-center gap-1.5 font-bold ${oos ? 'text-slate-400' : ''}`}
@@ -206,7 +202,6 @@ function ProductCard({
           </span>
         </div>
 
-        {/* CTA — conditional on out-of-stock */}
         {oos ? (
           <div className="space-y-2">
             <button
@@ -216,7 +211,11 @@ function ProductCard({
               <PackageX size={14} /> Out of Stock
             </button>
             <button
-              onClick={() => onRequestNotify(product)}
+              onClick={e => {
+                e.stopPropagation();
+                onRequestNotify(product);
+                setIsNotified(true);
+              }}
               disabled={isNotified}
               className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 ${
                 isNotified
@@ -233,6 +232,7 @@ function ProductCard({
             href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200"
             style={{ borderColor: product.accentColor, color: product.accentColor }}
             onMouseEnter={e => {
@@ -257,13 +257,12 @@ function ProductCard({
 interface ProductGridProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
+  highlightProductId?: string | null;
 }
 
-export default function ProductGrid({ activeFilter, onFilterChange }: ProductGridProps) {
+export default function ProductGrid({ activeFilter, onFilterChange, highlightProductId }: ProductGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [notifiedProducts, setNotifiedProducts] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
@@ -302,14 +301,7 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
     [activeFilter]
   );
 
-  const toggleFavorite = (productId: string) => {
-    setFavorites(prev =>
-      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
-    );
-  };
-
   const requestNotify = (product: Product) => {
-    setNotifiedProducts(prev => (prev.includes(product.id) ? prev : [...prev, product.id]));
     fetch('/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -334,7 +326,6 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
             Find premium subscriptions, game top-ups, and AI access options in one organized product section.
           </p>
 
-          {/* Search Bar */}
           <div className="max-w-md mx-auto relative">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-300 pointer-events-none" />
             <input
@@ -362,7 +353,6 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
           )}
         </motion.div>
 
-        {/* Filter toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3 flex-wrap">
             {activeFilter !== 'all' && (
@@ -380,7 +370,6 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Sort dropdown */}
             <div className="relative">
               <button
                 onClick={() => setSortOpen(v => !v)}
@@ -447,9 +436,7 @@ export default function ProductGrid({ activeFilter, onFilterChange }: ProductGri
                 key={product.id}
                 product={product}
                 index={i}
-                isFavorite={favorites.includes(product.id)}
-                isNotified={notifiedProducts.includes(product.id)}
-                onToggleFavorite={toggleFavorite}
+                isHighlighted={highlightProductId === product.id}
                 onRequestNotify={requestNotify}
                 onOpenDetail={setDetailProduct}
               />

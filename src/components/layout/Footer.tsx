@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Facebook, Instagram, MessageCircle, Send, Mail, CheckCircle } from 'lucide-react';
+import { openLegalDoc } from '../ui/LegalModal';
 
 const LOGO_SRC = '/Logo.png';
 
@@ -8,8 +9,14 @@ const productLinks = [
   'Freefire Diamonds', 'ChatGPT Subscription', 'Disney+ Hotstar',
   'YouTube Premium', 'Canva Pro', 'Apple Music',
 ];
-const supportLinks = ['FAQ', 'Contact', 'Order Status', 'Refund Policy', 'Delivery Policy'];
-const legalLinks   = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
+const supportLinks: { label: string; href?: string; action?: () => void }[] = [
+  { label: 'FAQ', href: '#faq' },
+  { label: 'Contact', href: '#contact' },
+  { label: 'Order Status', href: '#contact' },
+  { label: 'Refund Policy', action: () => openLegalDoc('Refund Policy') },
+  { label: 'Delivery Policy', action: () => openLegalDoc('Delivery Policy') },
+];
+const legalLinks = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -92,10 +99,19 @@ export default function Footer() {
             <h4 className="font-heading font-bold text-sm text-white mb-5">Support</h4>
             <ul className="space-y-2.5">
               {supportLinks.map(link => (
-                <li key={link}>
-                  <a href="#faq" className="text-sm text-brand-300 hover:text-white transition-colors">
-                    {link}
-                  </a>
+                <li key={link.label}>
+                  {link.action ? (
+                    <button
+                      onClick={link.action}
+                      className="text-sm text-brand-300 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </button>
+                  ) : (
+                    <a href={link.href} className="text-sm text-brand-300 hover:text-white transition-colors">
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -107,9 +123,12 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {legalLinks.map(link => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-brand-300 hover:text-white transition-colors">
+                  <button
+                    onClick={() => openLegalDoc(link)}
+                    className="text-sm text-brand-300 hover:text-white transition-colors"
+                  >
                     {link}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>

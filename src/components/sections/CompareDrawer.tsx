@@ -59,6 +59,17 @@ export default function CompareDrawer() {
   const { compareList, addToCompare, removeFromCompare } = useCompare();
   const [open, setOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);
+  const [hint, setHint] = useState(false);
+
+  const handleOpenCompare = () => {
+    if (compareList.length < 2) {
+      setHint(true);
+      setSelecting(true);
+      setTimeout(() => setHint(false), 4000);
+      return;
+    }
+    setOpen(true);
+  };
 
   return (
     <>
@@ -66,7 +77,7 @@ export default function CompareDrawer() {
         <motion.button
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          onClick={() => setOpen(true)}
+          onClick={handleOpenCompare}
           className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-5 py-3 bg-brand-600 text-white rounded-xl shadow-lg hover:bg-brand-700 transition-colors text-sm font-semibold"
         >
           <GitCompare size={16} />
@@ -90,12 +101,23 @@ export default function CompareDrawer() {
               className="bg-white rounded-2xl max-w-lg w-full max-h-[70vh] overflow-y-auto shadow-2xl p-6"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="font-heading font-bold text-lg text-ink-900 mb-4">Select a product to compare</h3>
+              <h3 className="font-heading font-bold text-lg text-ink-900 mb-2">Select a product to compare</h3>
+              {hint && (
+                <p className="text-xs text-brand-600 bg-brand-50 border border-brand-200 rounded-lg px-3 py-2 mb-4">
+                  Add at least 2 products to start comparing.
+                </p>
+              )}
               <div className="space-y-2">
                 {products.filter(p => !compareList.some(c => c.id === p.id)).map(p => (
                   <button
                     key={p.id}
-                    onClick={() => { addToCompare(p); if (compareList.length + 1 >= 2) setSelecting(false); }}
+                    onClick={() => {
+                      addToCompare(p);
+                      if (compareList.length + 1 >= 2) {
+                        setSelecting(false);
+                        setOpen(true);
+                      }
+                    }}
                     className="w-full flex items-center gap-3 p-3 rounded-xl border border-brand-100 hover:border-brand-300 hover:bg-brand-50 transition-all text-left"
                   >
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${p.accentColor}15` }}>
