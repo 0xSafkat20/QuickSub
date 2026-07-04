@@ -58,7 +58,7 @@ export default function Hero() {
 
   useEffect(() => {
     const total = progressSteps.length;
-    const t = setInterval(() => setCurrentStep(s => (s + 1) % (total + 1)), 2200);
+    const t = setInterval(() => setCurrentStep(s => (s + 1) % total), 2200);
     return () => clearInterval(t);
   }, []);
 

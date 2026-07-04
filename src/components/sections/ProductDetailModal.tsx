@@ -37,11 +37,11 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
             onClick={e => e.stopPropagation()}
           >
             {/* Header image */}
-            <div className="relative h-56 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden rounded-t-3xl">
+            <div className="relative h-40 sm:h-48 md:h-56 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden rounded-t-3xl">
               <img
                 src={product.bannerImage}
                 alt={product.name}
@@ -71,10 +71,10 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
             </div>
 
             {/* Content */}
-            <div className="p-7">
+            <div className="p-4 sm:p-6 md:p-7">
               {/* Title + badges */}
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="font-heading text-2xl font-bold text-ink-900">{product.name}</h2>
+                <h2 className="font-heading text-xl sm:text-2xl font-bold text-ink-900">{product.name}</h2>
                 {oos && (
                   <span className="flex-shrink-0 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-xs font-bold text-red-500 uppercase">
                     Unavailable
@@ -101,7 +101,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
               </div>
 
               {/* Description */}
-              <p className="text-ink-500 text-sm leading-relaxed mb-6">{product.cardCopy}</p>
+              <p className="text-ink-500 text-xs sm:text-sm leading-relaxed mb-6">{product.cardCopy}</p>
 
               {/* Price + delivery */}
               <div className="flex items-center gap-6 mb-6">
@@ -122,6 +122,28 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                 <div className="bg-brand-50 border border-brand-100 rounded-xl p-4 mb-6">
                   <p className="text-xs text-brand-600 font-semibold uppercase tracking-wider mb-1">Most Popular Plan</p>
                   <p className="font-heading font-bold text-ink-900">{product.popularPlan}</p>
+                </div>
+              )}
+
+              {/* Sales Breakdown */}
+              {product.soldItems && product.soldItems.length > 0 && (
+                <div className="border border-slate-100 bg-slate-50/55 rounded-2xl p-4 sm:p-5 mb-6">
+                  <h4 className="text-xs sm:text-sm font-bold text-ink-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <span>🔥 Sales History & Popularity</span>
+                  </h4>
+                  <div className="space-y-3">
+                    {product.soldItems.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-xs sm:text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: product.accentColor }} />
+                          <span className="text-ink-700 font-medium">{item.name}</span>
+                        </div>
+                        <span className="font-bold text-ink-900 bg-white border border-slate-100 shadow-sm px-2.5 py-1 rounded-lg text-[10px] sm:text-xs">
+                          {item.count.toLocaleString()} sold
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

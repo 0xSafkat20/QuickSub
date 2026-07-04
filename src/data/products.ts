@@ -1,5 +1,10 @@
 export type ProductCategory = 'streaming' | 'music' | 'gaming' | 'ai';
 
+export interface SoldItem {
+  name: string;
+  count: number;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -17,7 +22,9 @@ export interface Product {
   bannerImage: string;
   isNew?: boolean;
   outOfStock?: boolean;
+  soldItems?: SoldItem[];
 }
+
 
 export const products: Product[] = [
   {
@@ -35,6 +42,11 @@ export const products: Product[] = [
     icon: 'tv',
     popularPlan: '1 Month Premium',
     bannerImage: 'https://images.pexels.com/photos/1444416/pexels-photo-1444416.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '1 Month Premium Shared', count: 1850 },
+      { name: '3 Months Premium Shared', count: 620 },
+      { name: '6 Months Premium Private', count: 280 },
+    ],
   },
   {
     id: '2',
@@ -51,6 +63,11 @@ export const products: Product[] = [
     icon: 'music',
     popularPlan: '1 Month Individual',
     bannerImage: 'https://images.pexels.com/photos/164488/pexels-photo-164488.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '1 Month Individual', count: 3200 },
+      { name: '3 Months Individual', count: 1450 },
+      { name: '6 Months Family Share', count: 890 },
+    ],
   },
   {
     id: '3',
@@ -67,6 +84,11 @@ export const products: Product[] = [
     icon: 'crosshair',
     popularPlan: '325 UC',
     bannerImage: 'https://images.pexels.com/photos/7915437/pexels-photo-7915437.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '60 UC Pack', count: 5400 },
+      { name: '325 UC Pack', count: 2120 },
+      { name: '660 UC Pack', count: 1350 },
+    ],
   },
   {
     id: '4',
@@ -83,6 +105,11 @@ export const products: Product[] = [
     icon: 'diamond',
     popularPlan: '100 Diamonds',
     bannerImage: 'https://images.pexels.com/photos/2007647/pexels-photo-2007647.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '100 Diamonds Topup', count: 6800 },
+      { name: '310 Diamonds Topup', count: 2450 },
+      { name: 'Weekly Member Lite', count: 1200 },
+    ],
   },
   {
     id: '5',
@@ -100,6 +127,10 @@ export const products: Product[] = [
     popularPlan: '100 Coins',
     bannerImage: 'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=600',
     outOfStock: true,
+    soldItems: [
+      { name: '100 Coins Pack', count: 1200 },
+      { name: '500 Coins Pack', count: 450 },
+    ],
   },
   {
     id: '6',
@@ -116,6 +147,10 @@ export const products: Product[] = [
     icon: 'swords',
     popularPlan: '86 Diamonds',
     bannerImage: 'https://images.pexels.com/photos/1462726/pexels-photo-1462726.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '86 Diamonds Topup', count: 3200 },
+      { name: '172 Diamonds Topup', count: 1840 },
+    ],
   },
   {
     id: '7',
@@ -132,6 +167,11 @@ export const products: Product[] = [
     icon: 'bot',
     popularPlan: '1 Month Plus',
     bannerImage: 'https://images.pexels.com/photos/8386437/pexels-photo-8386437.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: 'ChatGPT Plus Shared (1 Month)', count: 2150 },
+      { name: 'ChatGPT Plus Private (1 Month)', count: 830 },
+      { name: 'OpenAI API Credits ($5/10/20)', count: 540 },
+    ],
   },
   {
     id: '8',
@@ -149,6 +189,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Premium',
     bannerImage: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: '1 Month Premium Shared', count: 950 },
+      { name: '1 Year Premium Shared', count: 320 },
+    ],
   },
   {
     id: '9',
@@ -166,6 +210,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Premium',
     bannerImage: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: '1 Month Premium Shared', count: 750 },
+      { name: '3 Months Premium Shared', count: 420 },
+    ],
   },
   {
     id: '10',
@@ -182,6 +230,11 @@ export const products: Product[] = [
     icon: 'play-circle',
     popularPlan: '1 Month Individual',
     bannerImage: 'https://images.pexels.com/photos/2534524/pexels-photo-2534524.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '1 Month Family Invite', count: 4100 },
+      { name: '6 Months Family Invite', count: 1850 },
+      { name: '1 Year Private Account', count: 920 },
+    ],
   },
   {
     id: '11',
@@ -199,6 +252,10 @@ export const products: Product[] = [
     popularPlan: '475 VP',
     bannerImage: 'https://images.pexels.com/photos/7915463/pexels-photo-7915463.jpeg?auto=compress&cs=tinysrgb&w=600',
     outOfStock: true,
+    soldItems: [
+      { name: '475 VP Pack', count: 850 },
+      { name: '1000 VP Pack', count: 420 },
+    ],
   },
   {
     id: '12',
@@ -216,6 +273,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Pro',
     bannerImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: 'Canva Pro Team Invite (1 Month)', count: 1100 },
+      { name: 'Canva Pro Personal (1 Year)', count: 480 },
+    ],
   },
   {
     id: '13',
@@ -232,6 +293,10 @@ export const products: Product[] = [
     icon: 'layout-grid',
     popularPlan: '1 Month Personal',
     bannerImage: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '1 Month Personal Subscription', count: 650 },
+      { name: '1 Year Personal Subscription', count: 280 },
+    ],
   },
   {
     id: '14',
@@ -249,6 +314,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Individual',
     bannerImage: 'https://images.pexels.com/photos/164488/pexels-photo-164488.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: '1 Month Shared Family invite', count: 420 },
+      { name: '3 Months Premium Invite', count: 180 },
+    ],
   },
   {
     id: '15',
@@ -265,6 +334,11 @@ export const products: Product[] = [
     icon: 'sword',
     popularPlan: '80 Gems',
     bannerImage: 'https://images.pexels.com/photos/274593/pexels-photo-274593.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '80 Gems Topup', count: 1450 },
+      { name: '500 Gems Topup', count: 620 },
+      { name: 'Gold Pass Season', count: 410 },
+    ],
   },
   {
     id: '16',
@@ -281,6 +355,10 @@ export const products: Product[] = [
     icon: 'box',
     popularPlan: '400 Robux',
     bannerImage: 'https://images.pexels.com/photos/1290511/pexels-photo-1290511.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: '400 Robux Transfer', count: 2800 },
+      { name: '800 Robux Gift Code', count: 1450 },
+    ],
   },
   {
     id: '17',
@@ -298,6 +376,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Basic',
     bannerImage: 'https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: 'Midjourney Shared Basic (1 Month)', count: 520 },
+      { name: 'Midjourney Private Standard (1 Month)', count: 190 },
+    ],
   },
   {
     id: '18',
@@ -315,6 +397,10 @@ export const products: Product[] = [
     popularPlan: '1 Month Plus',
     bannerImage: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: 'Notion AI Shared Plan (1 Month)', count: 380 },
+      { name: 'Notion Plus Account Invite', count: 140 },
+    ],
   },
   {
     id: '19',
@@ -331,6 +417,10 @@ export const products: Product[] = [
     icon: 'check-circle',
     popularPlan: '1 Month Premium',
     bannerImage: 'https://images.pexels.com/photos/574072/pexels-photo-574072.jpeg?auto=compress&cs=tinysrgb&w=600',
+    soldItems: [
+      { name: 'Grammarly Premium Shared (1 Month)', count: 1450 },
+      { name: 'Grammarly Premium Private (1 Month)', count: 480 },
+    ],
   },
   {
     id: '20',
@@ -348,6 +438,10 @@ export const products: Product[] = [
     popularPlan: '1 Month All Apps',
     bannerImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=600',
     outOfStock: true,
+    soldItems: [
+      { name: 'Adobe CC All Apps Shared (1 Month)', count: 320 },
+      { name: 'Adobe CC Student Account (1 Year)', count: 90 },
+    ],
   },
   {
     id: '21',
@@ -365,5 +459,9 @@ export const products: Product[] = [
     popularPlan: '1 Month Prime',
     bannerImage: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=600',
     isNew: true,
+    soldItems: [
+      { name: '1 Month Shared Screen', count: 620 },
+      { name: '1 Month Full Private Account', count: 280 },
+    ],
   },
-];
+];;

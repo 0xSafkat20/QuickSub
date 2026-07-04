@@ -79,6 +79,8 @@ function ProductCard({
   const isFav = isFavorite(product.id);
   const oos = !!product.outOfStock;
   const [isNotified, setIsNotified] = useState(false);
+  const [expandedMobile, setExpandedMobile] = useState(false);
+  const totalSales = product.soldItems ? product.soldItems.reduce((acc, item) => acc + item.count, 0) : 0;
 
   return (
     <motion.article
@@ -158,6 +160,11 @@ function ProductCard({
               {badge}
             </span>
           ))}
+          {totalSales > 0 && !oos && (
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-sm flex items-center gap-0.5">
+              🔥 {totalSales >= 1000 ? `${(totalSales / 1000).toFixed(1)}k+` : totalSales} Sold
+            </span>
+          )}
         </div>
       </div>
 
@@ -189,6 +196,56 @@ function ProductCard({
         <p className={`text-xs leading-relaxed mb-3 flex-1 line-clamp-3 ${oos ? 'text-ink-300' : 'text-ink-400'}`}>
           {product.cardCopy}
         </p>
+
+        {product.soldItems && product.soldItems.length > 0 && (
+          <div className={`mb-4 pt-3 border-t border-slate-100 flex-shrink-0 transition-all duration-300 ${
+            expandedMobile ? 'md:max-h-[500px]' : 'md:max-h-[200px]'
+          }`}>
+            <div className="text-[10px] font-bold text-ink-300 uppercase tracking-wider mb-2">
+              Popular Packages Sold
+            </div>
+            <div className="space-y-1.5">
+              {expandedMobile 
+                ? product.soldItems.map((item) => (
+                    <div key={item.name} className="flex justify-between items-center text-xs">
+                      <span className="text-ink-500 font-medium truncate pr-2">{item.name}</span>
+                      <span className="text-brand-600 bg-brand-50 font-bold px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap">
+                        {item.count.toLocaleString()}+ sold
+                      </span>
+                    </div>
+                  ))
+                : product.soldItems.slice(0, 2).map((item) => (
+                    <div key={item.name} className="flex justify-between items-center text-xs">
+                      <span className="text-ink-500 font-medium truncate pr-2">{item.name}</span>
+                      <span className="text-brand-600 bg-brand-50 font-bold px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap">
+                        {item.count.toLocaleString()}+ sold
+                      </span>
+                    </div>
+                  ))
+              }
+            </div>
+            {/* Mobile View More Button */}
+            {product.soldItems.length > 2 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedMobile(!expandedMobile);
+                }}
+                className="md:hidden w-full text-[11px] text-brand-600 hover:text-brand-700 font-semibold text-center mt-2 py-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+              >
+                {expandedMobile ? (
+                  <span className="flex items-center justify-center gap-1">
+                    <ChevronDown size={12} className="rotate-180" /> Show Less
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-1">
+                    View More <ChevronDown size={12} />
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center gap-3 mb-4 text-xs">
           <span

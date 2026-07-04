@@ -32,7 +32,7 @@ function useCountdown(targetDate: Date) {
 }
 
 export default function DealsSection() {
-  const endDate = new Date('2026-07-01T00:00:00');
+  const endDate = new Date('2026-07-31T23:59:59');
   const { days, hours, minutes, seconds } = useCountdown(endDate);
 
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -59,21 +59,21 @@ export default function DealsSection() {
         </motion.div>
 
         {/* Countdown */}
-        <div className="flex items-center justify-center gap-4 mb-12">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 mb-12 flex-wrap">
           {[
             { value: pad(days), label: 'Days' },
             { value: pad(hours), label: 'Hours' },
             { value: pad(minutes), label: 'Min' },
             { value: pad(seconds), label: 'Sec' },
           ].map((unit, i) => (
-            <div key={unit.label} className="flex items-center gap-4">
+            <div key={unit.label} className="flex items-center gap-2 sm:gap-3 md:gap-4">
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-brand-600 text-white flex items-center justify-center font-heading font-extrabold text-2xl sm:text-3xl shadow-lg">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg sm:rounded-2xl bg-brand-600 text-white flex items-center justify-center font-heading font-extrabold text-lg sm:text-2xl md:text-3xl shadow-lg">
                   {unit.value}
                 </div>
-                <span className="text-[10px] text-ink-400 font-semibold uppercase tracking-wider mt-2">{unit.label}</span>
+                <span className="text-[8px] sm:text-[10px] text-ink-400 font-semibold uppercase tracking-wider mt-1 sm:mt-2">{unit.label}</span>
               </div>
-              {i < 3 && <span className="text-brand-300 font-bold text-xl mb-5">:</span>}
+              {i < 3 && <span className="text-brand-300 font-bold text-base sm:text-lg md:text-xl mb-3 sm:mb-4 md:mb-5">:</span>}
             </div>
           ))}
         </div>
