@@ -285,11 +285,9 @@ function ProductCard({
             </button>
           </div>
         ) : (
-          <a
-            href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); onOpenDetail(product); }}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200"
             style={{ borderColor: product.accentColor, color: product.accentColor }}
             onMouseEnter={e => {
@@ -304,7 +302,7 @@ function ProductCard({
             }}
           >
             {product.cta} <ArrowRight size={13} />
-          </a>
+          </button>
         )}
       </div>
     </motion.article>

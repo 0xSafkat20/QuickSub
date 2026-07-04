@@ -51,13 +51,18 @@ const stats = [
   { label: 'Avg Delivery', value: '<1 hour' },
 ];
 
-const progressSteps = ['Product Selected', 'Payment Verified', 'Processing', 'Completed'];
+const progressSteps = [
+  { label: 'Product Selected', accent: 'from-sky-500 to-cyan-500', dot: 'bg-sky-400', text: 'text-sky-200' },
+  { label: 'Payment Verified', accent: 'from-violet-500 to-fuchsia-500', dot: 'bg-violet-400', text: 'text-violet-200' },
+  { label: 'Processing', accent: 'from-amber-500 to-orange-500', dot: 'bg-amber-400', text: 'text-amber-200' },
+  { label: 'Completed', accent: 'from-emerald-500 to-green-500', dot: 'bg-emerald-400', text: 'text-emerald-200' },
+];
 
 export default function Hero() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    const total = progressSteps.length;
+    const total = progressSteps.length + 1;
     const t = setInterval(() => setCurrentStep(s => (s + 1) % total), 2200);
     return () => clearInterval(t);
   }, []);
@@ -179,107 +184,117 @@ export default function Hero() {
           </div>
 
           {/* ── Right: Floating Cards + Progress Widget ─── */}
-          <div className="hidden lg:block relative">
-            {/* Centre circle decoration */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-56 h-56 rounded-full border-2 border-white/10" />
-              <div className="absolute w-80 h-80 rounded-full border border-white/5" />
-            </div>
+          <div className="w-full md:w-[90%] lg:w-full mx-auto">
+            <div className="hidden md:block relative">
+              {/* Centre circle decoration */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-56 h-56 rounded-full border-2 border-white/10" />
+                <div className="absolute w-80 h-80 rounded-full border border-white/5" />
+              </div>
 
-            {/* Floating product cards */}
-            <div className="relative h-[420px]">
-              {floatingProducts.map((p, i) => {
-                return (
-                  <motion.div
-                    key={p.name}
-                    className={`absolute ${p.x} ${p.y}`}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.4 + i * 0.15 }}
-                  >
-                    <div
-                      className="w-44 bg-white rounded-2xl p-4 shadow-xl border border-brand-100 hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden"
-                      style={{ animation: `float ${6 + i}s ease-in-out ${p.delay}s infinite` }}
+              {/* Floating product cards */}
+              <div className="relative h-[320px] sm:h-[360px] lg:h-[420px]">
+                {floatingProducts.map((p, i) => {
+                  return (
+                    <motion.div
+                      key={p.name}
+                      className={`absolute ${p.x} ${p.y}`}
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.4 + i * 0.15 }}
                     >
-                      {/* Banner image for the product */}
-                      {p.banner && (
-                        <img
-                          src={p.banner}
-                          alt={`${p.name} banner`}
-                          className="w-full h-20 object-cover rounded-lg mb-3"
-                        />
-                      )}
+                      <div
+                        className="w-32 sm:w-36 lg:w-44 bg-white rounded-2xl p-3 sm:p-4 shadow-xl border border-brand-100 hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden"
+                        style={{ animation: `float ${6 + i}s ease-in-out ${p.delay}s infinite` }}
+                      >
+                        {/* Banner image for the product */}
+                        {p.banner && (
+                          <img
+                            src={p.banner}
+                            alt={`${p.name} banner`}
+                            className="w-full h-16 sm:h-20 object-cover rounded-lg mb-3"
+                          />
+                        )}
 
-                      {/* Icon removed to let banner occupy top of card */}
-                      <p className="text-sm font-bold text-ink-800 mt-1">{p.name}</p>
-                      <p className="text-xs font-semibold mt-1" style={{ color: p.color }}>{p.price}</p>
-                      <div className="flex items-center gap-1 mt-2">
-                        <span className="w-2 h-2 rounded-full bg-accent-green" />
-                        <span className="text-[10px] text-ink-300">Available</span>
+                        <p className="text-sm font-bold text-ink-800 mt-1">{p.name}</p>
+                        <p className="text-xs font-semibold mt-1" style={{ color: p.color }}>{p.price}</p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <span className="w-2 h-2 rounded-full bg-accent-green" />
+                          <span className="text-[10px] text-ink-300">Available</span>
+                        </div>
                       </div>
+                    </motion.div>
+                  );
+                })}
+
+                {/* Central hero image area */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, delay: 0.25 }}
+                    className="w-44 sm:w-48 lg:w-52 bg-white/15 backdrop-blur-md border border-white/25 rounded-3xl p-4 text-center shadow-2xl overflow-hidden relative"
+                  >
+                    <img
+                      src="https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"
+                      alt="QuickSub background"
+                      className="absolute inset-0 w-full h-full object-cover opacity-15"
+                    />
+
+                    <div className="relative z-10">
+                      <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+                        <Zap size={26} className="text-brand-600" />
+                      </div>
+                      <p className="text-white font-heading font-bold text-base">QuickSub</p>
+                      <p className="text-blue-200 text-[11px] mt-0.5">Fast. Safe. Reliable.</p>
                     </div>
                   </motion.div>
-                );
-              })}
-
-              {/* Central hero image area */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.25 }}
-                  className="w-52 bg-white/15 backdrop-blur-md border border-white/25 rounded-3xl p-4 text-center shadow-2xl overflow-hidden relative"
-                >
-                  {/* Background banner image */}
-                  <img
-                    src="https://images.pexels.com/photos/7974/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600"
-                    alt="QuickSub background"
-                    className="absolute inset-0 w-full h-full object-cover opacity-15"
-                  />
-                  
-                  {/* Content overlay */}
-                  <div className="relative z-10">
-                    <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-                      <Zap size={26} className="text-brand-600" />
-                    </div>
-                    <p className="text-white font-heading font-bold text-base">QuickSub</p>
-                    <p className="text-blue-200 text-[11px] mt-0.5">Fast. Safe. Reliable.</p>
-                  </div>
-                </motion.div>
+                </div>
               </div>
-            </div>
 
-            {/* Order Progress Widget */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, delay: 0.9 }}
-                  className="mt-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-5"
-                >
-                  <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">Live Order Status</p>
-                  <div className="flex items-center gap-2">
-                    {progressSteps.map((step, i) => {
-                      const completed = currentStep > i; // strictly greater means finished that step
-                      const finishedAll = currentStep === progressSteps.length;
-                      const barClass = completed ? (finishedAll ? 'bg-green-300' : 'bg-yellow-300') : 'bg-white/15';
-                      const textClass = completed ? (finishedAll ? 'text-green-300' : 'text-yellow-300') : 'text-white/40';
-                      return (
-                        <div key={step} className="flex-1 flex flex-col items-center gap-1.5">
-                          <div className={`w-full h-1.5 rounded-full transition-all duration-700 ${barClass}`} />
-                          <span className={`text-[9px] font-medium leading-tight text-center transition-colors duration-500 ${textClass}`}>
-                            {step}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-xs">
-                    <CheckCircle2 size={12} className={currentStep === progressSteps.length ? 'text-green-300' : 'text-yellow-300'} />
-                    <span className={currentStep === progressSteps.length ? 'text-green-200' : 'text-yellow-200'}>
-                      {currentStep === progressSteps.length ? 'All completed' : 'Processing on track'}
-                    </span>
-                  </div>
-                </motion.div>
+              {/* Order Progress Widget */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.9 }}
+                className="mt-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5"
+              >
+                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">Live Order Status</p>
+                <div className="flex items-start gap-2 sm:gap-3">
+                  {progressSteps.map((step, i) => {
+                    const isComplete = currentStep === progressSteps.length;
+                    const activeIndex = isComplete ? progressSteps.length - 1 : Math.min(currentStep, progressSteps.length - 1);
+                    const isDone = i < activeIndex || isComplete;
+                    const isActive = i === activeIndex && !isComplete;
+                    const barClass = isDone || isActive ? `bg-gradient-to-r ${step.accent}` : 'bg-white/10';
+                    const textClass = isDone || isActive ? step.text : 'text-white/40';
+
+                    return (
+                      <div key={step.label} className="flex-1 flex flex-col items-center gap-2">
+                        <div className={`w-full h-1.5 rounded-full transition-all duration-700 ${barClass}`} />
+                        <span className={`text-[9px] sm:text-[10px] font-medium leading-tight text-center transition-colors duration-500 ${textClass}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-xs sm:text-sm">
+                  <CheckCircle2 size={14} className={currentStep === progressSteps.length ? 'text-emerald-300' : 'text-sky-300'} />
+                  <span className={currentStep === progressSteps.length ? 'text-emerald-100' : 'text-blue-100'}>
+                    {currentStep === progressSteps.length
+                      ? 'All steps completed'
+                      : currentStep === 0
+                        ? 'Product selected, preparing payment'
+                        : currentStep === 1
+                          ? 'Payment verified, moving to processing'
+                          : currentStep === 2
+                            ? 'Order is being processed now'
+                            : 'Finishing the final confirmation'}
+                  </span>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>

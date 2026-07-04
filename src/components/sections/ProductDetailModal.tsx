@@ -37,7 +37,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+            className="bg-white rounded-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl custom-scrollbar"
             onClick={e => e.stopPropagation()}
           >
             {/* Header image */}
@@ -171,8 +171,6 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
               ) : (
                 <a
                   href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-200 hover:shadow-lg"
                   style={{ backgroundColor: product.accentColor }}
                 >
