@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useProducts } from '../../data/catalog';
 import { motion } from 'framer-motion';
 import { Shield, MessageCircle, Clock, Tv, Music, Crosshair, Bot, CheckCircle2, ArrowRight, Zap, Star } from 'lucide-react';
 
@@ -59,6 +60,11 @@ const progressSteps = [
 ];
 
 export default function Hero() {
+  const products = useProducts();
+  const cards = floatingProducts.flatMap((card, index) => {
+    const product = products.find(p => p.id === ['1','2','3','7'][index]);
+    return product ? [{ ...card, name: product.name, price: product.startingPrice.replace('Starting from ', ''), banner: product.bannerImage, available: !product.outOfStock }] : [];
+  });
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
@@ -176,7 +182,7 @@ export default function Hero() {
             >
               {stats.map(s => (
                 <div key={s.label}>
-                  <p className="font-heading text-2xl font-extrabold text-white">{s.value}</p>
+                  <p className="font-heading text-2xl font-extrabold text-white">{s.label === 'Products Available' ? String(products.length) : s.value}</p>
                   <p className="text-xs text-blue-200 mt-0.5">{s.label}</p>
                 </div>
               ))}
@@ -194,7 +200,7 @@ export default function Hero() {
 
               {/* Floating product cards */}
               <div className="relative h-[320px] sm:h-[360px] lg:h-[420px]">
-                {floatingProducts.map((p, i) => {
+                {cards.map((p, i) => {
                   return (
                     <motion.div
                       key={p.name}
@@ -220,7 +226,7 @@ export default function Hero() {
                         <p className="text-xs font-semibold mt-1" style={{ color: p.color }}>{p.price}</p>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="w-2 h-2 rounded-full bg-accent-green" />
-                          <span className="text-[10px] text-ink-300">Available</span>
+                          <span className="text-[10px] text-ink-300">{p.available ? 'Available' : 'Out of stock'}</span>
                         </div>
                       </div>
                     </motion.div>

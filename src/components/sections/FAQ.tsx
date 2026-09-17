@@ -1,10 +1,12 @@
+import { useStore } from '../../data/store';
+import SupportRequest from '../ui/SupportRequest';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { faqItems } from '../../data/faq';
 import { ChevronDown, MessageCircle, HelpCircle } from 'lucide-react';
 
 function AccordionItem({ item, isOpen, onToggle, index }: {
-  item: typeof faqItems[0];
+  item: {id:string;question:string;answer:string};
   isOpen: boolean;
   onToggle: () => void;
   index: number;
@@ -46,6 +48,7 @@ function AccordionItem({ item, isOpen, onToggle, index }: {
 }
 
 export default function FAQ() {
+  const items = useStore().faq ?? faqItems;
   const [openId, setOpenId] = useState<string | null>('1');
 
   return (
@@ -73,7 +76,7 @@ export default function FAQ() {
             </motion.div>
 
             <div className="space-y-3">
-              {faqItems.map((item, i) => (
+              {items.map((item, i) => (
                 <AccordionItem
                   key={item.id}
                   item={item}
@@ -106,7 +109,7 @@ export default function FAQ() {
                   </p>
                 </div>
                 <div className="bg-white p-5">
-                  <button className="w-full px-4 py-3 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all">
+                  <button onClick={() => window.dispatchEvent(new Event('quicksub:open-chat'))} className="w-full px-4 py-3 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all">
                     Start Chat
                   </button>
                   <p className="text-xs text-ink-300 text-center mt-3">
@@ -128,6 +131,7 @@ export default function FAQ() {
                   <a href="#contact" className="inline-block mt-3 text-xs font-semibold text-brand-600 hover:text-brand-700">
                     Contact Us →
                   </a>
+                  <SupportRequest />
                 </div>
               </div>
             </motion.div>
@@ -141,7 +145,7 @@ export default function FAQ() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: faqItems.map(item => ({
+            mainEntity: items.map(item => ({
               '@type': 'Question',
               name: item.question,
               acceptedAnswer: { '@type': 'Answer', text: item.answer },

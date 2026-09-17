@@ -1,0 +1,5 @@
+PASS login
+PASS product edit
+PASS customer form
+PASS order created
+PASS browser: admin login, edit product, customer checkout, payment submission, admin fulfillment, private tracking, mobile layout, blocked external requests, no runtime errors.

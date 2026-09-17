@@ -1,9 +1,11 @@
+import { useStore } from '../../data/store';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText } from 'lucide-react';
 import { legalDocuments } from '../../data/legal';
 
 export default function LegalModal() {
+  const policies = useStore().policies;
   const [open, setOpen] = useState(false);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
 
@@ -19,7 +21,7 @@ export default function LegalModal() {
     return () => window.removeEventListener('quicksub:open-legal', handler);
   }, []);
 
-  const doc = activeDoc ? legalDocuments[activeDoc] : null;
+  const doc = activeDoc ? policies?.[activeDoc] || legalDocuments[activeDoc] : null;
 
   const close = () => {
     setOpen(false);

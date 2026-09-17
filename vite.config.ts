@@ -15,7 +15,8 @@ export default defineConfig({
       },
       '/api': {
         target: 'http://localhost:4000',
-        changeOrigin: true,
+        // Preserve the browser-facing host for the chat endpoint's origin check.
+        changeOrigin: false,
       },
     },
   },

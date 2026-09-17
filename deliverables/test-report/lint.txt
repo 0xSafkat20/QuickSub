@@ -1,0 +1,16 @@
+
+> vite-react-typescript-starter@0.0.0 lint
+> eslint .
+
+
+C:\Users\CCB\OneDrive\Desktop\QuickSub\src\components\sections\CompareDrawer.tsx
+  21:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\CCB\OneDrive\Desktop\QuickSub\src\components\ui\LegalModal.tsx
+  98:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\CCB\OneDrive\Desktop\QuickSub\src\context\WishlistContext.tsx
+  22:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 3 problems (0 errors, 3 warnings)
+

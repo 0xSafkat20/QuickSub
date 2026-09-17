@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, ArrowRight, Clock, Tag } from 'lucide-react';
-import { products, type Product } from '../../data/products';
+import type { Product } from '../../data/products';
+import { useProducts } from '../../data/catalog';
 
 interface SearchModalProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface SearchModalProps {
 }
 
 export default function SearchModal({ open, onClose, onSelectProduct }: SearchModalProps) {
+  const products = useProducts();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +26,7 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
         p.category.toLowerCase().includes(q) ||
         p.badges.some(b => b.toLowerCase().includes(q))
     );
-  }, [query]);
+  }, [query, products]);
 
   useEffect(() => {
     if (open) {
@@ -37,6 +39,11 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
   useEffect(() => {
     setActiveIndex(0);
   }, [query]);
+
+  const handleSelect = useCallback((product: Product) => {
+    onClose();
+    onSelectProduct?.(product);
+  }, [onClose, onSelectProduct]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,13 +63,7 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, results, activeIndex, onClose]);
-
-  const handleSelect = (product: Product) => {
-    onClose();
-    document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
-    onSelectProduct?.(product);
-  };
+  }, [open, results, activeIndex, onClose, handleSelect]);
 
   return (
     <AnimatePresence>

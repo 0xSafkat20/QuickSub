@@ -48,6 +48,10 @@ export const legalDocuments: Record<string, LegalDocument> = {
         body: 'Your data is used to process orders, provide customer support, send order updates, and improve our services. We do not sell your personal information to third parties.',
       },
       {
+        heading: 'AI Support Chat',
+        body: 'When you send a support chat message, its text and recent conversation context are sent to Google Gemini to generate a reply. Do not share passwords, OTPs, payment PINs or card details. QuickSub keeps recent chat context temporarily in server memory, expires it after 30 minutes of inactivity, and removes expired sessions on subsequent chat requests. AI replies can be inaccurate; human support confirms package prices and handles payments and orders. Provider processing is subject to Google Gemini data policies.',
+      },
+      {
         heading: 'Data Storage',
         body: 'Order-related data is stored securely and retained only as long as needed for support, legal compliance, and dispute resolution.',
       },

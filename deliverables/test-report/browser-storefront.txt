@@ -1,0 +1,6 @@
+PASS header search clears conflicting product text filter
+PASS numeric price sorting
+PASS favorites persist across page reload
+PASS compare selection state
+PASS legal policy dialog
+PASS storefront regressions with external resources blocked and no runtime errors

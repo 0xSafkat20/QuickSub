@@ -1,3 +1,5 @@
+Current admin and checkout setup: see [ADMIN-SETUP.md](../ADMIN-SETUP.md). The Node server must run alongside the production frontend; static-only hosting cannot support these APIs.
+
 QuickSub backend
 
 This small Express backend exposes two endpoints to keep your WhatsApp contact number out of the frontend code.

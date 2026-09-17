@@ -1,0 +1,402 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Netflix Premium",
+      "category": "streaming",
+      "description": "Premium entertainment — movies, shows, documentaries, and family streaming.",
+      "details": "Choose a Netflix Premium plan based on your preferred duration. Support guides you through activation and renewal.",
+      "startingPrice": "Starting from ৳299",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month Premium",
+      "inStock": true
+    },
+    {
+      "id": "2",
+      "name": "Spotify Premium",
+      "category": "music",
+      "description": "Stream music, podcasts, and playlists with a seamless listening experience.",
+      "details": "Get Spotify Premium access with clear package options and support for setup or renewal questions.",
+      "startingPrice": "Starting from ৳149",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Individual",
+      "inStock": true
+    },
+    {
+      "id": "3",
+      "name": "PUBG UC",
+      "category": "gaming",
+      "description": "Top up PUBG UC for in-game items, upgrades, events, and premium gaming content.",
+      "details": "Select your UC package, provide the required game details securely, and track your delivery status.",
+      "startingPrice": "Starting from ৳199",
+      "deliveryEstimate": "15 min – 1 hour",
+      "popularPlan": "325 UC",
+      "inStock": true
+    },
+    {
+      "id": "4",
+      "name": "Freefire Diamonds",
+      "category": "gaming",
+      "description": "Buy Freefire Diamonds for skins, passes, bundles, and in-game upgrades.",
+      "details": "Choose a Diamond package and submit accurate player details for smooth top-up processing.",
+      "startingPrice": "Starting from ৳99",
+      "deliveryEstimate": "10 min – 45 min",
+      "popularPlan": "100 Diamonds",
+      "inStock": true
+    },
+    {
+      "id": "5",
+      "name": "eFootball Coins",
+      "category": "gaming",
+      "description": "Get eFootball Coins for player packs, upgrades, campaigns, and in-game purchases.",
+      "details": "Select your coin package and follow the guided order process for a reliable top-up experience.",
+      "startingPrice": "Starting from ৳249",
+      "deliveryEstimate": "15 min – 1 hour",
+      "popularPlan": "100 Coins",
+      "inStock": false
+    },
+    {
+      "id": "6",
+      "name": "Mobile Legend Coins",
+      "category": "gaming",
+      "description": "Purchase ML Coins or Diamonds for heroes, skins, events, and battle upgrades.",
+      "details": "Submit your correct player details and choose a package that matches your gaming needs.",
+      "startingPrice": "Starting from ৳89",
+      "deliveryEstimate": "10 min – 30 min",
+      "popularPlan": "86 Diamonds",
+      "inStock": true
+    },
+    {
+      "id": "7",
+      "name": "ChatGPT Subscription",
+      "category": "ai",
+      "description": "Advanced AI for studying, writing, productivity, coding, planning, and business.",
+      "details": "Choose a ChatGPT subscription package and get support for activation, renewal, and usage guidance.",
+      "startingPrice": "Starting from ৳499",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month Plus",
+      "inStock": true
+    },
+    {
+      "id": "8",
+      "name": "QuillBot Premium",
+      "category": "ai",
+      "description": "AI-powered paraphrasing, grammar checking, summarizing, and writing enhancement.",
+      "details": "Unlock QuillBot Premium for unlimited paraphrasing modes, advanced grammar checks, summarizer, and plagiarism detection.",
+      "startingPrice": "Starting from ৳349",
+      "deliveryEstimate": "30 min – 1.5 hours",
+      "popularPlan": "1 Month Premium",
+      "inStock": true
+    },
+    {
+      "id": "9",
+      "name": "Disney+ Hotstar",
+      "category": "streaming",
+      "description": "Stream Disney, Marvel, Star Wars, Pixar, National Geographic, and live sports.",
+      "details": "Get Disney+ Hotstar Premium for unlimited access to Disney originals, blockbusters, and live sports content.",
+      "startingPrice": "Starting from ৳199",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Premium",
+      "inStock": true
+    },
+    {
+      "id": "10",
+      "name": "YouTube Premium",
+      "category": "streaming",
+      "description": "Ad-free YouTube, background play, YouTube Music, and YouTube Originals access.",
+      "details": "Enjoy YouTube without interruptions — ad-free videos, offline downloads, background play, and YouTube Music included.",
+      "startingPrice": "Starting from ৳179",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Individual",
+      "inStock": true
+    },
+    {
+      "id": "11",
+      "name": "Valorant VP",
+      "category": "gaming",
+      "description": "Purchase Valorant Points for skins, agents, battle passes, and in-game bundles.",
+      "details": "Choose a VP package and top up your Valorant account to unlock premium skins and exclusive bundle packs.",
+      "startingPrice": "Starting from ৳149",
+      "deliveryEstimate": "15 min – 45 min",
+      "popularPlan": "475 VP",
+      "inStock": false
+    },
+    {
+      "id": "12",
+      "name": "Canva Pro",
+      "category": "ai",
+      "description": "Professional design platform with AI tools, premium templates, and brand kits.",
+      "details": "Unlock Canva Pro for unlimited premium templates, background remover, AI image generation, brand kits, and team collaboration.",
+      "startingPrice": "Starting from ৳399",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month Pro",
+      "inStock": true
+    },
+    {
+      "id": "13",
+      "name": "Microsoft 365",
+      "category": "ai",
+      "description": "Full Office suite — Word, Excel, PowerPoint, Teams, OneDrive, and Copilot AI.",
+      "details": "Get Microsoft 365 for access to Word, Excel, PowerPoint, Outlook, Teams, 1TB OneDrive, and Microsoft Copilot AI features.",
+      "startingPrice": "Starting from ৳599",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month Personal",
+      "inStock": true
+    },
+    {
+      "id": "14",
+      "name": "Apple Music",
+      "category": "music",
+      "description": "Over 100 million songs, spatial audio, lyrics view, and offline downloads.",
+      "details": "Stream 100M+ songs with lossless audio, spatial sound, and seamless Apple device integration.",
+      "startingPrice": "Starting from ৳169",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Individual",
+      "inStock": true
+    },
+    {
+      "id": "15",
+      "name": "Clash of Clans Gems",
+      "category": "gaming",
+      "description": "Top up CoC Gems for builder boosts, hero upgrades, and speed-ups.",
+      "details": "Get Clash of Clans Gems delivered fast — builder boosts, troop upgrades, and season challenges all within reach.",
+      "startingPrice": "Starting from ৳149",
+      "deliveryEstimate": "10 min – 30 min",
+      "popularPlan": "80 Gems",
+      "inStock": true
+    },
+    {
+      "id": "16",
+      "name": "Roblox Robux",
+      "category": "gaming",
+      "description": "Purchase Robux for avatars, game passes, limiteds, and premium experiences.",
+      "details": "Top up Robux to customize your avatar, unlock game passes, and access premium experiences across millions of worlds.",
+      "startingPrice": "Starting from ৳99",
+      "deliveryEstimate": "10 min – 30 min",
+      "popularPlan": "400 Robux",
+      "inStock": true
+    },
+    {
+      "id": "17",
+      "name": "Midjourney",
+      "category": "ai",
+      "description": "AI-powered image generation for creative projects, concept art, and visual design.",
+      "details": "Generate stunning AI artwork with Midjourney — from concept art and illustrations to photorealistic renders and brand visuals.",
+      "startingPrice": "Starting from ৳449",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month Basic",
+      "inStock": true
+    },
+    {
+      "id": "18",
+      "name": "Notion AI",
+      "category": "ai",
+      "description": "AI writing, summarizing, brainstorming, and project management inside Notion.",
+      "details": "Supercharge Notion with AI — auto-summarize docs, generate content, brainstorm ideas, and manage projects faster.",
+      "startingPrice": "Starting from ৳399",
+      "deliveryEstimate": "30 min – 1.5 hours",
+      "popularPlan": "1 Month Plus",
+      "inStock": true
+    },
+    {
+      "id": "19",
+      "name": "Grammarly Premium",
+      "category": "ai",
+      "description": "Advanced grammar, tone detection, plagiarism check, and AI-powered writing assistance.",
+      "details": "Write with confidence — Grammarly Premium catches grammar errors, adjusts tone, checks plagiarism, and suggests AI rewrites.",
+      "startingPrice": "Starting from ৳299",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Premium",
+      "inStock": true
+    },
+    {
+      "id": "20",
+      "name": "Adobe Creative Cloud",
+      "category": "ai",
+      "description": "Photoshop, Illustrator, Premiere Pro, After Effects, and Adobe Firefly AI.",
+      "details": "Access the full Adobe suite — Photoshop, Illustrator, Premiere Pro, After Effects, and Firefly generative AI in one plan.",
+      "startingPrice": "Starting from ৳799",
+      "deliveryEstimate": "30 min – 2 hours",
+      "popularPlan": "1 Month All Apps",
+      "inStock": false
+    },
+    {
+      "id": "21",
+      "name": "Amazon Prime Video",
+      "category": "streaming",
+      "description": "Stream movies, originals, live sports, and rent new releases on Prime Video.",
+      "details": "Watch Amazon Originals, blockbuster movies, live sports, and rent new releases — all included with Prime Video access.",
+      "startingPrice": "Starting from ৳199",
+      "deliveryEstimate": "30 min – 1 hour",
+      "popularPlan": "1 Month Prime",
+      "inStock": true
+    }
+  ],
+  "faq": [
+    {
+      "id": "1",
+      "question": "How fast will I receive my product?",
+      "answer": "Delivery time depends on the product type, package availability, payment confirmation, and the accuracy of the submitted details. Each product card shows an estimated delivery time.",
+      "category": "delivery"
+    },
+    {
+      "id": "6",
+      "question": "Do you offer refunds?",
+      "answer": "Refund rules are clearly defined by product type. Some digital products may not be refundable after successful processing. The policy is visible before checkout.",
+      "category": "payment"
+    },
+    {
+      "id": "7",
+      "question": "Is QuickSub affiliated with the brands listed?",
+      "answer": "QuickSub is an independent digital product and service provider. Product names, logos, and trademarks belong to their respective owners. QuickSub is not affiliated with or endorsed by those brands unless stated officially.",
+      "category": "security"
+    }
+  ],
+  "policies": {
+    "Terms and Conditions": {
+      "title": "Terms and Conditions",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "1. Acceptance of Terms",
+          "body": "By accessing or using QuickSub, you agree to these Terms and Conditions. If you do not agree, please do not use our services."
+        },
+        {
+          "heading": "2. Services",
+          "body": "QuickSub provides digital subscription access, gaming top-ups, and AI tool subscriptions. Product availability, pricing, and delivery times may change without prior notice."
+        },
+        {
+          "heading": "3. Orders and Payment",
+          "body": "All orders are subject to payment verification. You must provide accurate account or game details. QuickSub reserves the right to cancel orders with incorrect or incomplete information."
+        },
+        {
+          "heading": "4. Delivery",
+          "body": "Delivery times shown on product cards are estimates. Most orders are processed within the stated window after payment confirmation. Delays may occur during high demand or verification checks."
+        },
+        {
+          "heading": "5. Account Responsibility",
+          "body": "You are responsible for maintaining the security of your accounts and for all activity under your order details. QuickSub is not liable for issues caused by incorrect information you provide."
+        },
+        {
+          "heading": "6. Limitation of Liability",
+          "body": "QuickSub is an independent reseller and is not affiliated with the brands listed unless stated otherwise. We are not responsible for third-party service outages, policy changes, or account restrictions imposed by original providers."
+        }
+      ]
+    },
+    "Privacy Policy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "Information We Collect",
+          "body": "We collect information you provide when ordering (name, contact details, game IDs, payment references) and technical data such as browser type and page visits."
+        },
+        {
+          "heading": "How We Use Your Data",
+          "body": "Your data is used to process orders, provide customer support, send order updates, and improve our services. We do not sell your personal information to third parties."
+        },
+        {
+          "heading": "AI Support Chat",
+          "body": "When you send a support chat message, its text and recent conversation context are sent to Google Gemini to generate a reply. Do not share passwords, OTPs, payment PINs or card details. QuickSub keeps recent chat context temporarily in server memory, expires it after 30 minutes of inactivity, and removes expired sessions on subsequent chat requests. AI replies can be inaccurate; human support confirms package prices and handles payments and orders. Provider processing is subject to Google Gemini data policies."
+        },
+        {
+          "heading": "Data Storage",
+          "body": "Order-related data is stored securely and retained only as long as needed for support, legal compliance, and dispute resolution."
+        },
+        {
+          "heading": "Your Rights",
+          "body": "You may request access to, correction of, or deletion of your personal data by contacting our support team. We will respond within a reasonable timeframe."
+        },
+        {
+          "heading": "Contact",
+          "body": "For privacy-related inquiries, reach us via WhatsApp or email listed in the Contact section."
+        }
+      ]
+    },
+    "Refund Policy": {
+      "title": "Refund Policy",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "General Policy",
+          "body": "Due to the digital nature of our products, refunds are generally not available once an order has been successfully delivered or activated."
+        },
+        {
+          "heading": "Eligible Refund Cases",
+          "body": "Refunds may be considered if: the order was not delivered within the promised timeframe, the wrong product was delivered, or a duplicate charge occurred."
+        },
+        {
+          "heading": "Non-Refundable Cases",
+          "body": "Refunds are not provided for: incorrect player IDs or account details submitted by the customer, account bans by game or service providers, or change of mind after successful delivery."
+        },
+        {
+          "heading": "How to Request",
+          "body": "Contact support within 48 hours of your order with your order ID and payment proof. Each case is reviewed individually."
+        }
+      ]
+    },
+    "Delivery Policy": {
+      "title": "Delivery Policy",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "Delivery Method",
+          "body": "All products are delivered digitally. Subscriptions are activated on your account or shared via secure credentials. Gaming top-ups are credited directly to your game account."
+        },
+        {
+          "heading": "Delivery Times",
+          "body": "Estimated delivery times are shown on each product card. Most orders complete within 15 minutes to 2 hours depending on product type and verification requirements."
+        },
+        {
+          "heading": "Order Tracking",
+          "body": "Use the Track Order feature in the header with your order ID to check status: Pending, Processing, or Delivered."
+        },
+        {
+          "heading": "Failed Deliveries",
+          "body": "If delivery fails due to incorrect details, our team will contact you to verify information. Repeated failed attempts may result in order cancellation."
+        }
+      ]
+    },
+    "Disclaimer": {
+      "title": "Disclaimer",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "Brand Independence",
+          "body": "QuickSub is an independent digital product provider. All product names, logos, and trademarks belong to their respective owners. QuickSub is not affiliated with, endorsed by, or sponsored by Netflix, Spotify, PUBG, OpenAI, or any other listed brand unless officially stated."
+        },
+        {
+          "heading": "Service Availability",
+          "body": "We do not guarantee uninterrupted access to third-party services. Outages, regional restrictions, and policy changes by original providers are outside our control."
+        },
+        {
+          "heading": "Pricing",
+          "body": "Prices displayed are starting prices in BDT and may vary by package duration or quantity. Final pricing is confirmed at the time of order."
+        }
+      ]
+    },
+    "Cookie Policy": {
+      "title": "Cookie Policy",
+      "lastUpdated": "June 2026",
+      "sections": [
+        {
+          "heading": "What We Use",
+          "body": "QuickSub uses browser local storage to remember your saved products (favorites) and cookie consent preference. We do not use third-party advertising or analytics tracking cookies."
+        },
+        {
+          "heading": "Managing Preferences",
+          "body": "You can clear local storage through your browser settings at any time. This will reset your saved products and cookie consent choice."
+        },
+        {
+          "heading": "Newsletter",
+          "body": "If you subscribe to our newsletter, your email is stored securely via Supabase and used only for promotional updates. You can unsubscribe at any time."
+        }
+      ]
+    }
+  },
+  "operations": {
+    "ordering": "Open product details to select an available exact-price package and place an order. Save the receipt ID and private access code. Payment references are reviewed manually. If no packages are available, contact WhatsApp support.",
+    "supportHours": "10 AM–11 PM Bangladesh time (UTC+6)",
+    "limitations": "The support assistant cannot access private orders or confirm payment. Direct customers to Track Order with their saved receipt ID and private access code; never ask them to paste the access code into AI chat. Fulfillment and refunds are handled by staff, not automatically."
+  }
+}

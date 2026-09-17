@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { products, type Product } from '../../data/products';
+import type { Product } from '../../data/products';
+import { useProducts } from '../../data/catalog';
 import ProductDetailModal from './ProductDetailModal';
 import { useCompare } from './CompareDrawer';
 import { useWishlist } from '../../context/WishlistContext';
@@ -35,13 +36,6 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'newest';
-
-const priceMap: Record<string, number> = {
-  '1': 299, '2': 149, '3': 199, '4': 99, '5': 249, '6': 89,
-  '7': 499, '8': 349, '9': 199, '10': 179, '11': 149, '12': 399,
-  '13': 599, '14': 169, '15': 149, '16': 99, '17': 449, '18': 399,
-  '19': 299, '20': 799, '21': 199,
-};
 
 function CompareButton({ product }: { product: Product }) {
   const { addToCompare, isInCompare } = useCompare();
@@ -78,7 +72,7 @@ function ProductCard({
   const { isFavorite, toggleFavorite } = useWishlist();
   const isFav = isFavorite(product.id);
   const oos = !!product.outOfStock;
-  const [isNotified, setIsNotified] = useState(false);
+  const isNotified = false;
   const [expandedMobile, setExpandedMobile] = useState(false);
   const totalSales = product.soldItems ? product.soldItems.reduce((acc, item) => acc + item.count, 0) : 0;
 
@@ -271,7 +265,7 @@ function ProductCard({
               onClick={e => {
                 e.stopPropagation();
                 onRequestNotify(product);
-                setIsNotified(true);
+
               }}
               disabled={isNotified}
               className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 ${
@@ -313,11 +307,17 @@ interface ProductGridProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
   highlightProductId?: string | null;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
+  inStockOnly: boolean;
+  onInStockOnlyChange: (inStockOnly: boolean) => void;
 }
 
-export default function ProductGrid({ activeFilter, onFilterChange, highlightProductId }: ProductGridProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inStockOnly, setInStockOnly] = useState(false);
+export default function ProductGrid({
+  activeFilter, onFilterChange, highlightProductId,
+  searchQuery, onSearchQueryChange, inStockOnly, onInStockOnlyChange,
+}: ProductGridProps) {
+  const products = useProducts();
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
@@ -336,10 +336,10 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
     }
     switch (sortBy) {
       case 'price-asc':
-        list.sort((a, b) => (priceMap[a.id] ?? 0) - (priceMap[b.id] ?? 0));
+        list.sort((a, b) => Number(a.startingPrice.replace(/[^\d.]/g, '')) - Number(b.startingPrice.replace(/[^\d.]/g, '')));
         break;
       case 'price-desc':
-        list.sort((a, b) => (priceMap[b.id] ?? 0) - (priceMap[a.id] ?? 0));
+        list.sort((a, b) => Number(b.startingPrice.replace(/[^\d.]/g, '')) - Number(a.startingPrice.replace(/[^\d.]/g, '')));
         break;
       case 'name-asc':
         list.sort((a, b) => a.name.localeCompare(b.name));
@@ -349,21 +349,14 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
         break;
     }
     return list;
-  }, [activeFilter, searchQuery, inStockOnly, sortBy]);
+  }, [activeFilter, searchQuery, inStockOnly, sortBy, products]);
 
   const totalOos = useMemo(
     () => (activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter)).filter(p => p.outOfStock).length,
-    [activeFilter]
+    [activeFilter, products]
   );
 
-  const requestNotify = (product: Product) => {
-    fetch('/api/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: product.id, productName: product.name }),
-    }).catch(() => {});
-  };
-
+  const requestNotify = (product: Product) => { setDetailProduct(product); };
   return (
     <section id="products" className="py-20 bg-page">
       <div className="max-w-7xl mx-auto px-4">
@@ -386,13 +379,13 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
             <input
               type="text"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => onSearchQueryChange(e.target.value)}
               placeholder="Search products (e.g. Netflix, PUBG, AI…)"
               className="w-full pl-11 pr-10 py-3 bg-white border-2 border-brand-100 rounded-2xl text-sm text-ink-800 placeholder-ink-300 focus:outline-none focus:border-brand-400 focus:shadow-blue-sm transition-all shadow-card"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => onSearchQueryChange('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-300 hover:text-ink-600 transition-colors"
                 aria-label="Clear search"
               >
@@ -470,7 +463,7 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
             )}
             {totalOos > 0 && (
               <button
-                onClick={() => setInStockOnly(v => !v)}
+                onClick={() => onInStockOnlyChange(!inStockOnly)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-200 ${
                   inStockOnly
                     ? 'bg-brand-600 border-brand-600 text-white shadow-blue-sm'
@@ -510,7 +503,7 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
             <p className="text-sm text-ink-300">
               Try a different search or{' '}
               <button
-                onClick={() => { setSearchQuery(''); setInStockOnly(false); }}
+                onClick={() => { onSearchQueryChange(''); onInStockOnlyChange(false); onFilterChange('all'); }}
                 className="text-brand-600 hover:underline"
               >
                 reset filters
@@ -521,7 +514,7 @@ export default function ProductGrid({ activeFilter, onFilterChange, highlightPro
 
       </div>
 
-      <ProductDetailModal product={detailProduct} onClose={() => setDetailProduct(null)} />
+      <ProductDetailModal product={detailProduct ? products.find(p => p.id === detailProduct.id) || null : null} onClose={() => setDetailProduct(null)} />
     </section>
   );
 }

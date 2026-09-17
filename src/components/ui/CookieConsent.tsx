@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie } from 'lucide-react';
+import { safeStorageGet, safeStorageSet } from '../../utils/storage';
 
 const STORAGE_KEY = 'quicksub-cookie-consent';
 
@@ -8,7 +9,7 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem(STORAGE_KEY);
+    const accepted = safeStorageGet(STORAGE_KEY);
     if (!accepted) {
       const t = setTimeout(() => setVisible(true), 1500);
       return () => clearTimeout(t);
@@ -16,7 +17,7 @@ export default function CookieConsent() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem(STORAGE_KEY, 'accepted');
+    safeStorageSet(STORAGE_KEY, 'accepted');
     setVisible(false);
   };
 

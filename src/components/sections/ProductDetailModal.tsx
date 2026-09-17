@@ -1,6 +1,8 @@
+import CustomerOrder from './CustomerOrder';
+import SupportRequest from '../ui/SupportRequest';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, ArrowRight, Clock, Tag, Shield, MessageCircle,
+  X, Clock, Tag, Shield, MessageCircle,
   Truck, RefreshCw, Headphones,
 } from 'lucide-react';
 import type { Product } from '../../data/products';
@@ -166,16 +168,10 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   >
                     Out of Stock
                   </button>
-                  <p className="text-center text-xs text-ink-300">Join the waitlist to be notified when this product returns</p>
+                  <SupportRequest kind="restock" message={`Restock requested: ${product.name} (${product.id})`} />
                 </div>
               ) : (
-                <a
-                  href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-200 hover:shadow-lg"
-                  style={{ backgroundColor: product.accentColor }}
-                >
-                  {product.cta} <ArrowRight size={15} />
-                </a>
+                <CustomerOrder key={product.id} productId={product.id} productName={product.name} />
               )}
 
               {/* Support link */}

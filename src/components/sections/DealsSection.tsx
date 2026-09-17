@@ -1,4 +1,6 @@
+import { useStore } from '../../data/store';
 import { useState, useEffect } from 'react';
+import { useProducts } from '../../data/catalog';
 import { motion } from 'framer-motion';
 import { Flame, Clock, ArrowRight } from 'lucide-react';
 
@@ -9,12 +11,15 @@ const deals = [
   { name: 'ChatGPT Plus', discount: '10%', oldPrice: '৳550', newPrice: '৳499', color: '#10A37F', slug: 'chatgpt-subscription' },
 ];
 
-function useCountdown(targetDate: Date) {
+// One-month campaign, ending October 10 in Bangladesh time.
+const DEAL_END_TIME = new Date('2026-10-10T23:59:59+06:00').getTime();
+
+function useCountdown(targetTime: number) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const tick = () => {
-      const diff = targetDate.getTime() - Date.now();
+      const diff = targetTime - Date.now();
       if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
       return {
         days: Math.floor(diff / 86400000),
@@ -24,16 +29,34 @@ function useCountdown(targetDate: Date) {
       };
     };
     setTimeLeft(tick());
-    const id = setInterval(() => setTimeLeft(tick()), 1000);
+    if (targetTime <= Date.now()) return;
+    const id = setInterval(() => {
+      setTimeLeft(tick());
+      if (targetTime <= Date.now()) clearInterval(id);
+    }, 1000);
     return () => clearInterval(id);
-  }, [targetDate]);
+  }, [targetTime]);
 
   return timeLeft;
 }
 
 export default function DealsSection() {
-  const endDate = new Date('2026-07-31T23:59:59');
-  const { days, hours, minutes, seconds } = useCountdown(endDate);
+  const products = useProducts();
+  const { settings } = useStore();
+  const deadline = settings.dealEndsAt ? Date.parse(settings.dealEndsAt) : DEAL_END_TIME;
+  const configuredDeals = settings.deals === undefined ? deals : settings.deals.flatMap(d => {
+    const p = products.find(p=>p.id===d.productId);
+    return p ? [{name:p.name,discount:'',oldPrice:'৳'+d.oldPrice,newPrice:'',color:p.accentColor,slug:p.slug}] : [];
+  });
+  const currentDeals = configuredDeals.flatMap(deal => {
+    const product = products.find(p => p.slug === deal.slug && !p.outOfStock);
+    if (!product) return [];
+    const price = Number(product.startingPrice.replace(/[^\d.]/g, ''));
+    const oldPrice = Number(deal.oldPrice.replace(/[^\d.]/g, ''));
+    if (price >= oldPrice) return [];
+    return [{ ...deal, name: product.name, newPrice: '৳' + price, discount: Math.round((1 - price / oldPrice) * 100) + '%' }];
+  });
+  const { days, hours, minutes, seconds } = useCountdown(deadline);
 
   const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -80,7 +103,7 @@ export default function DealsSection() {
 
         {/* Deal cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {deals.map((deal, i) => (
+          {currentDeals.map((deal, i) => (
             <motion.div
               key={deal.name}
               initial={{ opacity: 0, y: 20 }}

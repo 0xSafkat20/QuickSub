@@ -1,3 +1,4 @@
+import { useStore } from '../../data/store';
 import { motion } from 'framer-motion';
 import { ArrowRight, MessageCircle, Phone, Mail, Clock, Package } from 'lucide-react';
 
@@ -33,6 +34,7 @@ const contactMethods = [
 ];
 
 export default function FinalCTA() {
+  const { settings } = useStore();
   return (
     <section id="contact" className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 gradient-primary" />
@@ -81,7 +83,7 @@ export default function FinalCTA() {
                   <Icon size={18} className="text-white" />
                 </div>
                 <p className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">{method.label}</p>
-                <p className="text-sm font-semibold text-white mb-2">{method.value}</p>
+                <p className="text-sm font-semibold text-white mb-2">{method.label === 'Support Hours' ? settings.supportHours || method.value : method.value}</p>
                 <span className="text-xs text-blue-200 group-hover:text-white transition-colors flex items-center gap-1">
                   {method.cta} <ArrowRight size={10} />
                 </span>

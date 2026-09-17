@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, GitCompare, Plus, Trash2 } from 'lucide-react';
-import { products, type Product } from '../../data/products';
+import type { Product } from '../../data/products';
+import { useProducts } from '../../data/catalog';
 
 interface CompareContextType {
   compareList: Product[];
@@ -22,7 +23,9 @@ export function useCompare() {
 }
 
 export function CompareProvider({ children }: { children: ReactNode }) {
-  const [compareList, setCompareList] = useState<Product[]>([]);
+  const products = useProducts();
+  const [selectedProducts, setCompareList] = useState<Product[]>([]);
+  const compareList = selectedProducts.flatMap(selected => products.filter(p => p.id === selected.id));
 
   const addToCompare = (product: Product) => {
     if (compareList.length >= 3 || compareList.some(p => p.id === product.id)) return;
@@ -56,6 +59,7 @@ const compareFields: { label: string; render: (p: Product) => React.ReactNode }[
 ];
 
 export default function CompareDrawer() {
+  const products = useProducts();
   const { compareList, addToCompare, removeFromCompare } = useCompare();
   const [open, setOpen] = useState(false);
   const [selecting, setSelecting] = useState(false);

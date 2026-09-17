@@ -1,0 +1,35 @@
+▶ Boundary, authorization and transaction regressions
+  ✔ password whitespace is preserved and session cookie is private (133.8636ms)
+  ✔ missing origin (12.6357ms)
+  ✔ missing CSRF header (5.3215ms)
+  ✔ cross origin (9.8225ms)
+  ✔ fractional pagination is normalized to an integer (31.0812ms)
+  ✔ null FAQ is a validation error, not server failure (4.7281ms)
+  ✔ null policy is a validation error, not server failure (5.4869ms)
+  ✔ null policy section is a validation error, not server failure (8.9749ms)
+  ✔ invalid operations is a validation error, not server failure (5.7787ms)
+  ✔ too many FAQ entries is a validation error, not server failure (6.0922ms)
+  ✔ empty published FAQ and offer lists remain empty (19.2613ms)
+  ✔ rejects invalid unknown mutation 1 (3.3727ms)
+  ✔ rejects invalid package mutation bad-id (6.8069ms)
+  ✔ rejects invalid package mutation 20000000 (4.6712ms)
+  ✔ rejects invalid order mutation 44017d68 (2.8445ms)
+  ✔ rejects invalid request mutation c6bc7c09 (4.1583ms)
+  ✔ rejects invalid content mutation unknown (3.5142ms)
+  ✔ punctuation-only contact is rejected (4.2192ms)
+  ✔ request rate limits have Retry-After and reset (20.7034ms)
+  ✔ simultaneous identical requests create one SQL order (16.7309ms)
+  ✔ failed fulfillment leaves both order and audit unchanged (14.5037ms)
+  ✔ refunds remove revenue and cannot be reversed (57.4623ms)
+  ✔ anonymous and ordinary authenticated users cannot read protected tables or execute RPCs (13.8274ms)
+  ✔ session expiration rejects previously valid cookies (3.2018ms)
+  ✔ login rate limit resets after a minute (15.3161ms)
+✔ Boundary, authorization and transaction regressions (4313.0453ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6039.6917

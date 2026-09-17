@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Tv, Music, Gamepad2, Bot, Layers, ArrowRight } from 'lucide-react';
-import { products } from '../../data/products';
+import { useProducts } from '../../data/catalog';
 
 interface CategorySectionProps {
   activeFilter: string;
@@ -61,6 +61,7 @@ const categoryData = [
 ];
 
 export default function CategorySection({ activeFilter, onFilterChange }: CategorySectionProps) {
+  const products = useProducts();
   const countByCategory = (cat: string) =>
     cat === 'all' ? products.length : products.filter(p => p.category === cat).length;
 

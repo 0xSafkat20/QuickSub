@@ -1,3 +1,4 @@
+import { api } from '../../utils/api';
 import { useState } from 'react';
 import { Facebook, Instagram, MessageCircle, Send, Mail, CheckCircle } from 'lucide-react';
 import { openLegalDoc } from '../ui/LegalModal';
@@ -27,13 +28,8 @@ export default function Footer() {
     if (!email.trim() || !email.includes('@')) return;
     setSubState('loading');
     try {
-      const res = await fetch('https://mqznrijupzuwlsloncxn.supabase.co/functions/v1/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = await res.json();
-      if (data.success) {
+      const data = await api<{ok:boolean}>('/requests', {kind:'newsletter', contact:email.trim(), message:''});
+      if (data.ok) {
         setSubState('success');
         setEmail('');
       } else {

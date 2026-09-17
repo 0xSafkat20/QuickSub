@@ -1,0 +1,7 @@
+PASS normal: catalog and wishlist work with external requests blocked
+PASS storage-denied: catalog and wishlist work with external requests blocked
+PASS writes-denied: catalog and wishlist work with external requests blocked
+PASS invalid-favorites: catalog and wishlist work with external requests blocked
+PASS null-favorites: catalog and wishlist work with external requests blocked
+PASS invalid-json: catalog and wishlist work with external requests blocked
+PASS mixed-favorites: catalog and wishlist work with external requests blocked

@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { products } from '../data/products';
+import type { Product } from '../data/products';
+import { useProducts } from '../data/catalog';
+import { safeStorageGet, safeStorageSet } from '../utils/storage';
 
 const STORAGE_KEY = 'quicksub-favorites';
 
@@ -7,7 +9,7 @@ interface WishlistContextType {
   favorites: string[];
   toggleFavorite: (productId: string) => void;
   isFavorite: (productId: string) => boolean;
-  favoriteProducts: typeof products;
+  favoriteProducts: Product[];
 }
 
 const WishlistContext = createContext<WishlistContextType>({
@@ -23,18 +25,24 @@ export function useWishlist() {
 
 function loadFavorites(): string[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = safeStorageGet(STORAGE_KEY);
+    const saved: unknown = raw ? JSON.parse(raw) : [];
+    // Stored preferences are untrusted: malformed values must not crash the store.
+    if (!Array.isArray(saved)) return [];
+    return [...new Set(saved.filter((id): id is string =>
+      typeof id === 'string' && id.length > 0 && id.length < 100
+    ))];
   } catch {
     return [];
   }
 }
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
+  const products = useProducts();
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+    safeStorageSet(STORAGE_KEY, JSON.stringify(favorites));
   }, [favorites]);
 
   const toggleFavorite = useCallback((productId: string) => {

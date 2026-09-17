@@ -1,0 +1,55 @@
+▶ Admin/customer integration with real local SQL and simulated Supabase Auth
+  ✔ admin requires authentication and blocks cross-origin login (77.4185ms)
+  ✔ owner catalog updates immediately reach customer API; staff cannot edit catalog (22.484ms)
+  ✔ customer order uses exact database price and retries do not duplicate (17.5234ms)
+  ✔ tracking code protects customer information (7.9015ms)
+  ✔ cannot deliver unpaid order; payment reference remains pending manual verification (35.0339ms)
+  ✔ staff delivery updates reach customer tracking and totals (30.2365ms)
+  ✔ stale customer quotes cannot create an order (5.5161ms)
+  ✔ package edits update starting prices and Gemini knowledge (28.2944ms)
+  ✔ offers and countdown settings reach customers and invalid settings are rejected (16.4492ms)
+  ✔ image uploads require owner access and safe image types (12.159ms)
+  ✔ hidden products cannot receive orders (16.0794ms)
+  ✔ FAQ and support request connect to both pages (59.6683ms)
+  ✔ revoked roles stop existing sessions; RPCs have no public execute permission (10.887ms)
+  ✔ logout removes session (4.7584ms)
+✔ Admin/customer integration with real local SQL and simulated Supabase Auth (5014.23ms)
+✔ database price, image and availability override bundled values (4.3515ms)
+✔ rejects malformed catalog records and unsafe image URLs (0.8123ms)
+✔ caches one shared database snapshot for the website and chatbot (8.4004ms)
+✔ outages preserve the last good data and identify it as stale (2.4734ms)
+✔ an intentionally empty initialized database stays empty (0.7699ms)
+✔ no credentials uses the local catalog without network calls (0.2948ms)
+✔ validates inputs and rejects cross-origin requests before calling provider (4.951ms)
+✔ uses current catalog, private API and bounded server-owned conversation history (4.6124ms)
+✔ Bangla replies and WhatsApp URLs are safely constructed from actual products (0.7763ms)
+✔ accepts same-origin development proxy requests with their original host (0.572ms)
+✔ missing key falls back to real catalog with honest stock information (0.9283ms)
+✔ provider failures, refusals and invalid recommendations degrade safely (1.8361ms)
+✔ provider timeouts produce a usable fallback (15.2295ms)
+✔ limits repeated calls and resets after a minute (1.7182ms)
+✔ expires conversation history after 30 minutes (0.781ms)
+✔ fresh database data controls Gemini knowledge and recommendation validation (0.6194ms)
+✔ prevents simultaneous turns from racing in the same conversation (0.5227ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6742.0374
+ℹ start of coverage report
+ℹ ------------------------------------------------------------------------------------------------------------
+ℹ file                   | line % | branch % | funcs % | uncovered lines
+ℹ ------------------------------------------------------------------------------------------------------------
+ℹ scripts                |        |          |         | 
+ℹ  admin-test-server.mjs |  97.54 |    80.56 |   94.12 | 196 226-230
+ℹ server                 |        |          |         | 
+ℹ  admin.js              |  96.29 |    62.84 |   95.35 | 21 58-59 237-241 283-285 287-289 374-375 396-398 533
+ℹ  catalog.js            | 100.00 |    85.45 |  100.00 | 
+ℹ  chat.js               |  98.39 |    89.74 |  100.00 | 61-62
+ℹ ------------------------------------------------------------------------------------------------------------
+ℹ all files              |  97.11 |    75.92 |   96.55 | 
+ℹ ------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

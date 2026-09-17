@@ -1,0 +1,90 @@
+
+> vite-react-typescript-starter@0.0.0 test:coverage
+> node --test --experimental-test-coverage server/*.test.js scripts/*.test.mjs
+
+▶ Boundary, authorization and transaction regressions
+  ✔ password whitespace is preserved and session cookie is private (828.4466ms)
+  ✔ missing origin (7.3317ms)
+  ✔ missing CSRF header (6.1006ms)
+  ✔ cross origin (5.6602ms)
+  ✔ fractional pagination is normalized to an integer (44.8151ms)
+  ✔ null FAQ is a validation error, not server failure (8.3936ms)
+  ✔ null policy is a validation error, not server failure (4.6719ms)
+  ✔ null policy section is a validation error, not server failure (4.2224ms)
+  ✔ invalid operations is a validation error, not server failure (8.7382ms)
+  ✔ too many FAQ entries is a validation error, not server failure (9.5349ms)
+  ✔ empty published FAQ and offer lists remain empty (54.3708ms)
+  ✔ rejects invalid unknown mutation 1 (6.3926ms)
+  ✔ rejects invalid package mutation bad-id (13.0526ms)
+  ✔ rejects invalid package mutation 20000000 (4.6034ms)
+  ✔ rejects invalid order mutation dfda9fe7 (6.6191ms)
+  ✔ rejects invalid request mutation 5098f0b8 (6.5194ms)
+  ✔ rejects invalid content mutation unknown (12.4503ms)
+  ✔ punctuation-only contact is rejected (3.1523ms)
+  ✔ request rate limits have Retry-After and reset (34.6894ms)
+  ✔ simultaneous identical requests create one SQL order (29.7755ms)
+  ✔ failed fulfillment leaves both order and audit unchanged (21.4971ms)
+  ✔ refunds remove revenue and cannot be reversed (92.6834ms)
+  ✔ anonymous and ordinary authenticated users cannot read protected tables or execute RPCs (33.9837ms)
+  ✔ session expiration rejects previously valid cookies (2.2596ms)
+  ✔ login rate limit resets after a minute (33.3358ms)
+✔ Boundary, authorization and transaction regressions (11233.2959ms)
+▶ Admin/customer integration with real local SQL and simulated Supabase Auth
+  ✔ admin requires authentication and blocks cross-origin login (532.1412ms)
+  ✔ owner catalog updates immediately reach customer API; staff cannot edit catalog (44.5364ms)
+  ✔ customer order uses exact database price and retries do not duplicate (27.4435ms)
+  ✔ tracking code protects customer information (16.5105ms)
+  ✔ cannot deliver unpaid order; payment reference remains pending manual verification (69.2782ms)
+  ✔ staff delivery updates reach customer tracking and totals (48.471ms)
+  ✔ stale customer quotes cannot create an order (4.8483ms)
+  ✔ package edits update starting prices and Gemini knowledge (47.6409ms)
+  ✔ offers and countdown settings reach customers and invalid settings are rejected (31.562ms)
+  ✔ image uploads require owner access and safe image types (24.8615ms)
+  ✔ hidden products cannot receive orders (20.6304ms)
+  ✔ FAQ and support request connect to both pages (77.348ms)
+  ✔ revoked roles stop existing sessions; RPCs have no public execute permission (13.3584ms)
+  ✔ logout removes session (11.4743ms)
+✔ Admin/customer integration with real local SQL and simulated Supabase Auth (8357.9328ms)
+✔ unconfigured admin API fails closed while public catalog helpers remain usable (241.7878ms)
+✔ network errors return safe outage messages without leaking credentials (45.2748ms)
+✔ provider authentication failures do not expose account existence or provider body (13.6463ms)
+✔ invalid login fields are rejected before any provider request (47.3259ms)
+✔ database price, image and availability override bundled values (2.3928ms)
+✔ rejects malformed catalog records and unsafe image URLs (0.5967ms)
+✔ caches one shared database snapshot for the website and chatbot (1.4944ms)
+✔ outages preserve the last good data and identify it as stale (0.7244ms)
+✔ an intentionally empty initialized database stays empty (0.4678ms)
+✔ no credentials uses the local catalog without network calls (0.259ms)
+✔ validates inputs and rejects cross-origin requests before calling provider (3.8874ms)
+✔ uses current catalog, private API and bounded server-owned conversation history (5.5298ms)
+✔ Bangla replies and WhatsApp URLs are safely constructed from actual products (1.1723ms)
+✔ accepts same-origin development proxy requests with their original host (1.0046ms)
+✔ missing key falls back to real catalog with honest stock information (2.6154ms)
+✔ provider failures, refusals and invalid recommendations degrade safely (2.4921ms)
+✔ provider timeouts produce a usable fallback (13.6299ms)
+✔ limits repeated calls and resets after a minute (2.8462ms)
+✔ expires conversation history after 30 minutes (1.2252ms)
+✔ fresh database data controls Gemini knowledge and recommendation validation (0.7207ms)
+✔ prevents simultaneous turns from racing in the same conversation (0.5779ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 62
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15917.7202
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------
+ℹ file                   | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------
+ℹ scripts                |        |          |         | 
+ℹ  admin-test-server.mjs |  97.55 |    83.56 |   94.12 | 196 227-231
+ℹ server                 |        |          |         | 
+ℹ  admin.js              |  98.34 |    83.43 |   95.35 | 283-285 377-378 399-401 536
+ℹ  catalog.js            | 100.00 |    85.45 |  100.00 | 
+ℹ  chat.js               |  98.39 |    89.74 |  100.00 | 61-62
+ℹ -----------------------------------------------------------------------------------
+ℹ all files              |  98.25 |    85.01 |   96.55 | 
+ℹ -----------------------------------------------------------------------------------
+ℹ end of coverage report

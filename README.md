@@ -1,5 +1,7 @@
 # QuickSub
 
+The current release includes a working `/admin` dashboard, Supabase-backed product/package management, customer checkout, manual payment verification, private order tracking, support inbox, offers and Gemini support. Start with [ADMIN-SETUP.md](ADMIN-SETUP.md) for installation and activation. The overview below describes the original storefront.
+
 ## Short Description
 
 **QuickSub** is a modern web-based platform for displaying and managing digital subscription services, gaming top-ups, music plans, streaming services, and productivity tools. The project is built as a professional landing page where users can explore available products, view prices, check delivery information, and contact support easily.
