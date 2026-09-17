@@ -124,7 +124,7 @@ const money = (value: number) =>
   "৳" + Number(value).toLocaleString("en-BD", { maximumFractionDigits: 2 });
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="ad-field">
+    <label className="qs-admin-field">
       <span>{label}</span>
       {children}
     </label>
@@ -134,7 +134,7 @@ function Badge({ children }: { children: ReactNode }) {
   return (
     <span
       className={
-        "ad-badge " +
+        "qs-admin-badge " +
         (["verified", "delivered", "resolved"].includes(String(children))
           ? "good"
           : "")
@@ -238,16 +238,16 @@ export default function AdminApp() {
   const owner = session?.role === "owner";
   if (checking)
     return (
-      <div className="admin-shell ad-loading">Loading secure workspace…</div>
+      <div className="admin-shell qs-admin-loading">Loading secure workspace…</div>
     );
   if (!session)
     return (
-      <div className="admin-shell ad-login">
-        <div className="ad-login-story">
-          <a href="/" className="ad-brand">
+      <div className="admin-shell qs-admin-login">
+        <div className="qs-admin-login-story">
+          <a href="/" className="qs-admin-brand">
             Q<span>QuickSub</span>
           </a>
-          <span className="ad-eyebrow">YOUR STORE, ONE WORKSPACE</span>
+          <span className="qs-admin-eyebrow">YOUR STORE, ONE WORKSPACE</span>
           <h1>
             A clearer view.
             <br />A better day.
@@ -256,17 +256,17 @@ export default function AdminApp() {
             Manage your catalog, keep orders moving, and help your customers—all
             in one place.
           </p>
-          <div className="ad-login-note">
+          <div className="qs-admin-login-note">
             <ShieldCheck /> Protected access for your store team
           </div>
         </div>
-        <main className="ad-login-form">
+        <main className="qs-admin-login-form">
           <form onSubmit={login}>
-            <span className="ad-eyebrow">QUICKSUB ADMIN</span>
+            <span className="qs-admin-eyebrow">QUICKSUB ADMIN</span>
             <h2>Welcome back</h2>
             <p>Sign in with your authorized Supabase account.</p>
             {error && (
-              <div role="alert" className="ad-error">
+              <div role="alert" className="qs-admin-error">
                 {error}
               </div>
             )}
@@ -286,13 +286,13 @@ export default function AdminApp() {
                 required
               />
             </Field>
-            <button className="ad-primary" disabled={busy}>
+            <button className="qs-admin-primary" disabled={busy}>
               {busy ? "Signing in…" : "Sign in to dashboard"}
             </button>
-            <a href="/" className="ad-back">
+            <a href="/" className="qs-admin-back">
               ← Back to customer website
             </a>
-            <p className="ad-muted">
+            <p className="qs-admin-muted">
               First setup? Configure Supabase and add your account as an owner
               using ADMIN-SETUP.md.
             </p>
@@ -301,9 +301,9 @@ export default function AdminApp() {
       </div>
     );
   return (
-    <div className="admin-shell ad-layout">
-      <aside className="ad-sidebar">
-        <a href="/admin" className="ad-brand">
+    <div className="admin-shell qs-admin-layout">
+      <aside className="qs-admin-sidebar">
+        <a href="/admin" className="qs-admin-brand">
           Q
           <span>
             QuickSub<small>STORE MANAGEMENT</small>
@@ -341,11 +341,11 @@ export default function AdminApp() {
               </button>
             ))}
         </nav>
-        <div className="ad-sidebar-bottom">
+        <div className="qs-admin-sidebar-bottom">
           <a href="/" target="_blank" rel="noreferrer">
             View customer website <ArrowUpRight size={16} />
           </a>
-          <div className="ad-user">
+          <div className="qs-admin-user">
             <strong>{session.email}</strong>
             <span>{session.role} account</span>
           </div>
@@ -363,17 +363,17 @@ export default function AdminApp() {
           </button>
         </div>
       </aside>
-      <main className="ad-main">
-        <header className="ad-topbar">
+      <main className="qs-admin-main">
+        <header className="qs-admin-topbar">
           <span>
             Workspace / <strong>{tab}</strong>
           </span>
-          <span className="ad-badge">{session.role}</span>
+          <span className="qs-admin-badge">{session.role}</span>
         </header>
-        <div className="ad-content">
-          <div className="ad-page-heading">
+        <div className="qs-admin-content">
+          <div className="qs-admin-page-heading">
             <div>
-              <span className="ad-eyebrow">QUICKSUB WORKSPACE</span>
+              <span className="qs-admin-eyebrow">QUICKSUB WORKSPACE</span>
               <h1>{tab === "Overview" ? "Your store at a glance" : tab}</h1>
               <p>
                 {tab === "Overview"
@@ -384,7 +384,7 @@ export default function AdminApp() {
               </p>
             </div>
             <button
-              className="ad-secondary"
+              className="qs-admin-secondary"
               disabled={loading || busy}
               onClick={() => void reload()}
             >
@@ -393,7 +393,7 @@ export default function AdminApp() {
             </button>
           </div>
           {error && (
-            <div className="ad-error" role="alert">
+            <div className="qs-admin-error" role="alert">
               {error}
               <button onClick={() => setError("")} aria-label="Dismiss error">
                 ×
@@ -401,12 +401,12 @@ export default function AdminApp() {
             </div>
           )}
           {notice && (
-            <div className="ad-success" role="status">
+            <div className="qs-admin-success" role="status">
               {notice}
             </div>
           )}
           {!data ? (
-            <div className="ad-card ad-empty">
+            <div className="qs-admin-card qs-admin-empty">
               {loading
                 ? "Loading your store…"
                 : "Store data is unavailable. Check database setup, then refresh."}
@@ -415,7 +415,7 @@ export default function AdminApp() {
             <>
               {tab === "Overview" && (
                 <>
-                  <div className="ad-metrics">
+                  <div className="qs-admin-metrics">
                     {[
                       [
                         "Active products",
@@ -428,18 +428,18 @@ export default function AdminApp() {
                       ["Pending orders", data.overview.pending],
                       ["Verified revenue", money(data.overview.revenue)],
                     ].map(([label, value]) => (
-                      <div className="ad-card" key={label}>
+                      <div className="qs-admin-card" key={label}>
                         <span>{label}</span>
                         <strong>{value}</strong>
                       </div>
                     ))}
                   </div>
-                  <div className="ad-overview-grid">
-                    <section className="ad-card">
-                      <div className="ad-section-heading">
+                  <div className="qs-admin-overview-grid">
+                    <section className="qs-admin-card">
+                      <div className="qs-admin-section-heading">
                         <h2>Recent orders</h2>
                         <button
-                          className="ad-link"
+                          className="qs-admin-link"
                           onClick={() => setTab("Orders")}
                         >
                           View all →
@@ -448,14 +448,14 @@ export default function AdminApp() {
                       {data.orders.length ? (
                         data.orders.slice(0, 5).map((o) => (
                           <button
-                            className="ad-order-row"
+                            className="qs-admin-order-row"
                             key={o.id}
                             onClick={() => {
                               setTab("Orders");
                               setOrder(o);
                             }}
                           >
-                            <span className="ad-order-icon">
+                            <span className="qs-admin-order-icon">
                               <ShoppingBag size={18} />
                             </span>
                             <span>
@@ -471,13 +471,13 @@ export default function AdminApp() {
                           </button>
                         ))
                       ) : (
-                        <div className="ad-empty">
+                        <div className="qs-admin-empty">
                           Your first customer order will appear here.
                         </div>
                       )}
                     </section>
-                    <section className="ad-card ad-blue-card">
-                      <span className="ad-eyebrow">READY FOR CUSTOMERS</span>
+                    <section className="qs-admin-card qs-admin-blue-card">
+                      <span className="qs-admin-eyebrow">READY FOR CUSTOMERS</span>
                       <h2>Keep your store in sync.</h2>
                       <p>
                         Publish a product, add an exact-price package, then
@@ -501,8 +501,8 @@ export default function AdminApp() {
                 "Customers",
                 "Inbox",
               ].includes(tab) && (
-                <div className="ad-toolbar">
-                  <div className="ad-search">
+                <div className="qs-admin-toolbar">
+                  <div className="qs-admin-search">
                     <Search size={17} />
                     <input
                       aria-label="Search records"
@@ -513,7 +513,7 @@ export default function AdminApp() {
                   </div>
                   {owner && tab === "Products" && (
                     <button
-                      className="ad-primary"
+                      className="qs-admin-primary"
                       onClick={() =>
                         setProduct({
                           id: crypto.randomUUID(),
@@ -546,7 +546,7 @@ export default function AdminApp() {
                   )}
                   {owner && tab === "Packages" && (
                     <button
-                      className="ad-primary"
+                      className="qs-admin-primary"
                       disabled={!data.products.length}
                       onClick={() =>
                         setPlan({
@@ -566,7 +566,7 @@ export default function AdminApp() {
                 </div>
               )}
               {tab === "Products" && (
-                <div className="ad-card ad-table-wrap">
+                <div className="qs-admin-card qs-admin-table-wrap">
                   <table>
                     <thead>
                       <tr>
@@ -583,7 +583,7 @@ export default function AdminApp() {
                         .map((p) => (
                           <tr key={p.id}>
                             <td>
-                              <div className="ad-product-cell">
+                              <div className="qs-admin-product-cell">
                                 <img src={p.image_url} alt="" loading="lazy" />
                                 <span>
                                   <strong>{p.data.name}</strong>
@@ -603,7 +603,7 @@ export default function AdminApp() {
                             <td>
                               {owner && (
                                 <button
-                                  className="ad-link"
+                                  className="qs-admin-link"
                                   onClick={() => setProduct(structuredClone(p))}
                                 >
                                   Edit
@@ -615,14 +615,14 @@ export default function AdminApp() {
                     </tbody>
                   </table>
                   {!data.products.length && (
-                    <div className="ad-empty">
+                    <div className="qs-admin-empty">
                       Import your existing catalog or add your first product.
                     </div>
                   )}
                 </div>
               )}
               {tab === "Packages" && (
-                <div className="ad-card ad-table-wrap">
+                <div className="qs-admin-card qs-admin-table-wrap">
                   <table>
                     <thead>
                       <tr>
@@ -655,7 +655,7 @@ export default function AdminApp() {
                             <td>
                               {owner && (
                                 <button
-                                  className="ad-link"
+                                  className="qs-admin-link"
                                   onClick={() => setPlan({ ...p })}
                                 >
                                   Edit
@@ -667,7 +667,7 @@ export default function AdminApp() {
                     </tbody>
                   </table>
                   {!data.packages.length && (
-                    <div className="ad-empty">
+                    <div className="qs-admin-empty">
                       Add duration or quantity packages with exact prices to
                       enable customer checkout.
                     </div>
@@ -676,7 +676,7 @@ export default function AdminApp() {
               )}
               {tab === "Orders" && (
                 <>
-                  <div className="ad-card ad-table-wrap">
+                  <div className="qs-admin-card qs-admin-table-wrap">
                     <table>
                       <thead>
                         <tr>
@@ -723,7 +723,7 @@ export default function AdminApp() {
                               </td>
                               <td>
                                 <button
-                                  className="ad-link"
+                                  className="qs-admin-link"
                                   onClick={() => setOrder({ ...o })}
                                 >
                                   Review
@@ -734,10 +734,10 @@ export default function AdminApp() {
                       </tbody>
                     </table>
                     {!data.orders.length && (
-                      <div className="ad-empty">No orders on this page.</div>
+                      <div className="qs-admin-empty">No orders on this page.</div>
                     )}
                   </div>
-                  <div className="ad-pagination">
+                  <div className="qs-admin-pagination">
                     <button
                       disabled={!offset || loading}
                       onClick={() => setOffset(Math.max(0, offset - 50))}
@@ -757,30 +757,30 @@ export default function AdminApp() {
                 </>
               )}
               {tab === "Customers" && (
-                <div className="ad-card">
+                <div className="qs-admin-card">
                   <h2>Customer directory</h2>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     {data.overview.customers} customers · totals include their
                     complete order history.
                   </p>
                   {data.customers
                     .filter((c) => filtered(c.contact + " " + c.name))
                     .map((c) => (
-                      <div className="ad-customer" key={c.contact}>
+                      <div className="qs-admin-customer" key={c.contact}>
                         <strong>{c.name}</strong>
                         <p>{c.contact}</p>
-                        <p className="ad-muted">
+                        <p className="qs-admin-muted">
                           {c.orders} orders · {money(c.revenue)} verified · Last
                           order {date(c.last_order)}
                         </p>
                       </div>
                     ))}
                   {!data.customers.length && (
-                    <div className="ad-empty">
+                    <div className="qs-admin-empty">
                       Customers appear after placing an order.
                     </div>
                   )}
-                  <div className="ad-pagination">
+                  <div className="qs-admin-pagination">
                     <button
                       disabled={!offset || loading}
                       onClick={() => setOffset(Math.max(0, offset - 50))}
@@ -798,9 +798,9 @@ export default function AdminApp() {
                 </div>
               )}
               {tab === "Inbox" && (
-                <div className="ad-card">
+                <div className="qs-admin-card">
                   <h2>Support, restock & newsletter requests</h2>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     Latest 100 requests. Contact customers through your usual
                     support channel.
                   </p>
@@ -809,7 +809,7 @@ export default function AdminApp() {
                       filtered(r.contact + " " + r.message + " " + r.kind),
                     )
                     .map((r) => (
-                      <article className="ad-request" key={r.id}>
+                      <article className="qs-admin-request" key={r.id}>
                         <div>
                           <Badge>{r.kind}</Badge>
                           <strong>{r.contact}</strong>
@@ -817,7 +817,7 @@ export default function AdminApp() {
                         </div>
                         <p>{r.message || "Newsletter signup"}</p>
                         <button
-                          className="ad-secondary"
+                          className="qs-admin-secondary"
                           disabled={busy}
                           onClick={() =>
                             void save("request", r.id, {
@@ -830,7 +830,7 @@ export default function AdminApp() {
                       </article>
                     ))}
                   {!data.requests.length && (
-                    <div className="ad-empty">
+                    <div className="qs-admin-empty">
                       New customer requests will appear here.
                     </div>
                   )}
@@ -838,20 +838,20 @@ export default function AdminApp() {
               )}
               {tab === "Content" && store && (
                 <form
-                  className="ad-card"
+                  className="qs-admin-card"
                   onSubmit={(e) => {
                     e.preventDefault();
                     void save("content", "store", store);
                   }}
                 >
                   <h2>FAQs & Gemini knowledge</h2>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     FAQs appear on the customer page and are available to
                     Gemini. Policy and operation text informs the support
                     assistant.
                   </p>
                   {store.faq.map((f, i) => (
-                    <div className="ad-faq-editor" key={f.id}>
+                    <div className="qs-admin-faq-editor" key={f.id}>
                       <Field label={"Question " + (i + 1)}>
                         <input
                           required
@@ -884,7 +884,7 @@ export default function AdminApp() {
                       </Field>
                       <button
                         type="button"
-                        className="ad-link"
+                        className="qs-admin-link"
                         onClick={() =>
                           setStore({
                             ...store,
@@ -898,7 +898,7 @@ export default function AdminApp() {
                   ))}
                   <button
                     type="button"
-                    className="ad-secondary"
+                    className="qs-admin-secondary"
                     onClick={() =>
                       setStore({
                         ...store,
@@ -911,7 +911,7 @@ export default function AdminApp() {
                   >
                     Add question
                   </button>
-                  <h2 className="ad-spaced">Store operations</h2>
+                  <h2 className="qs-admin-spaced">Store operations</h2>
                   {Object.entries(store.operations).map(([key, value]) => (
                     <Field key={key} label={key}>
                       <textarea
@@ -929,7 +929,7 @@ export default function AdminApp() {
                     </Field>
                   ))}
                   {Object.entries(store.policies).map(([key, policy]) => (
-                    <details className="ad-customer" key={key}>
+                    <details className="qs-admin-customer" key={key}>
                       <summary>{policy.title}</summary>
                       {policy.sections.map((s, i) => (
                         <Field key={i} label={s.heading}>
@@ -956,20 +956,20 @@ export default function AdminApp() {
                       ))}
                     </details>
                   ))}
-                  <button className="ad-primary" disabled={busy}>
+                  <button className="qs-admin-primary" disabled={busy}>
                     Save content
                   </button>
                 </form>
               )}
               {tab === "Content" && !store && (
-                <div className="ad-card ad-empty">
+                <div className="qs-admin-card qs-admin-empty">
                   Run the catalog seed first to initialize your FAQ and policy
                   content.
                 </div>
               )}
               {tab === "Offers" && (
                 <form
-                  className="ad-card ad-narrow"
+                  className="qs-admin-card qs-admin-narrow"
                   onSubmit={(e) => {
                     e.preventDefault();
                     void save("content", "settings", {
@@ -979,7 +979,7 @@ export default function AdminApp() {
                   }}
                 >
                   <h2>Featured offers</h2>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     Choose products and their genuine previous prices. The
                     storefront uses the current catalog price, hides unavailable
                     products, and stops showing offers at the deadline in
@@ -987,13 +987,13 @@ export default function AdminApp() {
                     offer.
                   </p>
                   {settings.deals === undefined && (
-                    <p className="ad-note">
+                    <p className="qs-admin-note">
                       The original featured offers are currently used. Saving
                       this list replaces them.
                     </p>
                   )}
                   {(settings.deals || []).map((deal, i) => (
-                    <div className="ad-form-grid ad-faq-editor" key={i}>
+                    <div className="qs-admin-form-grid qs-admin-faq-editor" key={i}>
                       <Field label="Product">
                         <select
                           value={deal.productId}
@@ -1036,7 +1036,7 @@ export default function AdminApp() {
                       </Field>
                       <button
                         type="button"
-                        className="ad-link"
+                        className="qs-admin-link"
                         onClick={() =>
                           setSettings({
                             ...settings,
@@ -1050,7 +1050,7 @@ export default function AdminApp() {
                   ))}
                   <button
                     type="button"
-                    className="ad-secondary"
+                    className="qs-admin-secondary"
                     disabled={
                       !data.products.length ||
                       (settings.deals?.length || 0) >= 12
@@ -1071,13 +1071,13 @@ export default function AdminApp() {
                     Add offer
                   </button>
                   <button
-                    className="ad-primary"
+                    className="qs-admin-primary"
                     disabled={busy}
                     style={{ marginLeft: 12 }}
                   >
                     Save offers
                   </button>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     For a bundle, create a product describing all included
                     items, then add its exact-price package.
                   </p>
@@ -1085,7 +1085,7 @@ export default function AdminApp() {
               )}
               {tab === "Settings" && (
                 <form
-                  className="ad-card ad-narrow"
+                  className="qs-admin-card qs-admin-narrow"
                   onSubmit={(e) => {
                     e.preventDefault();
                     void save("content", "settings", settings);
@@ -1143,7 +1143,7 @@ export default function AdminApp() {
                   </Field>
                   <button
                     type="button"
-                    className="ad-secondary"
+                    className="qs-admin-secondary"
                     onClick={() => {
                       const d = new Date();
                       d.setMonth(d.getMonth() + 1);
@@ -1152,25 +1152,25 @@ export default function AdminApp() {
                   >
                     Set one month from today
                   </button>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     The saved deadline is shared by all visitors. It does not
                     reset on refresh. Configure Gemini and Supabase keys in the
                     server environment; never enter them in public content.
                   </p>
-                  <button className="ad-primary" disabled={busy}>
+                  <button className="qs-admin-primary" disabled={busy}>
                     Save settings
                   </button>
                 </form>
               )}
               {tab === "Activity" && (
-                <div className="ad-card">
+                <div className="qs-admin-card">
                   <h2>Recent admin activity</h2>
-                  <p className="ad-muted">
+                  <p className="qs-admin-muted">
                     Latest 100 recorded changes. Account roles are provisioned
                     in Supabase.
                   </p>
                   {data.audit.map((a) => (
-                    <div className="ad-order-row" key={a.id}>
+                    <div className="qs-admin-order-row" key={a.id}>
                       <span>
                         <strong>{a.action} updated</strong>
                         <small>
@@ -1181,7 +1181,7 @@ export default function AdminApp() {
                     </div>
                   ))}
                   {!data.audit.length && (
-                    <div className="ad-empty">
+                    <div className="qs-admin-empty">
                       Changes to records will appear here.
                     </div>
                   )}
@@ -1192,9 +1192,9 @@ export default function AdminApp() {
         </div>
       </main>
       {product && (
-        <div className="ad-overlay">
+        <div className="qs-admin-overlay">
           <form
-            className="ad-editor"
+            className="qs-admin-editor"
             onSubmit={async (e) => {
               e.preventDefault();
               if (
@@ -1206,7 +1206,7 @@ export default function AdminApp() {
                 setProduct(null);
             }}
           >
-            <div className="ad-section-heading">
+            <div className="qs-admin-section-heading">
               <h2>Edit product</h2>
               <button
                 type="button"
@@ -1217,7 +1217,7 @@ export default function AdminApp() {
                 ×
               </button>
             </div>
-            <div className="ad-form-grid">
+            <div className="qs-admin-form-grid">
               <Field label="Product name">
                 <input
                   required
@@ -1345,7 +1345,7 @@ export default function AdminApp() {
                 }}
               />
             </Field>
-            <div className="ad-form-grid">
+            <div className="qs-admin-form-grid">
               <Field label="Delivery estimate">
                 <input
                   required
@@ -1387,7 +1387,7 @@ export default function AdminApp() {
                 />
               </Field>
             </div>
-            <label className="ad-check">
+            <label className="qs-admin-check">
               <input
                 type="checkbox"
                 checked={product.active}
@@ -1397,7 +1397,7 @@ export default function AdminApp() {
               />
               Published on customer page
             </label>
-            <label className="ad-check">
+            <label className="qs-admin-check">
               <input
                 type="checkbox"
                 checked={product.in_stock}
@@ -1408,26 +1408,26 @@ export default function AdminApp() {
               In stock
             </label>
             {error && (
-              <div className="ad-error" role="alert">
+              <div className="qs-admin-error" role="alert">
                 {error}
               </div>
             )}
-            <button className="ad-primary" disabled={busy}>
+            <button className="qs-admin-primary" disabled={busy}>
               {busy ? "Saving…" : "Save product"}
             </button>
           </form>
         </div>
       )}
       {plan && (
-        <div className="ad-overlay">
+        <div className="qs-admin-overlay">
           <form
-            className="ad-editor"
+            className="qs-admin-editor"
             onSubmit={async (e) => {
               e.preventDefault();
               if (await save("package", plan.id, plan)) setPlan(null);
             }}
           >
-            <div className="ad-section-heading">
+            <div className="qs-admin-section-heading">
               <h2>Edit package</h2>
               <button
                 type="button"
@@ -1480,7 +1480,7 @@ export default function AdminApp() {
                 }
               />
             </Field>
-            <label className="ad-check">
+            <label className="qs-admin-check">
               <input
                 type="checkbox"
                 checked={plan.active}
@@ -1489,26 +1489,26 @@ export default function AdminApp() {
               Available to customers
             </label>
             {error && (
-              <div className="ad-error" role="alert">
+              <div className="qs-admin-error" role="alert">
                 {error}
               </div>
             )}
-            <button className="ad-primary" disabled={busy}>
+            <button className="qs-admin-primary" disabled={busy}>
               {busy ? "Saving…" : "Save package"}
             </button>
           </form>
         </div>
       )}
       {order && (
-        <div className="ad-overlay">
+        <div className="qs-admin-overlay">
           <form
-            className="ad-editor"
+            className="qs-admin-editor"
             onSubmit={async (e) => {
               e.preventDefault();
               if (await save("order", order.id, order)) setOrder(null);
             }}
           >
-            <div className="ad-section-heading">
+            <div className="qs-admin-section-heading">
               <h2>Review order</h2>
               <button
                 type="button"
@@ -1519,7 +1519,7 @@ export default function AdminApp() {
                 ×
               </button>
             </div>
-            <p className="ad-muted">{order.id}</p>
+            <p className="qs-admin-muted">{order.id}</p>
             <h3>
               {order.product_name} · {order.package_name}
             </h3>
@@ -1527,14 +1527,14 @@ export default function AdminApp() {
               {money(order.amount_bdt)} · {order.customer_name} ·{" "}
               {order.contact}
             </p>
-            <p className="ad-note">
+            <p className="qs-admin-note">
               Customer note: {order.customer_note || "None"}
             </p>
-            <p className="ad-note">
+            <p className="qs-admin-note">
               Payment reference:{" "}
               <strong>{order.payment_reference || "Not submitted"}</strong>
             </p>
-            <p className="ad-muted">
+            <p className="qs-admin-muted">
               Verify the transaction in your merchant account before marking it
               paid. Changing a status here does not transfer or refund money.
             </p>
@@ -1578,11 +1578,11 @@ export default function AdminApp() {
               />
             </Field>
             {error && (
-              <div className="ad-error" role="alert">
+              <div className="qs-admin-error" role="alert">
                 {error}
               </div>
             )}
-            <button className="ad-primary" disabled={busy}>
+            <button className="qs-admin-primary" disabled={busy}>
               {busy ? "Saving…" : "Save order update"}
             </button>
           </form>

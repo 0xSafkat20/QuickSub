@@ -58,10 +58,15 @@ try {
   }
   await admin.bringToFront();
   await admin.goto(env.base + "/admin", { waitUntil: "networkidle0" });
+  // Simulate cosmetic ad-block filters that previously hid the login controls.
+  await admin.addStyleTag({ content: '[class^="ad-"], [class*=" ad-"] { display: none !important; }' });
+  for (const selector of ['[name=email]', '[name=password]', 'button.qs-admin-primary']) {
+    assert.equal(await admin.$eval(selector, el => el.getBoundingClientRect().height > 0), true);
+  }
   await admin.type("[name=email]", "owner@example.test");
   await admin.type("[name=password]", "test-password");
   await clickText(admin, "button", "Sign in to dashboard");
-  await admin.waitForSelector(".ad-metrics");
+  await admin.waitForSelector(".qs-admin-metrics");
   console.log("PASS login");
   await mkdir("deliverables/admin-preview", { recursive: true });
   await admin.screenshot({
@@ -71,10 +76,10 @@ try {
   });
   await clickText(admin, "nav button", "Products");
   await clickText(admin, "td button", "Edit");
-  await admin.locator(".ad-editor input").fill("Netflix Admin Connected");
-  assert.equal(await admin.$eval(".ad-editor input", e=>e.value), "Netflix Admin Connected");
-  await clickText(admin, ".ad-editor button", "Save product");
-  await admin.waitForFunction(() => !document.querySelector(".ad-editor"));
+  await admin.locator(".qs-admin-editor input").fill("Netflix Admin Connected");
+  assert.equal(await admin.$eval(".qs-admin-editor input", e=>e.value), "Netflix Admin Connected");
+  await clickText(admin, ".qs-admin-editor button", "Save product");
+  await admin.waitForFunction(() => !document.querySelector(".qs-admin-editor"));
   await admin.waitForFunction(() =>
     document
       .querySelector("table")
@@ -138,12 +143,12 @@ try {
     document.querySelector("table")?.textContent.includes("Browser Customer"),
   );
   await clickText(admin, "td button", "Review");
-  await admin.select(".ad-editor select:nth-of-type(1)", "verified");
-  const selects = await admin.$$(".ad-editor select");
+  await admin.select(".qs-admin-editor select:nth-of-type(1)", "verified");
+  const selects = await admin.$$(".qs-admin-editor select");
   await selects[1].select("delivered");
-  await admin.type(".ad-editor textarea", "Your subscription is activated.");
-  await clickText(admin, ".ad-editor button", "Save order update");
-  await admin.waitForFunction(() => !document.querySelector(".ad-editor"));
+  await admin.type(".qs-admin-editor textarea", "Your subscription is activated.");
+  await clickText(admin, ".qs-admin-editor button", "Save order update");
+  await admin.waitForFunction(() => !document.querySelector(".qs-admin-editor"));
   await customer.bringToFront();
   await customer.click("button[aria-label=Close]");
   await clickText(customer, "button", "Track Order");
