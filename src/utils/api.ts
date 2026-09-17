@@ -10,6 +10,9 @@ export async function api<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(25000),
   });
+  if (!response.headers.get("content-type")?.includes("application/json")) {
+    throw new Error("The website API is unavailable. Please check the server deployment and try again.");
+  }
   const data = await response.json();
   if (!response.ok)
     throw new Error(data.error || "Request failed. Please try again.");

@@ -7,7 +7,7 @@ const { createCatalog } = require('./catalog');
 const { createAdminRouter } = require('./admin');
 
 const envPath = path.join(__dirname, '.env');
-if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
+if (!process.env.VERCEL && fs.existsSync(envPath)) process.loadEnvFile(envPath);
 
 const app = express();
 app.disable('x-powered-by');

@@ -29,6 +29,7 @@ function createAdminRouter({
   fetchImpl = fetch,
   invalidate = () => {},
   now = Date.now,
+  sharedSessions = process.env.VERCEL === "1",
 } = {}) {
   const router = express.Router();
   const sessions = new Map();
@@ -131,24 +132,39 @@ function createAdminRouter({
         throw fail(503, "Please try signing in later.");
       const id = randomBytes(32).toString("hex");
       const duration = Math.min(Number(auth.expires_in) || 3600, 3600) * 1000;
-      sessions.set(id, {
+      const session = {
         userId: auth.user.id,
         token: auth.access_token,
         expires: now() + duration,
-      });
+      };
+      if (sharedSessions) {
+        await db("quicksub_admin_sessions", { method: "POST", body: {
+          id: hash(id), user_id: session.userId, token: session.token,
+          expires_at: new Date(session.expires).toISOString(),
+        } });
+      } else sessions.set(id, session);
       res.cookie("qs_admin", id, { ...cookieOptions(req), maxAge: duration });
       res.json({ email: auth.user.email, role: roles[0].role });
     }),
   );
-  router.post("/admin/logout", (req, res) => {
+  router.post("/admin/logout", run(async (req, res) => {
+    const id = cookieId(req);
+    if (sharedSessions && /^[a-f0-9]{64}$/.test(id || "")) {
+      await db(`quicksub_admin_sessions?id=eq.${hash(id)}`, { method: "DELETE" });
+    }
     sessions.delete(cookieId(req));
     res.clearCookie("qs_admin", cookieOptions(req));
     res.json({ ok: true });
-  });
+  }));
   // Authentication is checked against Supabase, and role membership is checked on every request.
   router.use("/admin", (req, res, next) => {
     (async () => {
-      const session = sessions.get(cookieId(req));
+      const id = cookieId(req);
+      let session;
+      if (sharedSessions && /^[a-f0-9]{64}$/.test(id || "")) {
+        const rows = await db(`quicksub_admin_sessions?id=eq.${hash(id)}&select=user_id,token,expires_at`);
+        if (rows[0]) session = { userId: rows[0].user_id, token: rows[0].token, expires: Date.parse(rows[0].expires_at) };
+      } else if (!sharedSessions) session = sessions.get(id);
       if (!session || session.expires <= now()) {
         sessions.delete(cookieId(req));
         throw fail(401, "Please sign in to the admin dashboard.");
