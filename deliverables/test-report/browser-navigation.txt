@@ -1,0 +1,1 @@
+PASS checkout → account → checkout preserves package/details; shared tracking links; back navigation; product section scrolling; direct tracking reload; external return URL rejected.

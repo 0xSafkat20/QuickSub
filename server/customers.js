@@ -1,0 +1,89 @@
+const { randomBytes, createHash } = require('node:crypto');
+const hash = value => createHash('sha256').update(value).digest('hex');
+const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+const fail = (status,message) => Object.assign(new Error(message),{status});
+function installCustomers({router,run,db,remote,rate,string,contact,now}) {
+ const cookie = req => (req.headers.cookie || '').split(';').map(x=>x.trim()).find(x=>x.startsWith('qs_customer='))?.slice(12);
+ const options = req => ({httpOnly:true,secure:req.secure || process.env.NODE_ENV==='production',sameSite:'lax',path:'/api'});
+ async function user(req,required=true) {
+  const id=cookie(req);
+  if (!id && !required) return null;
+  if (!/^[a-f0-9]{64}$/.test(id||'')) throw fail(401,'Please sign in to your customer account.');
+  const [session]=await db(`quicksub_customer_sessions?id=eq.${hash(id)}&select=user_id,token,expires_at`);
+  if (!session || Date.parse(session.expires_at)<=now()) throw fail(401,'Your session expired. Please sign in again.');
+  const person=await remote('/auth/v1/user',{token:session.token});
+  if (person.id!==session.user_id) throw fail(401,'Please sign in again.');
+  return person;
+ }
+ async function session(req,res,auth) {
+  if (!auth.access_token || !auth.user?.id) return false;
+  const id=randomBytes(32).toString('hex');
+  const duration=Math.min(Number(auth.expires_in)||3600,3600)*1000;
+  await db('quicksub_customer_sessions',{method:'POST',body:{id:hash(id),user_id:auth.user.id,token:auth.access_token,expires_at:new Date(now()+duration).toISOString()}});
+  res.cookie('qs_customer',id,{...options(req),maxAge:duration});
+  return true;
+ }
+ const email = value => { const v=string(value,254).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))throw fail(400,'Enter a valid email address.');return v; };
+ router.post('/account/signup',run(async(req,res)=>{
+  rate(req,'customer-signup',4);
+  // Check the schema before creating an Auth user.
+  await db('quicksub_customers?select=user_id&limit=1');
+  const b=req.body||{};const name=string(b.name,120);
+  const auth=await remote('/auth/v1/signup',{method:'POST',body:{email:email(b.email),password:string(b.password,128,10,false),data:{name}}});
+  const signedIn=await session(req,res,auth);
+  if(signedIn)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:name,p_contact:auth.user.email,p_reminders:true}});
+  res.json({signedIn,message:signedIn?'Account created.':'Check your email for a confirmation link, then sign in. If you already have an account, sign in instead.'});
+ }));
+ router.post('/account/login',run(async(req,res)=>{
+  rate(req,'customer-login',6);
+  const b=req.body||{};
+  const auth=await remote('/auth/v1/token?grant_type=password',{method:'POST',body:{email:email(b.email),password:string(b.password,128,1,false)}});
+  const [profile]=await db(`quicksub_customers?user_id=eq.${auth.user.id}&select=user_id`);
+  if(!profile)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:String(auth.user.user_metadata?.name||'').slice(0,120),p_contact:auth.user.email,p_reminders:true}});
+  if(!await session(req,res,auth))throw fail(401,'Sign-in failed.');
+  res.json({ok:true});
+ }));
+ router.post('/account/logout',run(async(req,res)=>{
+  const id=cookie(req);
+  if(/^[a-f0-9]{64}$/.test(id||''))await db(`quicksub_customer_sessions?id=eq.${hash(id)}`,{method:'DELETE'});
+  res.clearCookie('qs_customer',options(req));res.json({ok:true});
+ }));
+ router.get('/account/session',run(async(req,res)=>{
+  const person=await user(req,false);
+  if(!person)return res.json({user:null,profile:null});
+  const [profile]=await db(`quicksub_customers?user_id=eq.${person.id}&select=name,contact,renewal_reminders`);
+  res.json({user:{id:person.id,email:person.email},profile:profile||null});
+ }));
+ router.post('/account/profile',run(async(req,res)=>{
+  rate(req,'customer-profile',20);const person=await user(req);const b=req.body||{};
+  if(typeof b.renewal_reminders!=='boolean')throw fail(400,'Choose your reminder preference.');
+  const profile=await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:person.id,p_name:string(b.name,120),p_contact:contact(b.contact),p_reminders:b.renewal_reminders}});
+  res.json({profile});
+ }));
+ router.get('/account/orders',run(async(req,res)=>{
+  rate(req,'customer-orders',40);const person=await user(req);
+  const offset=Number(req.query.offset||0);if(!Number.isInteger(offset)||offset<0||offset>100000)throw fail(400,'Invalid page.');
+  const orders=await db(`quicksub_orders?customer_id=eq.${person.id}&select=id,package_id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,expires_at&order=created_at.desc,id.desc&limit=21&offset=${offset}`);
+  const packages=orders.length?await db(`quicksub_packages?id=in.(${[...new Set(orders.map(o=>o.package_id))].join(',')})&select=id,product_id`):[];
+  res.json({orders:orders.slice(0,20).map(o=>({...o,product_id:packages.find(p=>p.id===o.package_id)?.product_id})),hasMore:orders.length>20});
+ }));
+ router.post('/account/claim',run(async(req,res)=>{
+  rate(req,'customer-claim',6);const person=await user(req);const b=req.body||{};
+  if(!uuid.test(b.id)||!/^[a-f0-9]{64}$/.test(b.accessCode||''))throw fail(400,'Enter the order ID and private access code from your receipt.');
+  await db('rpc/quicksub_claim_order',{method:'POST',body:{p_user:person.id,p_id:b.id,p_hash:hash(b.accessCode)}});
+  res.json({ok:true});
+ }));
+ router.get('/admin/orders/:id/subscription',run(async(req,res)=>{
+  if(!uuid.test(req.params.id))throw fail(400,'Invalid order.');
+  const [order]=await db(`quicksub_orders?id=eq.${req.params.id}&select=expires_at`);
+  if(!order)throw fail(404,'Order not found.');res.json(order);
+ }));
+ router.post('/admin/orders/:id/subscription',run(async(req,res)=>{
+  const expires=req.body?.expires_at;
+  if(!uuid.test(req.params.id)||(expires!==null&&(typeof expires!=='string'||!Number.isFinite(Date.parse(expires)))))throw fail(400,'Enter a valid expiry date.');
+  await db('rpc/quicksub_set_expiry',{method:'POST',body:{p_actor:req.admin.id,p_id:req.params.id,p_expires:expires===null?null:new Date(expires).toISOString()}});
+  res.json({ok:true});
+ }));
+ return {user};
+}
+module.exports={installCustomers};

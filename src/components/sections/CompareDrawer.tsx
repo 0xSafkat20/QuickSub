@@ -102,7 +102,7 @@ export default function CompareDrawer() {
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
-              className="bg-white rounded-2xl max-w-lg w-full max-h-[70vh] overflow-y-auto shadow-2xl p-6"
+              className="bg-white rounded-2xl max-w-lg w-full max-h-[70dvh] overflow-y-auto overscroll-contain shadow-2xl p-6"
               onClick={e => e.stopPropagation()}
             >
               <h3 className="font-heading font-bold text-lg text-ink-900 mb-2">Select a product to compare</h3>
@@ -146,9 +146,9 @@ export default function CompareDrawer() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-brand-200 shadow-2xl max-h-[80vh] overflow-y-auto rounded-t-3xl"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-brand-200 shadow-2xl max-h-[80dvh] overflow-y-auto overscroll-contain rounded-t-3xl"
           >
-            <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 p-4 border-b border-brand-50 flex items-center justify-between">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 p-4 border-b border-brand-50 flex flex-wrap gap-3 items-center justify-between">
               <div className="flex items-center gap-2">
                 <GitCompare size={18} className="text-brand-600" />
                 <h3 className="font-heading font-bold text-ink-900">Product Comparison</h3>
@@ -162,13 +162,13 @@ export default function CompareDrawer() {
                     <Plus size={12} className="inline mr-1" />Add
                   </button>
                 )}
-                <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-brand-50 text-ink-400 transition-colors">
+                <button aria-label="Close comparison" onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-brand-50 text-ink-400 transition-colors">
                   <X size={16} />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 overflow-x-auto">
+            <div className="p-4 overflow-x-auto" role="region" aria-label="Product comparison table, scroll horizontally" tabIndex={0}>
               <table className="w-full min-w-[500px]">
                 <thead>
                   <tr>
@@ -180,7 +180,7 @@ export default function CompareDrawer() {
                             <span className="text-white text-xs font-bold">{p.name.slice(0, 2)}</span>
                           </div>
                           <span className="text-sm font-bold text-ink-800">{p.name}</span>
-                          <button onClick={() => removeFromCompare(p.id)} className="text-ink-300 hover:text-red-500 transition-colors">
+                          <button aria-label={`Remove ${p.name} from comparison`} onClick={() => removeFromCompare(p.id)} className="text-ink-300 hover:text-red-500 transition-colors">
                             <Trash2 size={12} />
                           </button>
                         </div>

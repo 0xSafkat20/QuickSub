@@ -1,2 +1,14 @@
 PASS real HTTP routing, offline fallback, malformed/oversized requests and legacy checkout encoding
-PASS existing chat UI: multi-turn replies, Bangla, safe handoff, rate limits, outage recovery and intact catalog
+file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:46
+            this.#timeoutError = new TimeoutError(`Waiting failed: ${options.timeout}ms exceeded`);
+                                 ^
+
+TimeoutError: Waiting failed: 30000ms exceeded
+    at new WaitTask (file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:46:34)
+    at IsolatedWorld.waitForFunction (file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:49:26)
+    at CdpFrame.waitForFunction (file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/api/Frame.js:580:43)
+    at CdpFrame.<anonymous> (file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/util/decorators.js:101:27)
+    at CdpPage.waitForFunction (file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/node_modules/puppeteer-core/lib/puppeteer/api/Page.js:1447:37)
+    at file:///C:/Users/CCB/OneDrive/Desktop/QuickSub/scripts/check-chat.mjs:59:14
+
+Node.js v24.21.0

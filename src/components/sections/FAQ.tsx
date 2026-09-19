@@ -35,12 +35,13 @@ function AccordionItem({ item, isOpen, onToggle, index }: {
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+        aria-hidden={!isOpen}
+        className={`grid transition-all duration-300 ${
+          isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         }`}
       >
-        <div className="px-5 pb-5 bg-white">
-          <p className="text-sm text-ink-400 leading-relaxed">{item.answer}</p>
+        <div className="min-h-0 overflow-hidden bg-white"><div className="px-5 pb-5">
+          <p className="text-sm text-ink-400 leading-relaxed">{item.answer}</p></div>
         </div>
       </div>
     </motion.div>

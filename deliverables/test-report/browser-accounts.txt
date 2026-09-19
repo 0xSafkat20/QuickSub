@@ -1,0 +1,1 @@
+PASS: signup, persistent session/profile, owned order history, renewal reminder, saved checkout details, mobile layout and logout.

@@ -18,6 +18,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260916000000_product_catalog.sql",
     "20260917000000_admin_orders.sql",
     "20260919000000_payments.sql",
+    "20260920000000_customers.sql",
   ])
     await db.exec(
       await readFile(
@@ -71,12 +72,21 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       status,
       headers: { "content-type": "application/json" },
     });
+  const customerUsers = new Map();
   const fetchImpl = async (url, options = {}) => {
     const u = new URL(url);
     if (u.hostname !== "supabase.test" && paymentFetch) return paymentFetch(url, options);
     const method = options.method || "GET";
     const body = typeof options.body === "string" ? JSON.parse(options.body) : null;
+    if (u.pathname === "/auth/v1/signup") {
+      if(customerUsers.has(body.email))return response({user:{}},200);
+      const id=crypto.randomUUID(); await db.query("insert into auth.users values($1)",[id]);
+      const user={id,email:body.email,user_metadata:body.data};customerUsers.set(body.email,{...user,password:body.password});
+      return response({user,access_token:id,expires_in:3600});
+    }
     if (u.pathname === "/auth/v1/token") {
+      const customer=customerUsers.get(body.email);
+      if(customer&&customer.password===body.password)return response({user:{id:customer.id,email:customer.email,user_metadata:customer.user_metadata},access_token:customer.id,expires_in:3600});
       if (body.password !== password) return response({}, 400);
       const id =
         body.email === "owner@example.test"
@@ -94,6 +104,8 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     }
     if (u.pathname === "/auth/v1/user") {
       const id = options.headers.Authorization.replace("Bearer ", "");
+      const customer=[...customerUsers.values()].find(c=>c.id===id);
+      if(customer)return response({id:customer.id,email:customer.email,user_metadata:customer.user_metadata});
       return [ownerId, staffId].includes(id)
         ? response({
             id,
@@ -169,6 +181,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
           ).rows,
         );
       }
+      if (method === "DELETE") { await db.query(`delete from ${path}${condition}`,values);return response(null,204); }
       if (method === "PATCH") {
         const updates = Object.entries(body).map(([k, v]) => {
           if (!/^[a-z_]+$/.test(k)) throw Error("field");
@@ -227,7 +240,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
-  app.get(["/admin", "/checkout", "/buy"], (_req, res) =>
+  app.get(["/admin", "/checkout", "/buy", "/account", "/track"], (_req, res) =>
     res.sendFile(
       new URL("../dist/index.html", import.meta.url).pathname.replace(
         /^\/([A-Za-z]:)/,

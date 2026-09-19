@@ -1,3 +1,5 @@
+import { accountUrl, checkoutUrl } from '../../utils/navigation';
+import SiteLink from '../ui/SiteLink';
 import DemoPayment from "./DemoPayment";
 import { motion, useReducedMotion } from "framer-motion";
 import OnlinePayment from "./OnlinePayment";
@@ -15,6 +17,7 @@ export type TrackedOrder = {
   delivery_note: string;
   updated_at: string;
 };
+const drafts = new Map<string, {name:string;contact:string;note:string;packageId:string}>();
 const receipts = new Map<
   string,
   { id: string; accessCode: string; order: TrackedOrder | null }
@@ -92,7 +95,7 @@ export function OrderReceipt({
           onClick={() => {
             const blob = new Blob(
               [
-                `QuickSub order\nOrder ID: ${order.id}\nPrivate access code: ${accessCode}\n${order.product_name} / ${order.package_name}\nAmount: BDT ${order.amount_bdt}\nTrack at ${window.location.origin}`,
+                `QuickSub order\nOrder ID: ${order.id}\nPrivate access code: ${accessCode}\n${order.product_name} / ${order.package_name}\nAmount: BDT ${order.amount_bdt}\nTrack at ${window.location.origin}/track`,
               ],
               { type: "text/plain" },
             );
@@ -178,6 +181,7 @@ export default function CustomerOrder({
   productId: string;
   productName: string;
 }) {
+  const draft = drafts.get(productId);
   const reducedMotion = useReducedMotion();
   const stepRef = useRef<HTMLDivElement>(null);
   const [demoPlan, setDemoPlan] = useState<Plan | null>(null);
@@ -190,6 +194,9 @@ export default function CustomerOrder({
     [order, setOrder] = useState<TrackedOrder | null>(
       () => receiptFor(productId).order,
     );
+  const [savedProfile, setSavedProfile] = useState<{name:string;contact:string}|null>(null);
+  const [accountError, setAccountError] = useState('');
+  useEffect(() => { let active=true; api<{user:unknown;profile:{name:string;contact:string}|null}>('/account/session').then(data=>{if(active)setSavedProfile(data.user?data.profile:null);}).catch(()=>{if(active)setAccountError('Account details could not be loaded. Sign in again to save this order to your account.');}); return()=>{active=false;}; }, []);
   const [credentials, setCredentials] = useState(() => receiptFor(productId));
   useEffect(() => {
     let cancelled = false;
@@ -198,7 +205,7 @@ export default function CustomerOrder({
       .then((data) => {
         if (!cancelled) {
           setPlans(data.packages);
-          setSelected(data.packages[0]?.id || "");
+          setSelected(data.packages.some(p=>p.id===drafts.get(productId)?.packageId) ? drafts.get(productId)!.packageId : data.packages[0]?.id || "");
         }
       })
       .catch(() => {
@@ -244,6 +251,7 @@ export default function CustomerOrder({
                 "Have you saved your receipt? Start another order for this product?",
               )
             ) {
+              drafts.delete(productId);
               receipts.delete(productId);
               setCredentials(receiptFor(productId));
               setOrder(null);
@@ -266,6 +274,7 @@ export default function CustomerOrder({
   return (
     <form
       className="space-y-3 text-sm"
+      onChange={e=>{const values=new FormData(e.currentTarget);drafts.set(productId,{name:String(values.get("name")||""),contact:String(values.get("contact")||""),note:String(values.get("note")||""),packageId:String(values.get("packageId")||selected)});}}
       onSubmit={async (e) => {
         e.preventDefault();
         const values = new FormData(e.currentTarget);
@@ -292,10 +301,13 @@ export default function CustomerOrder({
     >
       {plan?.demo && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900"><strong>Demo packages</strong> — sample prices for testing. No money will be collected.</p>}
       <h2 className="text-xl font-bold">Package &amp; delivery details</h2>
+      {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>Use my saved details</button> : <p className="text-xs"><SiteLink href={accountUrl(checkoutUrl(productId))} className="text-brand-600 underline">Sign in or create an account</SiteLink> to save real purchases to your order history.</p>}
+      {accountError && <p className="text-xs text-amber-700">{accountError}</p>}
       <label className="block font-semibold">
         Choose your package
         <select
           className={input + " mt-2"}
+          name="packageId"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
         >
@@ -314,6 +326,7 @@ export default function CustomerOrder({
         <input
           className={input + " mt-1"}
           name="name"
+          defaultValue={draft?.name || ""}
           placeholder="Enter your name"
           required
           maxLength={120}
@@ -325,6 +338,7 @@ export default function CustomerOrder({
         <input
           className={input + " mt-1"}
           name="contact"
+          defaultValue={draft?.contact || ""}
           placeholder="yourname@gmail.com"
           required
           minLength={5}
@@ -337,6 +351,7 @@ export default function CustomerOrder({
         <textarea
           className={input + " mt-1"}
           name="note"
+          defaultValue={draft?.note || ""}
           maxLength={1000}
           placeholder="Do not share passwords, OTPs or payment PINs."
         />

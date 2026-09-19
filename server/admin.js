@@ -189,6 +189,7 @@ function createAdminRouter({
       next();
     })().catch(next);
   });
+  const customers = require("./customers").installCustomers({router,run,db,remote,rate,string,contact,now});
   router.get("/admin/session", (req, res) => res.json(req.admin));
   router.get('/payments/config', (_req,res) => res.json({ enabled: payments.enabled }));
   router.post('/orders/checkout', run(async (req,res) => {
@@ -526,9 +527,11 @@ function createAdminRouter({
         throw fail(400, "Invalid order details.");
       if (!Number.isFinite(b.expectedPrice) || b.expectedPrice <= 0)
         throw fail(400, "Refresh packages and confirm the current price.");
-      const order = await db("rpc/quicksub_create_order", {
+      const customer = await customers.user(req, false);
+      const order = await db(customer ? "rpc/quicksub_customer_order" : "rpc/quicksub_create_order", {
         method: "POST",
         body: {
+          ...(customer ? { p_user: customer.id } : {}),
           p_id: b.id,
           p_hash: hash(b.accessCode),
           p_package: b.packageId,

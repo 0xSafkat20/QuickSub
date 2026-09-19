@@ -103,7 +103,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.1 }}
-              className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.15] text-white mb-6"
+              className="font-heading text-[2rem] min-[380px]:text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.15] text-white mb-6"
             >
               Premium Digital Access,{' '}
               <span className="relative inline-block">
@@ -178,7 +178,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.6 }}
-              className="flex gap-6 mt-9 pt-9 border-t border-white/15"
+              className="flex flex-wrap gap-5 sm:gap-6 mt-9 pt-9 border-t border-white/15"
             >
               {stats.map(s => (
                 <div key={s.label}>

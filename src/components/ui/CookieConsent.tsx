@@ -28,7 +28,7 @@ export default function CookieConsent() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 40 }}
-          className="fixed bottom-4 left-4 right-4 z-[55] max-w-lg mx-auto"
+          className="fixed bottom-4 left-4 right-4 z-[55] max-w-lg mx-auto max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain"
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-brand-100 p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="flex items-start gap-3 flex-1">

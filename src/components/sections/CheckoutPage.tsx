@@ -1,5 +1,7 @@
+import PageNavigation from '../layout/PageNavigation';
+import { accountUrl } from '../../utils/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, LockKeyhole, Package, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Package, ShieldCheck } from 'lucide-react';
 import { refreshProducts, useProducts } from '../../data/catalog';
 import { refreshStore } from '../../data/store';
 import { checkoutUrl } from '../../utils/navigation';
@@ -20,15 +22,12 @@ export default function CheckoutPage() {
     return () => { active = false; document.title = 'QuickSub'; };
   }, []);
   return <div className="min-h-screen bg-page text-ink-800">
-    <header className="bg-white border-b border-brand-100"><div className="max-w-5xl mx-auto p-5 flex flex-wrap items-center justify-between gap-4">
-      <SiteLink href="/" className="font-heading text-xl font-extrabold text-brand-700">QuickSub</SiteLink>
-      <span className="flex items-center gap-2 text-xs font-semibold text-ink-500"><LockKeyhole size={15} /> Secure checkout</span>
-    </div></header>
+    <PageNavigation current="checkout" accountHref={accountUrl(checkoutUrl(product?.id))}/>
     <main className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <SiteLink href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 mb-7"><ArrowLeft size={16} /> Back to store</SiteLink>
       <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-3">Complete your order</h1>
       <p className="text-sm text-ink-500 mb-8">Choose a package, enter your delivery details, then continue to payment.</p>
-      {loading ? <p role="status" className="rounded-2xl bg-white border border-brand-100 p-8">Loading checkout…</p> : product ? <div className="grid md:grid-cols-[1fr_1.5fr] gap-6 items-start">
+      {loading ? <p role="status" className="rounded-2xl bg-white border border-brand-100 p-8">Loading checkout…</p> : product ? <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6 items-start">
         <aside className="rounded-2xl bg-white border border-brand-100 overflow-hidden">
           {imageFailed ? <div className="h-40 bg-gradient-to-br from-brand-600 to-blue-900 text-white flex flex-col items-center justify-center gap-3"><Package size={36} aria-hidden="true" /><span className="font-heading font-bold text-lg">{product.name}</span></div> : <img src={product.bannerImage} alt="" onError={() => setImageFailed(true)} className="w-full h-40 object-cover" />}
           <div className="p-6 space-y-4">

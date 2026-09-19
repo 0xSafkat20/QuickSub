@@ -40,7 +40,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl custom-scrollbar"
+            className="bg-white rounded-3xl w-full max-h-[90dvh] overflow-y-auto overscroll-contain shadow-2xl sm:max-w-xl md:max-w-2xl lg:max-w-3xl custom-scrollbar"
             onClick={e => e.stopPropagation()}
           >
             {/* Header image */}

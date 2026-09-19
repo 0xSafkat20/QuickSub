@@ -279,3 +279,35 @@
     }
   }
 }
+
+/* Reflow content instead of clipping it when cards, forms or translations grow. */
+@layer base {
+  .grid > *, .flex > * { min-width: 0; }
+  input, select, textarea { max-width: 100%; }
+  textarea { resize: vertical; }
+  button, a, input, select, textarea { touch-action: manipulation; }
+  :focus-visible { outline: 3px solid #60a5fa; outline-offset: 3px; }
+}
+@supports (min-height: 100dvh) {
+  .min-h-screen { min-height: 100dvh; }
+}
+@media (max-width: 640px) {
+  /* 16px prevents iOS from zooming the page when a form field is focused. */
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+  button:not(p button), a[role="button"] { min-height: 44px; }
+  button[aria-label], a[aria-label] { min-width: 44px; }
+  main { padding-bottom: max(2rem, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* Tablet touchscreens need the same tap targets as phones. */
+@media (pointer: coarse) {
+  button, a[role="button"] { min-height: 44px; }
+  button[aria-label], a[aria-label] { min-width: 44px; }
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+  .fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom); }
+}

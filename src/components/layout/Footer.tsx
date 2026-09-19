@@ -1,3 +1,6 @@
+import { useProducts } from '../../data/catalog';
+import { checkoutUrl } from '../../utils/navigation';
+import SiteLink from '../ui/SiteLink';
 import { api } from '../../utils/api';
 import { useState } from 'react';
 import { Facebook, Instagram, MessageCircle, Send, Mail, CheckCircle } from 'lucide-react';
@@ -13,13 +16,15 @@ const productLinks = [
 const supportLinks: { label: string; href?: string; action?: () => void }[] = [
   { label: 'FAQ', href: '#faq' },
   { label: 'Contact', href: '#contact' },
-  { label: 'Order Status', href: '#contact' },
+  { label: 'Order Status', href: '/track' },
+  { label: 'My account', href: '/account' },
   { label: 'Refund Policy', action: () => openLegalDoc('Refund Policy') },
   { label: 'Delivery Policy', action: () => openLegalDoc('Delivery Policy') },
 ];
 const legalLinks = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
 
 export default function Footer() {
+  const products=useProducts();
   const [email, setEmail] = useState('');
   const [subState, setSubState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -82,9 +87,9 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {productLinks.map(link => (
                 <li key={link}>
-                  <a href="#products" className="text-sm text-brand-300 hover:text-white transition-colors">
+                  <SiteLink href={checkoutUrl(products.find(p=>p.name===link)?.id)} className="text-sm text-brand-300 hover:text-white transition-colors">
                     {link}
-                  </a>
+                  </SiteLink>
                 </li>
               ))}
             </ul>
@@ -104,9 +109,9 @@ export default function Footer() {
                       {link.label}
                     </button>
                   ) : (
-                    <a href={link.href} className="text-sm text-brand-300 hover:text-white transition-colors">
+                    <SiteLink href={link.href} className="text-sm text-brand-300 hover:text-white transition-colors">
                       {link.label}
-                    </a>
+                    </SiteLink>
                   )}
                 </li>
               ))}

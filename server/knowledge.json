@@ -301,7 +301,7 @@
         },
         {
           "heading": "Data Storage",
-          "body": "Order-related data is stored securely and retained only as long as needed for support, legal compliance, and dispute resolution."
+          "body": "Account authentication is handled by Supabase Auth. Saved names, contact details, reminder preferences, and linked orders are stored in our Supabase database. Server-side sessions expire after one hour or when you sign out. Order-related data is retained for fulfillment, support, and dispute resolution."
         },
         {
           "heading": "Your Rights",
@@ -381,7 +381,7 @@
       "sections": [
         {
           "heading": "What We Use",
-          "body": "QuickSub uses browser local storage to remember your saved products (favorites) and cookie consent preference. We do not use third-party advertising or analytics tracking cookies."
+          "body": "QuickSub uses browser local storage to remember your saved products (favorites) and cookie consent preference. Essential HTTP-only cookies keep customer and admin sessions signed in. Signing out invalidates the corresponding session. We do not use third-party advertising or analytics tracking cookies."
         },
         {
           "heading": "Managing Preferences",

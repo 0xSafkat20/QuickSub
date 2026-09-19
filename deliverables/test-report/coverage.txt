@@ -3,96 +3,98 @@
 > node --test --experimental-test-coverage --test-coverage-lines=95 --test-coverage-branches=80 --test-coverage-functions=90 server/*.test.js scripts/*.test.mjs
 
 ▶ Boundary, authorization and transaction regressions
-  ✔ password whitespace is preserved and session cookie is private (402.3896ms)
-  ✔ missing origin (6.7343ms)
-  ✔ missing CSRF header (22.9586ms)
-  ✔ cross origin (25.0011ms)
-  ✔ fractional pagination is normalized to an integer (135.2271ms)
-  ✔ null FAQ is a validation error, not server failure (42.072ms)
-  ✔ null policy is a validation error, not server failure (11.1384ms)
-  ✔ null policy section is a validation error, not server failure (45.3319ms)
-  ✔ invalid operations is a validation error, not server failure (41.7993ms)
-  ✔ too many FAQ entries is a validation error, not server failure (16.3173ms)
-  ✔ empty published FAQ and offer lists remain empty (78.3298ms)
-  ✔ rejects invalid unknown mutation 1 (28.5299ms)
-  ✔ rejects invalid package mutation bad-id (21.4617ms)
-  ✔ rejects invalid package mutation 20000000 (13.2982ms)
-  ✔ rejects invalid order mutation 97b7e6c3 (15.266ms)
-  ✔ rejects invalid request mutation 461388ba (19.5746ms)
-  ✔ rejects invalid content mutation unknown (17.9111ms)
-  ✔ punctuation-only contact is rejected (8.1108ms)
-  ✔ request rate limits have Retry-After and reset (119.4351ms)
-  ✔ simultaneous identical requests create one SQL order (50.9796ms)
-  ✔ failed fulfillment leaves both order and audit unchanged (61.4142ms)
-  ✔ refunds remove revenue and cannot be reversed (299.7746ms)
-  ✔ anonymous and ordinary authenticated users cannot read protected tables or execute RPCs (63.1524ms)
-  ✔ session expiration rejects previously valid cookies (6.9041ms)
-  ✔ login rate limit resets after a minute (135.9728ms)
-✔ Boundary, authorization and transaction regressions (13826.5414ms)
+  ✔ password whitespace is preserved and session cookie is private (210.0908ms)
+  ✔ missing origin (6.1638ms)
+  ✔ missing CSRF header (5.5938ms)
+  ✔ cross origin (6.0142ms)
+  ✔ fractional pagination is normalized to an integer (51.8996ms)
+  ✔ null FAQ is a validation error, not server failure (9.497ms)
+  ✔ null policy is a validation error, not server failure (6.2131ms)
+  ✔ null policy section is a validation error, not server failure (10.0797ms)
+  ✔ invalid operations is a validation error, not server failure (10.3711ms)
+  ✔ too many FAQ entries is a validation error, not server failure (16.6308ms)
+  ✔ empty published FAQ and offer lists remain empty (34.1463ms)
+  ✔ rejects invalid unknown mutation 1 (7.7778ms)
+  ✔ rejects invalid package mutation bad-id (7.131ms)
+  ✔ rejects invalid package mutation 20000000 (7.384ms)
+  ✔ rejects invalid order mutation 6062278a (5.2776ms)
+  ✔ rejects invalid request mutation 3e9d7705 (8.7754ms)
+  ✔ rejects invalid content mutation unknown (8.658ms)
+  ✔ punctuation-only contact is rejected (4.2178ms)
+  ✔ request rate limits have Retry-After and reset (43.5521ms)
+  ✔ simultaneous identical requests create one SQL order (28.5882ms)
+  ✔ failed fulfillment leaves both order and audit unchanged (24.7991ms)
+  ✔ refunds remove revenue and cannot be reversed (98.7741ms)
+  ✔ anonymous and ordinary authenticated users cannot read protected tables or execute RPCs (25.3072ms)
+  ✔ session expiration rejects previously valid cookies (4.0026ms)
+  ✔ login rate limit resets after a minute (27.9275ms)
+✔ Boundary, authorization and transaction regressions (5618.6166ms)
 ▶ Admin/customer integration with real local SQL and simulated Supabase Auth
-  ✔ admin requires authentication and blocks cross-origin login (383.0967ms)
-  ✔ owner catalog updates immediately reach customer API; staff cannot edit catalog (229.6213ms)
-  ✔ customer order uses exact database price and retries do not duplicate (179.9686ms)
-  ✔ tracking code protects customer information (99.9853ms)
-  ✔ cannot deliver unpaid order; payment reference remains pending manual verification (351.9544ms)
-  ✔ staff delivery updates reach customer tracking and totals (325.989ms)
-  ✔ stale customer quotes cannot create an order (34.1007ms)
-  ✔ package edits update starting prices and Gemini knowledge (76.2217ms)
-  ✔ offers and countdown settings reach customers and invalid settings are rejected (70.5355ms)
-  ✔ image uploads require owner access and safe image types (42.6592ms)
-  ✔ hidden products cannot receive orders (63.1647ms)
-  ✔ FAQ and support request connect to both pages (276.06ms)
-  ✔ revoked roles stop existing sessions; RPCs have no public execute permission (73.91ms)
-  ✔ logout removes session (33.5288ms)
-✔ Admin/customer integration with real local SQL and simulated Supabase Auth (15128.8414ms)
-✔ shared admin sessions survive instance changes and revoke on logout (604.9045ms)
-✔ Demo packages are explicit, never override real packages, and cannot create paid orders (11403.1776ms)
-✔ Gateway lifecycle with real PostgreSQL, authenticated routes and simulated provider (10918.4302ms)
-✔ Database settlement preserves late and duplicate money without double fulfillment (5120.5574ms)
-✔ unconfigured admin API fails closed while public catalog helpers remain usable (663.5634ms)
-✔ network errors return safe outage messages without leaking credentials (98.4286ms)
-✔ provider authentication failures do not expose account existence or provider body (98.3497ms)
-✔ invalid login fields are rejected before any provider request (131.1349ms)
-✔ database price, image and availability override bundled values (3.6747ms)
-✔ rejects malformed catalog records and unsafe image URLs (1.1171ms)
-✔ caches one shared database snapshot for the website and chatbot (3.1043ms)
-✔ outages preserve the last good data and identify it as stale (2.4609ms)
-✔ an intentionally empty initialized database stays empty (1.5161ms)
-✔ no credentials uses the local catalog without network calls (0.6213ms)
-✔ validates inputs and rejects cross-origin requests before calling provider (7.4684ms)
-✔ uses current catalog, private API and bounded server-owned conversation history (18.897ms)
-✔ Bangla replies and WhatsApp URLs are safely constructed from actual products (3.35ms)
-✔ accepts same-origin development proxy requests with their original host (2.6492ms)
-✔ missing key falls back to real catalog with honest stock information (0.7846ms)
-✔ provider failures, refusals and invalid recommendations degrade safely (3.3698ms)
-✔ provider timeouts produce a usable fallback (12.047ms)
-✔ limits repeated calls and resets after a minute (9.0343ms)
-✔ expires conversation history after 30 minutes (4.0813ms)
-✔ fresh database data controls Gemini knowledge and recommendation validation (1.2808ms)
-✔ prevents simultaneous turns from racing in the same conversation (1.4219ms)
-✔ Checkout failure modes never manufacture confirmation or blindly create another session (81.2477ms)
-✔ Reconciliation distinguishes failed, cancelled, unknown, risky and unavailable transactions (10.529ms)
-✔ Worker retains failed emails for retry and continues after provider outages (4.9275ms)
-ℹ tests 69
+  ✔ admin requires authentication and blocks cross-origin login (101.6639ms)
+  ✔ owner catalog updates immediately reach customer API; staff cannot edit catalog (57.9312ms)
+  ✔ customer order uses exact database price and retries do not duplicate (33.7256ms)
+  ✔ tracking code protects customer information (13.4746ms)
+  ✔ cannot deliver unpaid order; payment reference remains pending manual verification (47.4079ms)
+  ✔ staff delivery updates reach customer tracking and totals (54.683ms)
+  ✔ stale customer quotes cannot create an order (14.9354ms)
+  ✔ package edits update starting prices and Gemini knowledge (38.2056ms)
+  ✔ offers and countdown settings reach customers and invalid settings are rejected (27.5894ms)
+  ✔ image uploads require owner access and safe image types (19.6975ms)
+  ✔ hidden products cannot receive orders (23.2163ms)
+  ✔ FAQ and support request connect to both pages (145.1278ms)
+  ✔ revoked roles stop existing sessions; RPCs have no public execute permission (14.2756ms)
+  ✔ logout removes session (23.5581ms)
+✔ Admin/customer integration with real local SQL and simulated Supabase Auth (5987.7137ms)
+✔ shared admin sessions survive instance changes and revoke on logout (235.2128ms)
+✔ Demo packages are explicit, never override real packages, and cannot create paid orders (4913.4104ms)
+✔ customer profiles, ownership, sessions and subscription reminders use real SQL (5627.9256ms)
+✔ Gateway lifecycle with real PostgreSQL, authenticated routes and simulated provider (5301.8458ms)
+✔ Database settlement preserves late and duplicate money without double fulfillment (3584.0881ms)
+✔ unconfigured admin API fails closed while public catalog helpers remain usable (200.159ms)
+✔ network errors return safe outage messages without leaking credentials (41.3213ms)
+✔ provider authentication failures do not expose account existence or provider body (15.4393ms)
+✔ invalid login fields are rejected before any provider request (30.9973ms)
+✔ database price, image and availability override bundled values (3.1298ms)
+✔ rejects malformed catalog records and unsafe image URLs (1.6527ms)
+✔ caches one shared database snapshot for the website and chatbot (3.0024ms)
+✔ outages preserve the last good data and identify it as stale (1.2991ms)
+✔ an intentionally empty initialized database stays empty (0.6694ms)
+✔ no credentials uses the local catalog without network calls (0.6538ms)
+✔ validates inputs and rejects cross-origin requests before calling provider (4.3801ms)
+✔ uses current catalog, private API and bounded server-owned conversation history (7.0399ms)
+✔ Bangla replies and WhatsApp URLs are safely constructed from actual products (1.0052ms)
+✔ accepts same-origin development proxy requests with their original host (0.8469ms)
+✔ missing key falls back to real catalog with honest stock information (1.6014ms)
+✔ provider failures, refusals and invalid recommendations degrade safely (3.6998ms)
+✔ provider timeouts produce a usable fallback (21.6779ms)
+✔ limits repeated calls and resets after a minute (4.5748ms)
+✔ expires conversation history after 30 minutes (8.7555ms)
+✔ fresh database data controls Gemini knowledge and recommendation validation (4.557ms)
+✔ prevents simultaneous turns from racing in the same conversation (3.4271ms)
+✔ Checkout failure modes never manufacture confirmation or blindly create another session (40.1153ms)
+✔ Reconciliation distinguishes failed, cancelled, unknown, risky and unavailable transactions (6.7254ms)
+✔ Worker retains failed emails for retry and continues after provider outages (5.4655ms)
+ℹ tests 70
 ℹ suites 0
-ℹ pass 69
+ℹ pass 70
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 31008.0933
+ℹ duration_ms 20094.7664
 ℹ start of coverage report
 ℹ -----------------------------------------------------------------------------------
 ℹ file                   | line % | branch % | funcs % | uncovered lines
 ℹ -----------------------------------------------------------------------------------
 ℹ scripts                |        |          |         | 
-ℹ  admin-test-server.mjs |  97.59 |    89.74 |   94.12 | 198 231-235
+ℹ  admin-test-server.mjs |  97.71 |    90.80 |   94.44 | 211 244-248
 ℹ server                 |        |          |         | 
-ℹ  admin.js              |  98.54 |    86.32 |   98.21 | 355-357 449-450 471-473 612
+ℹ  admin.js              |  98.55 |    86.57 |   98.21 | 356-358 450-451 472-474 615
 ℹ  catalog.js            | 100.00 |    85.45 |  100.00 | 
 ℹ  chat.js               |  98.39 |    89.74 |  100.00 | 61-62
+ℹ  customers.js          |  96.63 |    69.84 |   95.45 | 77-79
 ℹ  payments.js           | 100.00 |    94.68 |  100.00 | 
 ℹ -----------------------------------------------------------------------------------
-ℹ all files              |  98.55 |    88.78 |   98.32 | 
+ℹ all files              |  98.44 |    87.02 |   97.89 | 
 ℹ -----------------------------------------------------------------------------------
 ℹ end of coverage report

@@ -1,66 +1,72 @@
 {
-  "generatedAt": "2026-09-19T09:39:55.977Z",
+  "generatedAt": "2026-09-19T18:49:39.527Z",
   "browserIncluded": true,
   "results": [
     {
       "name": "typecheck",
       "exitCode": 0,
-      "durationMs": 11763,
+      "durationMs": 6362,
       "passed": true
     },
     {
       "name": "lint",
       "exitCode": 0,
-      "durationMs": 8164,
+      "durationMs": 5708,
       "passed": true
     },
     {
       "name": "coverage",
       "exitCode": 0,
-      "durationMs": 34971,
+      "durationMs": 22895,
       "passed": true
     },
     {
       "name": "build",
       "exitCode": 0,
-      "durationMs": 31100,
+      "durationMs": 14060,
+      "passed": true
+    },
+    {
+      "name": "browser-navigation",
+      "exitCode": 0,
+      "durationMs": 9494,
+      "passed": true
+    },
+    {
+      "name": "browser-responsive",
+      "exitCode": 0,
+      "durationMs": 61480,
+      "passed": true
+    },
+    {
+      "name": "browser-accounts",
+      "exitCode": 0,
+      "durationMs": 8418,
       "passed": true
     },
     {
       "name": "browser-checkout",
       "exitCode": 0,
-      "durationMs": 10147,
+      "durationMs": 9377,
       "passed": true
     },
     {
       "name": "browser-payments",
       "exitCode": 0,
-      "durationMs": 7526,
+      "durationMs": 7322,
       "passed": true
     },
     {
       "name": "browser-admin",
       "exitCode": 0,
-      "durationMs": 10664,
+      "durationMs": 12036,
       "passed": true
     },
     {
       "name": "browser-chat",
-      "exitCode": 0,
-      "durationMs": 4900,
-      "passed": true
-    },
-    {
-      "name": "browser-privacy",
-      "exitCode": 0,
-      "durationMs": 67680,
-      "passed": true
-    },
-    {
-      "name": "browser-storefront",
-      "exitCode": 0,
-      "durationMs": 18359,
-      "passed": true
+      "exitCode": 1,
+      "durationMs": 34063,
+      "passed": false
     }
   ]
 }

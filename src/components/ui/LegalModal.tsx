@@ -42,7 +42,7 @@ export default function LegalModal() {
             initial={{ opacity: 0, scale: 0.94, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 20 }}
-            className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl flex flex-col"
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[85dvh] overflow-hidden shadow-2xl flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-brand-100 flex-shrink-0">
@@ -64,7 +64,7 @@ export default function LegalModal() {
               </button>
             </div>
 
-            <div className="overflow-y-auto p-6 space-y-6">
+            <div className="overflow-y-auto overscroll-contain p-6 space-y-6">
               {doc.sections.map(section => (
                 <div key={section.heading}>
                   <h4 className="font-heading font-semibold text-sm text-ink-800 mb-2">{section.heading}</h4>

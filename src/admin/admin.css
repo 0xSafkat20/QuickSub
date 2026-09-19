@@ -748,3 +748,35 @@ table small {
 .qs-payment-box button:disabled { opacity: .5; cursor: not-allowed; }
 .qs-payment-box [role="alert"] { color: #b42318; }
 .qs-payment-box .qs-payment-box { margin-top: 16px; margin-bottom: 0; }
+
+/* Keep data tables scrollable within their panel and forms usable on small screens. */
+.admin-shell .qs-admin-card, .qs-admin-form-grid > *, .qs-admin-metrics > * { min-width: 0; }
+.qs-admin-table-wrap { max-width: 100%; overscroll-behavior-inline: contain; }
+.qs-admin-editor { max-height: 90dvh; overscroll-behavior: contain; }
+.qs-admin-page-heading, .qs-admin-section-heading, .qs-admin-pagination { flex-wrap: wrap; }
+.qs-admin-topbar { gap: 12px; overflow-wrap: anywhere; }
+.qs-admin-note input[type="date"] { display: block; width: 100%; max-width: 320px; min-height: 44px; padding: 10px; margin: 8px 0; border: 1px solid #dce4f3; border-radius: 8px; }
+.qs-admin-note button { min-height: 44px; padding: 8px 12px; }
+@media (max-width: 900px) {
+  .qs-admin-form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .admin-shell button, .admin-shell input, .admin-shell select { min-height: 44px; }
+  .qs-admin-sidebar nav { gap: 6px; padding-bottom: 8px; overscroll-behavior-inline: contain; }
+  .qs-admin-page-heading > button { width: 100%; }
+  .qs-admin-topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 12px 16px; }
+  .qs-admin-editor { padding: 18px; max-height: calc(100dvh - 24px); }
+  .qs-admin-pagination { gap: 12px; font-size: 12px; }
+}
+@media (max-width: 360px) {
+  .qs-admin-metrics { grid-template-columns: minmax(0, 1fr); }
+}
+
+.qs-admin-login { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.qs-admin-login > * { min-width: 0; }
+.qs-admin-login-form form { width: min(360px, 100%); min-width: 0; }
+.qs-admin-editor { height: 100dvh; max-height: 100dvh; }
+@media (max-width: 700px) {
+  .qs-admin-login { grid-template-columns: minmax(0, 1fr); }
+  .qs-admin-login-form { padding: 24px 16px; }
+}

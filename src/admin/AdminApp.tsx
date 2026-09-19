@@ -1,3 +1,5 @@
+import SiteLink from '../components/ui/SiteLink';
+import AdminSubscription from './AdminSubscription';
 import AdminPaymentSearch from "./AdminPaymentSearch";
 import AdminPayments from "./AdminPayments";
 import {
@@ -246,9 +248,9 @@ export default function AdminApp() {
     return (
       <div className="admin-shell qs-admin-login">
         <div className="qs-admin-login-story">
-          <a href="/" className="qs-admin-brand">
+          <SiteLink href="/" className="qs-admin-brand">
             Q<span>QuickSub</span>
-          </a>
+          </SiteLink>
           <span className="qs-admin-eyebrow">YOUR STORE, ONE WORKSPACE</span>
           <h1>
             A clearer view.
@@ -291,9 +293,9 @@ export default function AdminApp() {
             <button className="qs-admin-primary" disabled={busy}>
               {busy ? "Signing in…" : "Sign in to dashboard"}
             </button>
-            <a href="/" className="qs-admin-back">
+            <SiteLink href="/" className="qs-admin-back">
               ← Back to customer website
-            </a>
+            </SiteLink>
             <p className="qs-admin-muted">
               First setup? Configure Supabase and add your account as an owner
               using ADMIN-SETUP.md.
@@ -305,12 +307,12 @@ export default function AdminApp() {
   return (
     <div className="admin-shell qs-admin-layout">
       <aside className="qs-admin-sidebar">
-        <a href="/admin" className="qs-admin-brand">
+        <SiteLink href="/admin" className="qs-admin-brand">
           Q
           <span>
             QuickSub<small>STORE MANAGEMENT</small>
           </span>
-        </a>
+        </SiteLink>
         <nav aria-label="Admin navigation">
           {sections
             .filter(
@@ -1543,6 +1545,7 @@ export default function AdminApp() {
               paid. Changing a status here does not transfer or refund money.
             </p>
             <AdminPayments key={order.id} orderId={order.id} onChange={() => { setOrder(null); void reload(); }} />
+            <AdminSubscription key={order.id} orderId={order.id} />
             <Field label="Payment status">
               <select
                 value={order.payment_status}

@@ -1,0 +1,9 @@
+PASS routes and navigation: 320x640
+PASS routes and navigation: 390x844
+PASS routes and navigation: 768x1024
+PASS routes and navigation: 1024x768
+PASS routes and navigation: 1280x800
+PASS routes and navigation: 1440x900
+PASS routes and navigation: 2560x1440
+PASS routes and navigation: 844x390
+PASS search, chat, product dialog, unlimited FAQ height, account dashboard and admin sections.

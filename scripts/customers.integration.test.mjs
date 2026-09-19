@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID,randomBytes} from 'node:crypto';
+import {startTestServer,packageId,ownerId} from './admin-test-server.mjs';
+
+test('customer profiles, ownership, sessions and subscription reminders use real SQL',async()=>{
+ const env=await startTestServer();
+ try{
+ const request=async(path,body,cookie='')=>{const response=await fetch(env.base+'/api'+path,{method:body===undefined?'GET':'POST',headers:{origin:env.base,'x-quicksub-client':'web','content-type':'application/json',cookie},body:body===undefined?undefined:JSON.stringify(body)});return {status:response.status,body:await response.json(),cookie:response.headers.get('set-cookie')?.split(';')[0]};};
+ const signup=async(email)=>request('/account/signup',{name:'Customer',email,password:'example-password-123'});
+ const alice=await signup('alice@example.test'),bob=await signup('bob@example.test');
+ assert.equal(alice.status,200);assert.ok(alice.cookie);assert.equal(bob.status,200);
+ const a=alice.cookie,b=bob.cookie;
+ const session=await request('/account/session',undefined,a);assert.equal(session.body.user.email,'alice@example.test');
+ assert.equal((await request('/account/session')).body.user,null);
+ assert.equal((await request('/account/orders')).status,401);
+ assert.equal((await request('/account/profile',{name:'Alice',contact:'alice@gmail.com',renewal_reminders:false,user_id:'forged'},a)).status,200);
+ assert.equal((await request('/account/session',undefined,a)).body.profile.name,'Alice');
+ assert.equal((await request('/account/session',undefined,b)).body.profile.name,'Customer');
+ assert.equal((await request('/account/profile',{name:'Alice',contact:'invalid',renewal_reminders:true},a)).status,400);
+ const payload={id:randomUUID(),accessCode:randomBytes(32).toString('hex'),packageId,name:'Alice',contact:'alice@example.test',note:'',expectedPrice:299};
+ const created=await request('/orders',payload,a);assert.equal(created.status,201);
+ const userId=session.body.user.id;
+ assert.equal((await env.db.query('select customer_id from quicksub_orders where id=$1',[payload.id])).rows[0].customer_id,userId);
+ assert.equal((await request('/orders',payload,b)).status,409);
+ assert.equal((await request('/account/orders',undefined,a)).body.orders.length,1);
+ assert.equal((await request('/account/orders',undefined,b)).body.orders.length,0);
+ assert.equal((await request('/account/claim',payload,b)).status,409);
+ const guest={...payload,id:randomUUID(),accessCode:randomBytes(32).toString('hex')};
+ assert.equal((await request('/orders',guest)).status,201);
+ assert.equal((await request('/account/claim',{...guest,accessCode:'a'.repeat(64)},b)).status,409);
+ assert.equal((await request('/account/claim',guest,b)).status,200);
+ assert.equal((await request('/account/claim',guest,a)).status,409);
+ assert.equal((await request('/account/orders',undefined,b)).body.orders.length,1);
+ assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:null},a)).status,401);
+ const admin=await request('/admin/login',{email:'owner@example.test',password:'test-password'});
+ assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:'2026-10-01T00:00:00Z'},admin.cookie)).status,409);
+ await env.db.query("update quicksub_orders set payment_status='verified',status='delivered' where id=$1",[payload.id]);
+ assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:'2026-10-01T00:00:00Z'},admin.cookie)).status,200);
+ assert.ok((await request('/account/orders',undefined,a)).body.orders[0].expires_at);
+ assert.equal((await env.db.query("select count(*) as n from quicksub_audit where actor=$1 and action='subscription-expiry'",[ownerId])).rows[0].n,1);
+ const publicRows=await env.db.query("select has_table_privilege('authenticated','quicksub_customers','select') as allowed");assert.equal(publicRows.rows[0].allowed,false);
+ assert.equal((await request('/account/logout',{},a)).status,200);
+ assert.equal((await request('/account/orders',undefined,a)).status,401);
+ const login=await request('/account/login',{email:'alice@example.test',password:'example-password-123'});assert.equal(login.status,200);
+ assert.equal((await request('/account/session',undefined,login.cookie)).body.profile.contact,'alice@gmail.com');
+ await env.db.query("update quicksub_customer_sessions set expires_at=now()-interval '1 hour'");
+ assert.equal((await request('/account/orders',undefined,login.cookie)).status,401);
+ }finally{await env.close();}
+});

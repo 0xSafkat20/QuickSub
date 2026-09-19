@@ -72,7 +72,7 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-start justify-center pt-[12vh] px-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-start justify-center pt-[6dvh] px-4 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -80,10 +80,10 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -12 }}
             transition={{ duration: 0.2 }}
-            className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-brand-100 overflow-hidden"
+            className="bg-white rounded-2xl w-full max-w-xl max-h-[88dvh] flex flex-col shadow-2xl border border-brand-100 overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-brand-50">
+            <div className="flex shrink-0 items-center gap-3 px-4 py-3 border-b border-brand-50">
               <Search size={18} className="text-ink-300 flex-shrink-0" />
               <input
                 ref={inputRef}
@@ -104,7 +104,7 @@ export default function SearchModal({ open, onClose, onSelectProduct }: SearchMo
               </button>
             </div>
 
-            <div className="max-h-[50vh] overflow-y-auto p-2">
+            <div className="min-h-0 flex-1 max-h-[60dvh] overflow-y-auto overscroll-contain p-2">
               {!query.trim() && (
                 <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-ink-300">
                   Popular products

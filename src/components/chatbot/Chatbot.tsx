@@ -132,7 +132,7 @@ export default function Chatbot() {
         className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] w-[440px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-blue-xl border border-brand-100 flex flex-col overflow-hidden transition-all duration-300 ${
           open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
         }`}
-        style={{ height: 'min(640px, calc(100dvh - 3rem))' }}
+        style={{ height: 'min(640px, calc(100dvh - 3rem))', visibility: open ? 'visible' : 'hidden' }}
       >
         {/* Header */}
         <div className="gradient-primary p-4 flex items-center justify-between flex-shrink-0">
@@ -150,7 +150,7 @@ export default function Chatbot() {
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="w-7 h-7 bg-white/15 hover:bg-white/25 rounded-lg flex items-center justify-center text-white transition-colors"
+            className="w-11 h-11 shrink-0 bg-white/15 hover:bg-white/25 rounded-lg flex items-center justify-center text-white transition-colors"
             aria-label="Close chat"
           >
             <X size={15} />
@@ -158,11 +158,11 @@ export default function Chatbot() {
         </div>
 
         {/* Messages */}
-        <div role="log" aria-live="polite" aria-busy={sending} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 bg-brand-50/30">
+        <div role="log" aria-live="polite" aria-busy={sending} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-3 bg-brand-50/30">
           {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                className={`max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere] ${
                   msg.isBot
                     ? 'bg-white border border-brand-100 text-ink-700 rounded-bl-sm shadow-sm'
                     : 'gradient-primary text-white rounded-br-sm shadow-sm'
@@ -214,12 +214,12 @@ export default function Chatbot() {
               aria-label="Message QuickSub support"
               onChange={e => setInput(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 px-4 py-2.5 bg-brand-50 border border-brand-100 rounded-xl text-sm text-ink-800 placeholder-ink-300 focus:outline-none focus:border-brand-300 focus:bg-white transition-all"
+              className="min-w-0 flex-1 px-4 py-2.5 bg-brand-50 border border-brand-100 rounded-xl text-sm text-ink-800 placeholder-ink-300 focus:outline-none focus:border-brand-300 focus:bg-white transition-all"
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
-              className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center text-white hover:shadow-blue-sm transition-all flex-shrink-0"
+              className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center text-white hover:shadow-blue-sm transition-all flex-shrink-0"
               aria-label="Send message"
             >
               <Send size={15} />
