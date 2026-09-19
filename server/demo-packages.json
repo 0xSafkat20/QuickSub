@@ -1,0 +1,485 @@
+{
+  "1": [
+    {
+      "id": "demo-1-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-1-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-1-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "2": [
+    {
+      "id": "demo-2-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-2-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-2-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "3": [
+    {
+      "id": "demo-3-1",
+      "name": "60 UC",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 120,
+      "demo": true
+    },
+    {
+      "id": "demo-3-2",
+      "name": "325 UC",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 600,
+      "demo": true
+    },
+    {
+      "id": "demo-3-3",
+      "name": "660 UC",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 1200,
+      "demo": true
+    }
+  ],
+  "4": [
+    {
+      "id": "demo-4-1",
+      "name": "100 Diamonds",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 100,
+      "demo": true
+    },
+    {
+      "id": "demo-4-2",
+      "name": "310 Diamonds",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 300,
+      "demo": true
+    },
+    {
+      "id": "demo-4-3",
+      "name": "520 Diamonds",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 500,
+      "demo": true
+    }
+  ],
+  "5": [
+    {
+      "id": "demo-5-1",
+      "name": "Starter top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 150,
+      "demo": true
+    },
+    {
+      "id": "demo-5-2",
+      "name": "Standard top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 450,
+      "demo": true
+    },
+    {
+      "id": "demo-5-3",
+      "name": "Large top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 900,
+      "demo": true
+    }
+  ],
+  "6": [
+    {
+      "id": "demo-6-1",
+      "name": "Starter top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 150,
+      "demo": true
+    },
+    {
+      "id": "demo-6-2",
+      "name": "Standard top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 450,
+      "demo": true
+    },
+    {
+      "id": "demo-6-3",
+      "name": "Large top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 900,
+      "demo": true
+    }
+  ],
+  "7": [
+    {
+      "id": "demo-7-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-7-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-7-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "8": [
+    {
+      "id": "demo-8-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-8-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-8-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "9": [
+    {
+      "id": "demo-9-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-9-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-9-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "10": [
+    {
+      "id": "demo-10-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-10-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-10-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "11": [
+    {
+      "id": "demo-11-1",
+      "name": "Starter top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 150,
+      "demo": true
+    },
+    {
+      "id": "demo-11-2",
+      "name": "Standard top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 450,
+      "demo": true
+    },
+    {
+      "id": "demo-11-3",
+      "name": "Large top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 900,
+      "demo": true
+    }
+  ],
+  "12": [
+    {
+      "id": "demo-12-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-12-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-12-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "13": [
+    {
+      "id": "demo-13-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-13-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-13-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "14": [
+    {
+      "id": "demo-14-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-14-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-14-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "15": [
+    {
+      "id": "demo-15-1",
+      "name": "Starter top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 150,
+      "demo": true
+    },
+    {
+      "id": "demo-15-2",
+      "name": "Standard top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 450,
+      "demo": true
+    },
+    {
+      "id": "demo-15-3",
+      "name": "Large top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 900,
+      "demo": true
+    }
+  ],
+  "16": [
+    {
+      "id": "demo-16-1",
+      "name": "Starter top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 150,
+      "demo": true
+    },
+    {
+      "id": "demo-16-2",
+      "name": "Standard top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 450,
+      "demo": true
+    },
+    {
+      "id": "demo-16-3",
+      "name": "Large top-up",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 900,
+      "demo": true
+    }
+  ],
+  "17": [
+    {
+      "id": "demo-17-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-17-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-17-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "18": [
+    {
+      "id": "demo-18-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-18-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-18-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "19": [
+    {
+      "id": "demo-19-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-19-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-19-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "20": [
+    {
+      "id": "demo-20-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-20-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-20-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ],
+  "21": [
+    {
+      "id": "demo-21-1",
+      "name": "1 month",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 199,
+      "demo": true
+    },
+    {
+      "id": "demo-21-2",
+      "name": "3 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 549,
+      "demo": true
+    },
+    {
+      "id": "demo-21-3",
+      "name": "6 months",
+      "details": "Example package for checkout testing only. No subscription or game currency will be delivered.",
+      "price_bdt": 999,
+      "demo": true
+    }
+  ]
+}

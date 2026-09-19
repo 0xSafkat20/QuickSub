@@ -1,3 +1,5 @@
+import AdminPaymentSearch from "./AdminPaymentSearch";
+import AdminPayments from "./AdminPayments";
 import {
   useCallback,
   useEffect,
@@ -364,6 +366,7 @@ export default function AdminApp() {
         </div>
       </aside>
       <main className="qs-admin-main">
+
         <header className="qs-admin-topbar">
           <span>
             Workspace / <strong>{tab}</strong>
@@ -413,6 +416,7 @@ export default function AdminApp() {
             </div>
           ) : (
             <>
+              {tab === "Orders" && <AdminPaymentSearch onChange={() => void reload()} />}
               {tab === "Overview" && (
                 <>
                   <div className="qs-admin-metrics">
@@ -1538,6 +1542,7 @@ export default function AdminApp() {
               Verify the transaction in your merchant account before marking it
               paid. Changing a status here does not transfer or refund money.
             </p>
+            <AdminPayments key={order.id} orderId={order.id} onChange={() => { setOrder(null); void reload(); }} />
             <Field label="Payment status">
               <select
                 value={order.payment_status}

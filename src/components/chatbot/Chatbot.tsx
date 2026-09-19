@@ -1,3 +1,4 @@
+import SiteLink from '../ui/SiteLink';
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, ChevronRight } from 'lucide-react';
 
@@ -62,14 +63,14 @@ export default function Chatbot() {
       if (typeof data.sessionId === 'string') sessionRef.current = data.sessionId;
       setMessages(prev => prev.map(msg => msg.id === replyId ? { ...msg, text: data.reply } : msg));
       if (typeof data.url === 'string' && /^\/buy(?:\?text=[^\s]*)?$/.test(data.url)) {
-        addBotReply(/[\u0980-\u09ff]/.test(data.reply) ? 'WhatsApp সাপোর্টে যোগাযোগ করুন' : 'Continue with WhatsApp support', data.url);
+        addBotReply(/[\u0980-\u09ff]/.test(data.reply) ? 'চেকআউটে যান' : 'Continue to checkout', data.url.replace('/buy', '/checkout'));
       }
     } catch {
       if (requestRef.current !== controller) return;
       setMessages(prev => prev.map(msg => msg.id === replyId ? {
         ...msg, text: 'Chat is temporarily unavailable. Please try again or contact us on WhatsApp.',
       } : msg));
-      addBotReply('Contact WhatsApp support', '/buy');
+      addBotReply('Contact WhatsApp support', '/api/support/whatsapp');
     } finally {
       window.clearTimeout(timeout);
       if (requestRef.current === controller) {
@@ -87,7 +88,7 @@ export default function Chatbot() {
 
   const handleQuickReply = (reply: string) => {
     if (reply === 'Contact on WhatsApp') {
-      addBotReply('You can contact us directly on WhatsApp for purchase or support.', '/buy');
+      addBotReply('You can contact us directly on WhatsApp for support.', '/api/support/whatsapp');
       return;
     }
 
@@ -128,10 +129,10 @@ export default function Chatbot() {
 
       {/* Chat Window */}
       <div
-        className={`fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-blue-xl border border-brand-100 flex flex-col overflow-hidden transition-all duration-300 ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] w-[440px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-blue-xl border border-brand-100 flex flex-col overflow-hidden transition-all duration-300 ${
           open ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
         }`}
-        style={{ height: '490px' }}
+        style={{ height: 'min(640px, calc(100dvh - 3rem))' }}
       >
         {/* Header */}
         <div className="gradient-primary p-4 flex items-center justify-between flex-shrink-0">
@@ -157,25 +158,25 @@ export default function Chatbot() {
         </div>
 
         {/* Messages */}
-        <div role="log" aria-live="polite" aria-busy={sending} className="flex-1 overflow-y-auto p-4 space-y-3 bg-brand-50/30">
+        <div role="log" aria-live="polite" aria-busy={sending} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 bg-brand-50/30">
           {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
               <div
-                className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                className={`max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                   msg.isBot
                     ? 'bg-white border border-brand-100 text-ink-700 rounded-bl-sm shadow-sm'
                     : 'gradient-primary text-white rounded-br-sm shadow-sm'
                 }`}
               >
                 {msg.url ? (
-                  <a
+                  <SiteLink
                     href={msg.url}
-                    target="_blank"
+                    target={msg.url.startsWith("/api/support/") ? "_blank" : undefined}
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-blue-600 underline hover:text-blue-800"
                   >
                     {msg.text}
-                  </a>
+                  </SiteLink>
                 ) : (
                   msg.text
                 )}
@@ -187,13 +188,13 @@ export default function Chatbot() {
 
         {/* Quick Replies */}
         <div className="px-4 pb-2 pt-2 flex-shrink-0 border-t border-brand-50">
-          <div className="flex flex-wrap gap-1.5 pb-1">
+          <div className="flex gap-1.5 pb-1 overflow-x-auto">
             {quickReplies.map(reply => (
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
                 disabled={sending && reply !== 'Contact on WhatsApp'}
-                className="flex items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors whitespace-nowrap font-medium"
+                className="flex flex-shrink-0 items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors whitespace-nowrap font-medium"
               >
                 {reply} <ChevronRight size={10} />
               </button>

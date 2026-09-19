@@ -1,0 +1,1 @@
+PASS: in-site navigation without reload, retry after backend outage, demo failure/success without order creation, browser back/forward, legacy buy URL, mobile layout, real checkout.

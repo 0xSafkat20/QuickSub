@@ -1,0 +1,70 @@
+import assert from 'node:assert/strict';
+import puppeteer from 'puppeteer';
+import { mkdir } from 'node:fs/promises';
+import { startTestServer } from './admin-test-server.mjs';
+const env = await startTestServer({ demoCheckout: true }); let browser, page;
+try {
+  browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+  page = await browser.newPage(); const errors = []; let orders = 0, failure = true;
+  page.on('pageerror', e => errors.push(e.message));
+  await page.setRequestInterception(true);
+  page.on('request', req => {
+    const url = new URL(req.url());
+    if (url.pathname === '/api/orders') orders++;
+    if (url.pathname === '/api/packages/3' && failure) return req.respond({ status: 503, contentType: 'application/json', body: '{"error":"Backend unavailable"}' });
+    return req.url().startsWith(env.base) || req.url().startsWith('data:') ? req.continue() : req.abort();
+  });
+  await page.setViewport({ width: 390, height: 844 });
+  await page.evaluateOnNewDocument(() => localStorage.setItem('quicksub-cookie-consent','accepted'));
+  await page.goto(env.base, { waitUntil: 'networkidle0' });
+  const started = await page.evaluate(() => performance.timeOrigin);
+  await page.waitForSelector('#product-3');
+  await page.$eval('#product-3 .cursor-pointer', el => el.click());
+  await page.waitForFunction(() => [...document.querySelectorAll('a')].some(a => a.textContent.includes('Continue to checkout')));
+  await page.evaluate(() => [...document.querySelectorAll('a')].find(a => a.textContent.includes('Continue to checkout')).click());
+  await page.waitForFunction(() => document.body.innerText.includes('Checkout temporarily unavailable'));
+  assert.equal(new URL(page.url()).pathname, '/checkout');
+  assert.equal(await page.evaluate(() => performance.timeOrigin), started);
+  failure = false;
+  const click = async text => { await page.waitForFunction(t => [...document.querySelectorAll('button')].some(b => b.textContent.trim() === t), {}, text); await page.evaluate(t => [...document.querySelectorAll('button')].find(b => b.textContent.trim() === t).click(), text); };
+  await click('Retry loading packages');
+  await page.waitForSelector('form select');
+  assert.equal(await page.$eval('input[name="name"]', el => el.value), '');
+  await page.type('input[name="name"]', 'Demo Customer');
+  await page.type('input[name="contact"]', 'demo@example.com');
+  await page.select('form select','demo-3-3');
+  await click('Continue to demo payment · ৳1200');
+  await page.waitForSelector('[aria-label="Demo payment"]');
+  await click('Simulate failed payment');
+  await page.waitForFunction(() => document.body.innerText.includes('Demo payment failed'));
+  await click('Retry demo payment');
+  await page.waitForFunction(() => document.body.innerText.includes('Demo payment successful'));
+  for (const method of ['bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard', 'Bank Transfer']) {
+    await click('Try another payment method');
+    await page.$eval('input[aria-label="' + method + '"]', el => el.click());
+    await click('Simulate successful payment');
+    await page.waitForFunction(name => document.body.innerText.includes('Your ' + name + ' checkout preview is complete.'), {}, method);
+  }
+  assert.equal(orders, 0);
+  assert.equal((await env.db.query('select count(*) as n from quicksub_orders')).rows[0].n, 0);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('[aria-label="Demo payment"]').parentElement).opacity) === 1);
+  await mkdir('deliverables/checkout-preview', { recursive: true });
+  await page.screenshot({ path: 'deliverables/checkout-preview/demo-mobile.png', fullPage: true });
+  await page.goBack(); await page.waitForSelector('#product-3');
+  await page.goForward(); await page.waitForSelector('form select');
+  await page.goto(env.base + '/buy?text=' + encodeURIComponent('Hi, I want to order PUBG UC. Please confirm package details and price.'), { waitUntil: 'networkidle0' });
+  await page.waitForSelector('form select');
+  assert.ok((await page.$eval('form select', el => el.textContent)).includes('660 UC'));
+  await page.goto(env.base + '/checkout?product=1', { waitUntil: 'networkidle0' });
+  await page.waitForSelector('form select');
+  await page.type('input[name="name"]','Checkout Buyer'); await page.type('input[name="contact"]','buyer@example.test');
+  await click('Continue to payment · ৳299');
+  await page.waitForFunction(() => document.body.innerText.includes('Private access code:'));
+  assert.equal(orders, 1); assert.equal((await env.db.query('select count(*) as n from quicksub_orders')).rows[0].n, 1);
+  assert.deepEqual(errors, []);
+  console.log('PASS: in-site navigation without reload, retry after backend outage, demo failure/success without order creation, browser back/forward, legacy buy URL, mobile layout, real checkout.');
+} catch (error) {
+  if (page) console.log('Browser failure:', page.url(), await page.evaluate(() => document.body.innerText.slice(-2500)));
+  throw error;
+} finally { if (browser) await browser.close(); await env.close(); }

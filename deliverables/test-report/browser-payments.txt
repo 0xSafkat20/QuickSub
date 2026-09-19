@@ -1,0 +1,1 @@
+PASS: mobile return page, receipt access, pending/confirmed states, admin payment search and refund recording, no browser errors.

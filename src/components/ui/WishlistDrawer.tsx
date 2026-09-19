@@ -1,3 +1,5 @@
+import SiteLink from './SiteLink';
+import { checkoutUrl } from '../../utils/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
@@ -78,14 +80,12 @@ export default function WishlistDrawer({ open, onClose }: WishlistDrawerProps) {
                         <p className="text-sm font-semibold text-ink-800 truncate">{product.name}</p>
                         <p className="text-xs text-ink-400 mt-0.5">{product.startingPrice}</p>
                         <div className="flex items-center gap-2 mt-2">
-                          <a
-                            href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${product.name}. Please send me the package details and price.`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <SiteLink
+                            href={checkoutUrl(product.id)} onClick={onClose}
                             className="text-xs font-semibold text-brand-600 hover:underline"
                           >
                             Order now
-                          </a>
+                          </SiteLink>
                           <button
                             onClick={() => toggleFavorite(product.id)}
                             className="text-xs text-ink-300 hover:text-red-500 transition-colors"
@@ -102,16 +102,9 @@ export default function WishlistDrawer({ open, onClose }: WishlistDrawerProps) {
 
             {favoriteProducts.length > 0 && (
               <div className="p-4 border-t border-brand-100">
-                <a
-                  href={`/buy?text=${encodeURIComponent(
-                    `Hi, I want to order these products: ${favoriteProducts.map(p => p.name).join(', ')}. Please send me package details and prices.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all"
-                >
-                  Order All via WhatsApp <ArrowRight size={14} />
-                </a>
+                <SiteLink href={checkoutUrl()} onClick={onClose} className="w-full flex items-center justify-center gap-2 py-3 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all">
+                  Choose a product to checkout <ArrowRight size={14} />
+                </SiteLink>
               </div>
             )}
           </motion.aside>

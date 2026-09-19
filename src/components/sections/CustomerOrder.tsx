@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import DemoPayment from "./DemoPayment";
+import { motion, useReducedMotion } from "framer-motion";
+import OnlinePayment from "./OnlinePayment";
+import { useEffect, useState, useRef } from "react";
 import { api } from "../../utils/api";
 import { useStore } from "../../data/store";
-type Plan = { id: string; name: string; details: string; price_bdt: number };
+type Plan = { id: string; name: string; details: string; price_bdt: number; demo?: boolean };
 export type TrackedOrder = {
   id: string;
   product_name: string;
@@ -59,6 +62,7 @@ export function OrderReceipt({
   onUpdate: (order: TrackedOrder) => void;
 }) {
   const { settings } = useStore();
+  const [gatewayBlocked, setGatewayBlocked] = useState(true);
   const [reference, setReference] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -103,12 +107,13 @@ export function OrderReceipt({
           Download order receipt
         </button>
       </div>
+      <OnlinePayment order={order} accessCode={accessCode} onUpdate={onUpdate} onBlockingChange={setGatewayBlocked} />
       {order.delivery_note && (
         <p className="whitespace-pre-wrap rounded-xl bg-green-50 p-4">
           {order.delivery_note}
         </p>
       )}
-      {order.status === "pending" &&
+      {!gatewayBlocked && order.status === "pending" &&
         ["unpaid", "rejected"].includes(order.payment_status) && (
           <form
             className="space-y-3"
@@ -173,6 +178,10 @@ export default function CustomerOrder({
   productId: string;
   productName: string;
 }) {
+  const reducedMotion = useReducedMotion();
+  const stepRef = useRef<HTMLDivElement>(null);
+  const [demoPlan, setDemoPlan] = useState<Plan | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const [plans, setPlans] = useState<Plan[]>([]),
     [selected, setSelected] = useState(""),
     [loading, setLoading] = useState(true),
@@ -184,6 +193,7 @@ export default function CustomerOrder({
   const [credentials, setCredentials] = useState(() => receiptFor(productId));
   useEffect(() => {
     let cancelled = false;
+    setLoading(true); setError("");
     api<{ packages: Plan[] }>("/packages/" + encodeURIComponent(productId))
       .then((data) => {
         if (!cancelled) {
@@ -194,7 +204,7 @@ export default function CustomerOrder({
       .catch(() => {
         if (!cancelled)
           setError(
-            "Online ordering is temporarily unavailable. Please contact support.",
+            "We could not load packages. Please retry; your checkout stays on this page.",
           );
       })
       .finally(() => {
@@ -203,10 +213,20 @@ export default function CustomerOrder({
     return () => {
       cancelled = true;
     };
-  }, [productId]);
+  }, [productId, attempt]);
+  useEffect(() => {
+    if (order || demoPlan) {
+      stepRef.current?.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
+      stepRef.current?.focus({ preventScroll: true });
+    }
+  }, [order, demoPlan, reducedMotion]);
+  if (demoPlan) return <motion.div ref={stepRef} tabIndex={-1} className="outline-none" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.2 }}>
+    <DemoPayment productName={productName} packageName={demoPlan.name} amount={demoPlan.price_bdt} onBack={() => setDemoPlan(null)} />
+  </motion.div>;
   if (order)
     return (
-      <div>
+      <motion.div ref={stepRef} tabIndex={-1} className="outline-none" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.2 }}>
+        <h2 className="text-xl font-bold mb-4">Payment &amp; receipt</h2>
         <OrderReceipt
           order={order}
           accessCode={credentials.accessCode}
@@ -232,29 +252,16 @@ export default function CustomerOrder({
         >
           Start another order
         </button>
-      </div>
+      </motion.div>
     );
   if (loading)
-    return <p className="text-sm text-ink-400">Checking available packages…</p>;
+    return <p role="status" className="text-sm text-ink-400 py-6">Checking available packages…</p>;
   if (!plans.length)
-    return (
-      <div>
-        {error && <p className="text-sm text-ink-500 mb-3">{error}</p>}
-        <a
-          className={button + " block text-center"}
-          href={
-            "/buy?text=" +
-            encodeURIComponent(
-              "Hi, I want to order " +
-                productName +
-                ". Please confirm package details and price.",
-            )
-          }
-        >
-          Ask support for packages →
-        </a>
-      </div>
-    );
+    return <div className="space-y-4 rounded-xl bg-brand-50 p-5">
+      <h2 className="font-bold text-lg">{error ? 'Checkout temporarily unavailable' : 'Packages coming soon'}</h2>
+      <p role={error ? 'alert' : 'status'} className="text-sm text-ink-600">{error || `There are no purchasable packages for ${productName} yet. Please check again shortly.`}</p>
+      <button type="button" className={button} onClick={() => setAttempt(n => n + 1)}>Retry loading packages</button>
+    </div>;
   const plan = plans.find((p) => p.id === selected);
   return (
     <form
@@ -262,6 +269,7 @@ export default function CustomerOrder({
       onSubmit={async (e) => {
         e.preventDefault();
         const values = new FormData(e.currentTarget);
+        if (plan?.demo) { setDemoPlan(plan); return; }
         setBusy(true);
         setError("");
         try {
@@ -282,6 +290,8 @@ export default function CustomerOrder({
         }
       }}
     >
+      {plan?.demo && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900"><strong>Demo packages</strong> — sample prices for testing. No money will be collected.</p>}
+      <h2 className="text-xl font-bold">Package &amp; delivery details</h2>
       <label className="block font-semibold">
         Choose your package
         <select
@@ -304,6 +314,7 @@ export default function CustomerOrder({
         <input
           className={input + " mt-1"}
           name="name"
+          placeholder="Enter your name"
           required
           maxLength={120}
           autoComplete="name"
@@ -314,6 +325,7 @@ export default function CustomerOrder({
         <input
           className={input + " mt-1"}
           name="contact"
+          placeholder="yourname@gmail.com"
           required
           minLength={5}
           maxLength={160}
@@ -330,8 +342,7 @@ export default function CustomerOrder({
         />
       </label>
       <p className="text-xs text-ink-400">
-        Your contact and order details are saved to fulfill this order. Payment
-        is confirmed manually.
+        {plan?.demo ? "Demo details stay in this preview and are not submitted." : "Your contact and order details are saved to fulfill this order. Continue to choose an available payment method."}
       </p>
       {error && (
         <p role="alert" className="text-red-600">
@@ -339,7 +350,7 @@ export default function CustomerOrder({
         </p>
       )}
       <button className={button + " w-full"} disabled={busy}>
-        {busy ? "Creating order…" : `Place order · ৳${plan?.price_bdt}`}
+        {busy ? "Creating order…" : plan?.demo ? `Continue to demo payment · ৳${plan.price_bdt}` : `Continue to payment · ৳${plan?.price_bdt}`}
       </button>
     </form>
   );

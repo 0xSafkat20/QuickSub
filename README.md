@@ -1,3 +1,5 @@
+Payment gateway integration and activation: see [PAYMENT-SETUP.md](PAYMENT-SETUP.md).
+
 # QuickSub
 
 The current release includes a working `/admin` dashboard, Supabase-backed product/package management, customer checkout, manual payment verification, private order tracking, support inbox, offers and Gemini support. Start with [ADMIN-SETUP.md](ADMIN-SETUP.md) for installation and activation. The overview below describes the original storefront.
@@ -179,7 +181,7 @@ http://localhost:5173
 npm run dev
 ```
 
-Runs the project in development mode.
+Starts both the backend on port 4000 and Vite. Keep this terminal open. If the QuickSub backend is already running, it is reused. Use `npm run dev:client` only when you intentionally manage the backend separately.
 
 ```bash
 npm run build
@@ -322,4 +324,3 @@ dist/
 ## Conclusion
 
 QuickSub is a clean, responsive, and scalable frontend project for a digital subscription service website. It is easy to customize, simple to maintain, and ready for future improvements such as payments, database integration, and order management.
-

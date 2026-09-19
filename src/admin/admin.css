@@ -731,3 +731,20 @@ table small {
     max-width: 100%;
   }
 }
+
+/* Payment search and refund forms share the dashboard's spacing and controls. */
+.qs-payment-box { margin-bottom: 24px; overflow-wrap: anywhere; }
+.qs-payment-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+.qs-payment-box p { line-height: 1.6; margin: 6px 0; }
+.qs-payment-box form { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+.qs-payment-box label { display: block; font-size: 12px; font-weight: 600; margin: 14px 0; max-width: 520px; width: 100%; }
+.qs-payment-box input, .qs-payment-box select, .qs-payment-box textarea {
+  display: block; width: 100%; margin-top: 7px; padding: 11px 12px; min-height: 42px;
+  border: 1px solid #dce4f3; border-radius: 10px; background: #fff; color: #172b4d; font: inherit;
+}
+.qs-payment-box textarea { min-height: 80px; resize: vertical; }
+.qs-payment-box input:focus, .qs-payment-box select:focus, .qs-payment-box textarea:focus { outline: 2px solid #a5bffc; outline-offset: 2px; }
+.qs-payment-box button { display: inline-flex; align-items: center; padding: 11px 16px; margin: 8px 0 14px; border-radius: 10px; background: #2463eb; color: #fff; font-size: 12px; font-weight: 600; }
+.qs-payment-box button:disabled { opacity: .5; cursor: not-allowed; }
+.qs-payment-box [role="alert"] { color: #b42318; }
+.qs-payment-box .qs-payment-box { margin-top: 16px; margin-bottom: 0; }

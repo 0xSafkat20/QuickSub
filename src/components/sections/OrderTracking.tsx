@@ -3,7 +3,7 @@ import { Package, X } from "lucide-react";
 import { api } from "../../utils/api";
 import { OrderReceipt, type TrackedOrder } from "./CustomerOrder";
 export default function OrderTracking() {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(new URLSearchParams(window.location.search).get("payment") === "return"),
     [id, setId] = useState(""),
     [accessCode, setAccessCode] = useState(""),
     [order, setOrder] = useState<TrackedOrder | null>(null),
@@ -38,6 +38,7 @@ export default function OrderTracking() {
               </button>
             </div>
             <div className="p-6">
+              {new URLSearchParams(window.location.search).get("payment") === "return" && <p className="mb-4 text-sm">Welcome back. Enter your saved receipt details, then check payment status. Returning from checkout does not confirm payment.</p>}
               <form
                 className="space-y-3 mb-5 text-sm"
                 onSubmit={async (e) => {

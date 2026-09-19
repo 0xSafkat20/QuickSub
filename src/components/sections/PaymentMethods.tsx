@@ -1,14 +1,9 @@
+import { paymentMethods } from '../../data/paymentMethods';
 import { motion } from 'framer-motion';
 import { Wallet, Smartphone, CreditCard, Landmark, Building2, Banknote } from 'lucide-react';
 
-const methods = [
-  { name: 'bKash', icon: Wallet, color: '#E2136E', bg: '#FDE8F3' },
-  { name: 'Nagad', icon: Smartphone, color: '#F26522', bg: '#FFF0E5' },
-  { name: 'Rocket', icon: CreditCard, color: '#8B2F89', bg: '#F3E5F3' },
-  { name: 'Visa', icon: Landmark, color: '#1A1F71', bg: '#E8E9F5' },
-  { name: 'Mastercard', icon: Building2, color: '#EB001B', bg: '#FDE8E8' },
-  { name: 'Bank Transfer', icon: Banknote, color: '#2563EB', bg: '#EFF6FF' },
-];
+const icons = [Wallet, Smartphone, CreditCard, Landmark, Building2, Banknote];
+const methods = paymentMethods.map((m, i) => ({ ...m, icon: icons[i], bg: m.color + '12' }));
 
 export default function PaymentMethods() {
   return (
@@ -28,7 +23,7 @@ export default function PaymentMethods() {
             Trusted Payment Methods
           </h2>
           <p className="text-ink-400 max-w-xl mx-auto text-sm">
-            Pay with confidence using Bangladesh's most popular and secure payment options.
+            Preview all six options in demo checkout. For real payments, available methods are shown by the payment provider or in the verified store instructions.
           </p>
         </motion.div>
 

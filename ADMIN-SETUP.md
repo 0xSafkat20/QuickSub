@@ -1,3 +1,5 @@
+Payment update: see [PAYMENT-SETUP.md](PAYMENT-SETUP.md) for gateway checkout, receipts, risk review, refunds, and the required payment migration. It supersedes the manual-only payment notes below.
+
 # QuickSub Admin — setup and operations
 
 The admin dashboard is at `/admin`. It shares the existing Node API and Supabase database with the customer website. The storefront's visual design is preserved; checkout and tracking are added inside its existing dialogs. The admin JavaScript and styles are loaded separately.
@@ -19,7 +21,7 @@ values ('YOUR-AUTH-USER-UUID', 'owner');
 
 To provision staff, create another Auth account and insert its UUID with role `staff`. Only owners edit products, packages, offers, content and settings. Staff can read the catalog/customers and handle orders and inbox requests. Role changes take effect on the next API request. Account provisioning remains in Supabase; the website has no public admin registration or default admin password.
 
-6. Run `npm run build`, then `npm start`. Open `http://localhost:4000/admin` and sign in. For development, keep `npm start` running and run `npm run dev` in another terminal.
+6. Run `npm run build`, then `npm start`. Open `http://localhost:4000/admin` and sign in. For development, run `npm run dev` to start the backend and Vite together. An existing backend on port 4000 is reused.
 7. For production, deploy the Node server together with `dist`, use HTTPS, set `NODE_ENV=production` and `PUBLIC_ORIGIN=https://your-exact-domain.example` (no trailing slash). Set `TRUST_PROXY_HOPS` only to the exact number of trusted reverse proxies in your deployment. A static-only host cannot provide admin login or checkout.
 
 ## Publish your first purchasable package

@@ -13,7 +13,8 @@
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index" },
-    { "source": "/buy", "destination": "/api/index" },
+    { "source": "/buy", "destination": "/index.html" },
+    { "source": "/checkout", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/:path*", "destination": "/index.html" }
   ]

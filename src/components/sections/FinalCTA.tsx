@@ -7,7 +7,7 @@ const contactMethods = [
     icon: MessageCircle,
     label: 'WhatsApp',
     value: 'Chat with us instantly',
-    href: '/buy?text=Hello%2C%20I%20need%20help%20with%20my%20QuickSub%20order.',
+    href: '/api/support/whatsapp?text=Hello%2C%20I%20need%20help%20with%20my%20QuickSub%20order.',
     cta: 'Open WhatsApp',
   },
   {
@@ -75,8 +75,8 @@ export default function FinalCTA() {
               <a
                 key={method.label}
                 href={method.href}
-                target={method.href.startsWith('/buy') ? '_blank' : undefined}
-                rel={method.href.startsWith('/buy') ? 'noopener noreferrer' : undefined}
+                target={method.href.startsWith('/api/support/whatsapp') ? '_blank' : undefined}
+                rel={method.href.startsWith('/api/support/whatsapp') ? 'noopener noreferrer' : undefined}
                 className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:bg-white/15 hover:border-white/30 transition-all duration-200 group"
               >
                 <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-3 group-hover:bg-white/25 transition-colors">

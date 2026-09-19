@@ -1,3 +1,5 @@
+import SiteLink from '../ui/SiteLink';
+import { checkoutUrl } from '../../utils/navigation';
 import { useStore } from '../../data/store';
 import { useState, useEffect } from 'react';
 import { useProducts } from '../../data/catalog';
@@ -54,7 +56,7 @@ export default function DealsSection() {
     const price = Number(product.startingPrice.replace(/[^\d.]/g, ''));
     const oldPrice = Number(deal.oldPrice.replace(/[^\d.]/g, ''));
     if (price >= oldPrice) return [];
-    return [{ ...deal, name: product.name, newPrice: '৳' + price, discount: Math.round((1 - price / oldPrice) * 100) + '%' }];
+    return [{ ...deal, productId: product.id, name: product.name, newPrice: '৳' + price, discount: Math.round((1 - price / oldPrice) * 100) + '%' }];
   });
   const { days, hours, minutes, seconds } = useCountdown(deadline);
 
@@ -129,10 +131,8 @@ export default function DealsSection() {
                 <span className="font-heading font-extrabold text-xl" style={{ color: deal.color }}>{deal.newPrice}</span>
               </div>
 
-              <a
-                href={`/buy?text=${encodeURIComponent(`Hi, I want to order ${deal.name} at the deal price of ${deal.newPrice}.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <SiteLink
+                href={checkoutUrl(deal.productId)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200 group-hover:text-white"
                 style={{ borderColor: deal.color, color: deal.color }}
                 onMouseEnter={e => {
@@ -145,7 +145,7 @@ export default function DealsSection() {
                 }}
               >
                 Grab Deal <ArrowRight size={13} />
-              </a>
+              </SiteLink>
             </motion.div>
           ))}
         </div>

@@ -9,7 +9,7 @@ const { createCatalog } = require("../server/catalog");
 export const ownerId = "10000000-0000-4000-8000-000000000001";
 export const staffId = "10000000-0000-4000-8000-000000000002";
 export const packageId = "20000000-0000-4000-8000-000000000001";
-export async function startTestServer({ port = 0, now = Date.now, password = "test-password" } = {}) {
+export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false } = {}) {
   const db = new PGlite();
   await db.exec(
     `create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users(id uuid primary key); create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`,
@@ -17,6 +17,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
   for (const name of [
     "20260916000000_product_catalog.sql",
     "20260917000000_admin_orders.sql",
+    "20260919000000_payments.sql",
   ])
     await db.exec(
       await readFile(
@@ -72,6 +73,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     });
   const fetchImpl = async (url, options = {}) => {
     const u = new URL(url);
+    if (u.hostname !== "supabase.test" && paymentFetch) return paymentFetch(url, options);
     const method = options.method || "GET";
     const body = typeof options.body === "string" ? JSON.parse(options.body) : null;
     if (u.pathname === "/auth/v1/token") {
@@ -139,7 +141,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
               })
               .join(",")})`,
           );
-        } else throw Error("filter");
+        } else if (v === "is.null") { where.push(`${k} is null`); } else throw Error("filter");
       }
       const condition = where.length ? " where " + where.join(" and ") : "";
       if (method === "GET") {
@@ -151,8 +153,8 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
             order
               .split(",")
               .map((x) => {
-                if (!/^[a-z_]+\.(asc|desc)$/.test(x)) throw Error("sort");
-                return x.replace(".", " ");
+                if (!/^[a-z_]+\.(asc|desc)(\.nullsfirst)?$/.test(x)) throw Error("sort");
+                return x.replace(".nullsfirst", " nulls first").replace(".", " ");
               })
               .join(",")
           : "";
@@ -213,6 +215,8 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       fetchImpl,
       invalidate: catalog.invalidate,
       now,
+      paymentEnv,
+      demoCheckout,
     }),
   );
   app.use(
@@ -223,7 +227,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
-  app.get("/admin", (_req, res) =>
+  app.get(["/admin", "/checkout", "/buy"], (_req, res) =>
     res.sendFile(
       new URL("../dist/index.html", import.meta.url).pathname.replace(
         /^\/([A-Za-z]:)/,

@@ -1,4 +1,5 @@
 const express = require("express");
+const { createPayments } = require("./payments");
 const { randomBytes, createHash, randomUUID } = require("node:crypto");
 const { toProduct } = require("./catalog");
 const uuid =
@@ -29,6 +30,8 @@ function createAdminRouter({
   fetchImpl = fetch,
   invalidate = () => {},
   now = Date.now,
+  paymentEnv = process.env,
+  demoCheckout = process.env.QUICKSUB_DEMO_CHECKOUT === "true",
   sharedSessions = process.env.VERCEL === "1",
 } = {}) {
   const router = express.Router();
@@ -73,6 +76,12 @@ function createAdminRouter({
   const db = (path, options) => remote("/rest/v1/" + path, options);
   const run = (handler) => (req, res, next) =>
     Promise.resolve(handler(req, res)).catch(next);
+  const payments = createPayments({ db, fetchImpl, env: paymentEnv });
+  router.use('/payments', (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    try { rate(req, 'payment-endpoint', 60); next(); } catch (err) { next(err); }
+  });
+  payments.callbacks(router, run);
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
     if (!["GET", "HEAD"].includes(req.method)) {
@@ -181,6 +190,53 @@ function createAdminRouter({
     })().catch(next);
   });
   router.get("/admin/session", (req, res) => res.json(req.admin));
+  router.get('/payments/config', (_req,res) => res.json({ enabled: payments.enabled }));
+  router.post('/orders/checkout', run(async (req,res) => {
+    rate(req, 'checkout', 5);
+    const order = await findOrder(req);
+    res.json(await payments.start(order, req.body));
+  }));
+  router.post('/orders/payments', run(async (req,res) => {
+    const order = await findOrder(req);
+    res.json({ payments: await payments.history(order.id) });
+  }));
+  router.post('/orders/payments/check', run(async (req,res) => {
+    rate(req, 'payment-check', 5);
+    const order = await findOrder(req);
+    const rows = await payments.history(order.id);
+    for (const row of rows.filter(p => ['pending','failed','cancelled'].includes(p.status)).slice(0,2)) await payments.reconcile(row);
+    res.json({ order: await findOrder(req), payments: await payments.history(order.id) });
+  }));
+  router.get('/admin/payment-search', run(async (req,res) => {
+    const reference = string(req.query.reference, 160, 3);
+    const column = /^qs_[a-f0-9]{24}$/.test(reference) ? 'id' : 'bank_reference';
+    const rows = await db(`quicksub_payments?${column}=eq.${encodeURIComponent(reference)}&select=order_id&limit=10`);
+    res.json({ orders: rows.map(p => p.order_id) });
+  }));
+  router.post('/admin/payments/:id/check', run(async (req,res) => {
+    rate(req, 'admin-payment-check', 10);
+    await payments.reconcile(await payments.get(req.params.id));
+    res.json({ ok: true });
+  }));
+  router.post('/admin/payments/:id/approve', run(async (req,res) => {
+    if (req.admin.role !== 'owner') throw fail(403, 'Owner access required.');
+    const payment = await payments.get(req.params.id);
+    await db('rpc/quicksub_review_payment', { method: 'POST', body: { p_actor: req.admin.id, p_id: payment.id, p_note: string(req.body?.note, 1000, 10) } });
+    res.json({ ok: true });
+  }));
+  router.get('/admin/payments/:id', run(async (req,res) => {
+    if (!uuid.test(req.params.id)) throw fail(400, 'Invalid order ID.');
+    res.json({ payments: await payments.history(req.params.id, true) });
+  }));
+  router.post('/admin/payments/:id/refund', run(async (req,res) => {
+    const payment = await payments.get(req.params.id);
+    if (!['requested','pending','completed','failed'].includes(req.body?.status)) throw fail(400, 'Invalid refund status.');
+    await db('rpc/quicksub_record_refund', { method: 'POST', body: {
+      p_actor: req.admin.id, p_id: payment.id, p_status: req.body.status,
+      p_reference: string(req.body.reference || '', 160, 0), p_note: string(req.body.note || '', 1000, 0),
+    } });
+    res.json({ ok: true });
+  }));
   router.get(
     "/admin/data",
     run(async (req, res) => {
@@ -435,7 +491,11 @@ function createAdminRouter({
   router.get(
     "/packages/:productId",
     run(async (req, res) => {
-      if (!configured) return res.json({ packages: [] });
+      const examples = demoCheckout ? require('./demo-packages.json')[req.params.productId] || [] : [];
+      if (!configured) {
+        const available = require('./catalog.json').some(p => p.id === req.params.productId && !p.outOfStock);
+        return res.json({ packages: available ? examples : [] });
+      }
       const id = encodeURIComponent(string(req.params.productId, 64));
       const products = await db(
         `quicksub_products?id=eq.${id}&active=eq.true&in_stock=eq.true&select=id`,
@@ -446,7 +506,7 @@ function createAdminRouter({
           )
         : [];
       res.json({
-        packages: packages.map((p) => ({
+        packages: (packages.length ? packages : products.length ? examples : []).map((p) => ({
           ...p,
           price_bdt: Number(p.price_bdt),
         })),

@@ -103,6 +103,7 @@ try {
       )
       .click(),
   );
+  await clickText(customer, "a", "Continue to checkout →");
   await customer.waitForSelector("form select");
   await customer.type("input[name=name]", "Browser Customer");
   await customer.type("input[name=contact]", "browser@example.test");
@@ -114,7 +115,7 @@ try {
   const created = customer.waitForResponse(
     (r) => r.url().endsWith("/api/orders") && r.request().method() === "POST",
   );
-  await clickText(customer, "button", "Place order · ৳299");
+  await clickText(customer, "button", "Continue to payment · ৳299");
   const createdResponse = await created;
   assert.equal(createdResponse.status(), 201);
   const order = (await createdResponse.json()).order;
@@ -150,7 +151,7 @@ try {
   await clickText(admin, ".qs-admin-editor button", "Save order update");
   await admin.waitForFunction(() => !document.querySelector(".qs-admin-editor"));
   await customer.bringToFront();
-  await customer.click("button[aria-label=Close]");
+  await clickText(customer, "a", "Back to store");
   await clickText(customer, "button", "Track Order");
   const fields = await customer.$$("[role=dialog] input");
   await fields[0].type(order.id);

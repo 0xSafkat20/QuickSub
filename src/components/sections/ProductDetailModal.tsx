@@ -1,4 +1,5 @@
-import CustomerOrder from './CustomerOrder';
+import SiteLink from '../ui/SiteLink';
+import { checkoutUrl } from '../../utils/navigation';
 import SupportRequest from '../ui/SupportRequest';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -171,7 +172,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   <SupportRequest kind="restock" message={`Restock requested: ${product.name} (${product.id})`} />
                 </div>
               ) : (
-                <CustomerOrder key={product.id} productId={product.id} productName={product.name} />
+                <SiteLink href={checkoutUrl(product.id)} className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-brand-600 text-white font-semibold transition-colors hover:bg-brand-700">Continue to checkout →</SiteLink>
               )}
 
               {/* Support link */}

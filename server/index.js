@@ -49,14 +49,21 @@ app.get('/api/contact', (req, res) => {
   res.json({ whatsapp: link });
 });
 
-// Redirects to WhatsApp directly (useful when frontend can open /buy)
-app.get(['/buy', '/api/buy'], (req, res) => {
+// WhatsApp remains a support action; purchase URLs open the in-site checkout.
+app.get('/api/support/whatsapp', (req, res) => {
   const text = typeof req.query.text === 'string' ? req.query.text : undefined;
   const link = buildWaLink(text);
   if (!link) return res.status(500).send('No phone configured');
   res.redirect(link);
 });
 
+app.get(['/buy', '/api/buy'], (req, res) => {
+  const params = new URLSearchParams();
+  if (typeof req.query.product === 'string') params.set('product', req.query.product.slice(0,64));
+  else if (typeof req.query.text === 'string') params.set('text', req.query.text.slice(0,1000));
+  res.redirect(302, '/checkout' + (params.size ? '?' + params : ''));
+});
+app.get('/checkout', (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
 app.use(express.json({ limit: '16kb' }));
 const catalog = createCatalog({ localProducts: require('./catalog.json'), localKnowledge: require('./knowledge.json') });
 app.get('/api/products', async (_req, res) => {

@@ -13,14 +13,21 @@ Chat knowledge updated: 21 products.
 
 vite v5.4.8 building for production...
 transforming...
-✓ 1911 modules transformed.
+✓ 1921 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                     13.97 kB │ gzip:  3.29 kB
-dist/assets/AdminApp-BoBrRNoF.css    9.89 kB │ gzip:  2.72 kB
-dist/assets/index-D0rAe_l0.css      46.54 kB │ gzip:  8.43 kB
-dist/assets/api-LIJk2W8e.js          4.13 kB │ gzip:  1.44 kB
-dist/assets/AdminApp-BIkGqreL.js    28.95 kB │ gzip:  7.95 kB
-dist/assets/index-3yWwZeQY.js      144.07 kB │ gzip: 46.59 kB
-dist/assets/App-zP_gF2Og.js        290.73 kB │ gzip: 84.17 kB
-✓ built in 8.33s
+dist/index.html                         13.97 kB │ gzip:  3.29 kB
+dist/assets/AdminApp-ByW4k8iW.css       11.88 kB │ gzip:  2.99 kB
+dist/assets/index-D5HVMIJT.css          48.82 kB │ gzip:  8.80 kB
+dist/assets/shield-check-Ce23qkJ_.js     0.49 kB │ gzip:  0.35 kB
+dist/assets/PaymentReturn-JnYp2S6S.js    0.67 kB │ gzip:  0.43 kB
+dist/assets/package-BL30YaGB.js          2.08 kB │ gzip:  1.06 kB
+dist/assets/users-DOSFK9Uv.js            2.30 kB │ gzip:  0.69 kB
+dist/assets/OrderTracking-Bt1fYjHd.js    2.85 kB │ gzip:  1.32 kB
+dist/assets/CheckoutPage-CnRUH69N.js     4.62 kB │ gzip:  1.83 kB
+dist/assets/SiteLink-S6YCESd_.js        16.14 kB │ gzip:  4.62 kB
+dist/assets/CustomerOrder-BIZedXx5.js   17.90 kB │ gzip:  5.99 kB
+dist/assets/AdminApp-_rPA5WjB.js        33.33 kB │ gzip:  9.04 kB
+dist/assets/App-CHv8FoNN.js            134.79 kB │ gzip: 33.71 kB
+dist/assets/index-UBkcdkEU.js          275.99 kB │ gzip: 90.13 kB
+✓ built in 15.89s

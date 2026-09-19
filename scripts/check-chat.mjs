@@ -23,8 +23,9 @@ try {
   const large = await fetch(testBase + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'x'.repeat(17000) }) });
   assert.equal(large.status, 413);
   const redirect = await fetch(testBase + '/buy?text=' + encodeURIComponent('Help & pricing বাংলা'), { redirect: 'manual' });
-  assert.equal(new URL(redirect.headers.get('location')).searchParams.get('text'), 'Help & pricing বাংলা');
-  console.log('PASS real HTTP routing, offline fallback, malformed/oversized requests and WhatsApp encoding');
+  assert.equal(new URL(redirect.headers.get('location'), testBase).searchParams.get('text'), 'Help & pricing বাংলা');
+  assert.equal(new URL(redirect.headers.get('location'), testBase).pathname, '/checkout');
+  console.log('PASS real HTTP routing, offline fallback, malformed/oversized requests and legacy checkout encoding');
 
   browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
   const page = await browser.newPage();
@@ -58,7 +59,7 @@ try {
   await page.waitForFunction(() => document.querySelector('[role="log"]').textContent.includes('main study goal'));
   await page.type('[aria-label="Message QuickSub support"]', 'My budget is 500');
   await page.click('[aria-label="Send message"]');
-  await page.waitForSelector('[role="log"] a[href="/buy?text=ChatGPT"]');
+  await page.waitForSelector('[role="log"] a[href="/checkout?text=ChatGPT"]');
   assert.equal(requests[1].sessionId, '11111111-1111-4111-8111-111111111111');
   assert.equal(requests[0].message, 'I need study help');
   assert.equal('messages' in requests[1], false);

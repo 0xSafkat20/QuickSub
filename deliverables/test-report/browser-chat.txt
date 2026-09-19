@@ -1,2 +1,2 @@
-PASS real HTTP routing, offline fallback, malformed/oversized requests and WhatsApp encoding
+PASS real HTTP routing, offline fallback, malformed/oversized requests and legacy checkout encoding
 PASS existing chat UI: multi-turn replies, Bangla, safe handoff, rate limits, outage recovery and intact catalog
