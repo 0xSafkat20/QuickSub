@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import puppeteer from 'puppeteer';
+import {startTestServer} from './admin-test-server.mjs';
+const env=await startTestServer();let browser;
+try{
+ const email='reset-browser@example.test';
+ const post=async(path,body)=>fetch(env.base+'/api/account/'+path,{method:'POST',headers:{origin:env.base,'x-quicksub-client':'web','content-type':'application/json'},body:JSON.stringify(body)});
+ const signup=await post('signup',{name:'Reset Tester',email,password:'original-password-123'});
+ assert.equal(signup.status,200);
+ const cookie=signup.headers.get('set-cookie').split(';')[0];
+ const session=await (await fetch(env.base+'/api/account/session',{headers:{cookie}})).json();
+ browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+ const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
+ await page.setViewport({width:320,height:740});
+ await page.setRequestInterception(true);page.on('request',r=>r.url().startsWith(env.base)||r.url().startsWith('data:')?r.continue():r.abort());
+ await page.goto(env.base+'/account',{waitUntil:'networkidle0'});
+ await page.click('a[href="/forgot-password"]');await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Forgot your password?');
+ await page.locator('[name="email"]').fill(email);await page.locator('form button').click();
+ await page.waitForSelector('[role="status"]');
+ await page.goto(env.base+'/reset-password#token_hash=test-recovery-'+session.user.id,{waitUntil:'networkidle0'});
+ assert.equal(page.url(),env.base+'/reset-password');
+ await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('[name="confirmPassword"]').fill('mismatch-password');await page.locator('form button').click();
+ await page.waitForSelector('[role="alert"]');
+ await page.locator('[name="confirmPassword"]').fill('replacement-password-123');await page.locator('form button').click();
+ await page.waitForSelector('[role="status"]');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await page.click('section a[href="/account"]');await page.waitForSelector('[name="email"]');
+ await page.locator('[name="email"]').fill(email);await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('form button').click();
+ await page.waitForFunction(()=>document.body.innerText.includes('Signed in as'));
+ assert.deepEqual(errors,[]);console.log('PASS: forgot-password navigation, email confirmation, URL cleanup, password confirmation, reset, sign-in and 320px layout.');
+}finally{await browser?.close();await env.close();}

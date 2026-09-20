@@ -63,7 +63,7 @@ function createAdminRouter({
     }
     if (!response.ok) {
       if (path.startsWith("/auth/"))
-        throw fail(401, "Sign-in failed or your session expired.");
+        throw Object.assign(fail(401, "Sign-in failed or your session expired."), { providerStatus: response.status });
       throw fail(
         response.status === 400 || response.status === 409 ? 409 : 503,
         response.status === 400 || response.status === 409

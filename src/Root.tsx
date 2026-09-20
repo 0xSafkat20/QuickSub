@@ -6,6 +6,7 @@ const Admin = lazy(() => import('./admin/AdminApp'));
 const Checkout = lazy(() => import('./components/sections/CheckoutPage'));
 const PaymentReturn = lazy(() => import('./components/sections/PaymentReturn'));
 const Tracking = lazy(() => import('./components/sections/TrackingPage'));
+const PasswordRecovery = lazy(() => import('./components/sections/PasswordRecovery'));
 const Account = lazy(() => import('./components/sections/AccountPage'));
 function Route({ location }: { location: string }) {
   const path = location.split(/[?#]/)[0];
@@ -24,6 +25,8 @@ function Route({ location }: { location: string }) {
     const timer = window.setTimeout(()=>observer.disconnect(),5000);
     return () => {cancelAnimationFrame(frame);observer.disconnect();clearTimeout(timer);};
   }, [location]);
+  if (path === '/forgot-password') return <PasswordRecovery />;
+  if (path === '/reset-password') return <PasswordRecovery reset />;
   if (path === '/track') return <Tracking />;
   if (path === '/account') return <Account />;
   if (path === '/admin' || path.startsWith('/admin/')) return <Admin />;

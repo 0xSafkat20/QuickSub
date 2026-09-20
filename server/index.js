@@ -63,7 +63,7 @@ app.get(['/buy', '/api/buy'], (req, res) => {
   else if (typeof req.query.text === 'string') params.set('text', req.query.text.slice(0,1000));
   res.redirect(302, '/checkout' + (params.size ? '?' + params : ''));
 });
-app.get(['/checkout', '/account', '/track'], (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
+app.get(['/checkout', '/account', '/track', '/forgot-password', '/reset-password'], (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
 app.use(express.json({ limit: '16kb' }));
 const catalog = createCatalog({ localProducts: require('./catalog.json'), localKnowledge: require('./knowledge.json') });
 app.get('/api/products', async (_req, res) => {

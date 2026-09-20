@@ -29,7 +29,7 @@ export default function AccountPage() {
  return <div className="min-h-screen bg-page text-ink-800"><PageNavigation current="account"/>
  <main className="max-w-5xl mx-auto px-4 py-10 space-y-6"><div><p className="text-sm font-semibold text-brand-600">YOUR QUICKSUB</p><h1 className="text-3xl font-bold mt-2">My account</h1><p className="text-ink-500 mt-2">Your profile, purchases, and subscription renewals in one place.</p></div>
  {returnTo&&<SiteLink href={returnTo} className="inline-block rounded-xl bg-brand-600 text-white px-4 py-3 font-semibold">Back to your checkout →</SiteLink>}
- {error&&<p role="alert" className="rounded-xl bg-red-50 text-red-700 p-4">{error}</p>}{message&&<p role="status" className="rounded-xl bg-green-50 text-green-800 p-4">{message}</p>}
+ {error&&<div role="alert" className="rounded-xl bg-red-50 text-red-700 p-4"><p>{error}</p>{session===null&&<button type="button" disabled={busy} className="mt-3 underline font-semibold disabled:opacity-50" onClick={()=>void action(async()=>{await loadSession();})}>{busy?"Retrying…":"Retry connection"}</button>}</div>}{message&&<p role="status" className="rounded-xl bg-green-50 text-green-800 p-4">{message}</p>}
  {loading?<p role="status">Loading your account…</p>:!session?.user?<section className={panel+' max-w-lg'}>
  <h2 className="text-xl font-bold">{signup?'Create your account':'Welcome back'}</h2>
  <form key={String(signup)} className="space-y-4" onSubmit={e=>{e.preventDefault();const data=new FormData(e.currentTarget);void action(async()=>{
@@ -40,7 +40,7 @@ export default function AccountPage() {
  <label className="block">Password<input name="password" type="password" className={field} autoComplete={signup?'new-password':'current-password'} required minLength={signup?10:1} maxLength={128}/></label>
  {signup&&<p className="text-sm text-ink-500">Use at least 10 characters. Your account and saved profile are stored securely for order management.</p>}
  <button disabled={busy} className={button}>{busy?'Please wait…':signup?'Create account':'Sign in'}</button>
- </form><button type="button" disabled={busy} className="text-brand-600 underline" onClick={()=>{setSignup(!signup);setError('');setMessage('');}}>{signup?'Already registered? Sign in':'New here? Create an account'}</button>
+ </form>{!signup&&<SiteLink href={'/forgot-password'+(returnTo?'?next='+encodeURIComponent(returnTo):'')} className="block text-brand-600 underline">Forgot password?</SiteLink>}<button type="button" disabled={busy} className="text-brand-600 underline" onClick={()=>{setSignup(!signup);setError('');setMessage('');}}>{signup?'Already registered? Sign in':'New here? Create an account'}</button>
  <p className="text-xs text-ink-500">Confirmed your email? Sign in with your password. Sessions expire after one hour.</p>
  </section>:<>
  <div className="flex flex-wrap items-center justify-between gap-3"><p className="break-all">Signed in as <strong>{session.user.email}</strong></p><button disabled={busy} className="text-brand-600 underline" onClick={()=>void action(async()=>{await api('/account/logout',{});setSession({user:null,profile:null});setOrders([]);setProfile({name:'',contact:'',renewal_reminders:true});setMessage('Signed out.');})}>Sign out</button></div>

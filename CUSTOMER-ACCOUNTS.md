@@ -13,3 +13,15 @@ Sessions last at most one hour. Logout invalidates the database session immediat
 In Admin > Orders, save the payment as verified and the order as delivered, then reopen the order and save its confirmed subscription expiry date. One-time products should have no expiry. This action is audited. Account order cards show expiry and opt-in dashboard reminders seven days before expiry and after expiration. Renew opens a fresh checkout with current packages and prices; there are no automatic charges or email reminders.
 
 Verification: `node --test scripts/customers.integration.test.mjs`, `npm run typecheck`, `npm run lint`, `npm run build`, and `node scripts/check-accounts.mjs`. Automated Auth responses are simulated; the schema and ownership operations run in real PostgreSQL via PGlite. Verify confirmation email delivery separately with your configured Supabase project.
+
+## Forgot password setup
+
+The sign-in page links to `/forgot-password`. Recovery emails open `/reset-password`, which validates a one-time link and requires matching passwords of at least 10 characters. Successful resets clear customer sessions and return the customer to sign-in. No additional database migration is required beyond the customer migration above.
+
+In Supabase Authentication:
+1. Under URL Configuration, allow `http://localhost:5173/reset-password` for local testing and your production `https://YOUR-DOMAIN/reset-password` URL.
+2. Under Email Templates > Reset Password, replace the body with `supabase/templates/reset-password.html`. The custom token-hash link is required for this application's reset flow; the default access-token template is not supported.
+3. Configure your email sender/SMTP for delivery to real customers. Set the backend `PUBLIC_ORIGIN` to your production origin without a trailing slash.
+4. Test using an account you own: Sign in > Forgot password > email link > save a new password > sign in again.
+
+Reset links are removed from the address bar and kept only in memory. Refreshing the reset form requires reopening the email link. A consumed or expired link requires a new email. The automated tests simulate email delivery and do not send messages.

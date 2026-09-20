@@ -13,8 +13,8 @@ function stop(code = 0) {
 }
 process.on('SIGINT', () => stop());
 process.on('SIGTERM', () => stop());
-function start(file, args = [], env = process.env) {
-  const child = spawn(process.execPath, [file, ...args], { cwd: root, env, stdio: 'inherit', windowsHide: true });
+function start(file, args = [], env = process.env, watch = false) {
+  const child = spawn(process.execPath, [...(watch ? ["--watch"] : []), file, ...args], { cwd: root, env, stdio: 'inherit', windowsHide: true });
   children.add(child);
   child.on('error', error => { console.error(error.message); stop(1); });
   child.on('exit', code => { children.delete(child); if (!stopping) stop(code ?? 1); });
@@ -34,7 +34,7 @@ try {
     if (typeof data?.enabled !== 'boolean') throw new Error('Port 4000 is occupied by another service. Stop it before starting QuickSub.');
     console.log('Using the running QuickSub backend on port 4000.');
   } else {
-    start('server/index.js', [], { ...process.env, PORT: '4000' });
+    start('server/index.js', [], { ...process.env, PORT: '4000' }, true);
     let ready = false;
     for (let attempt = 0; attempt < 40 && !stopping; attempt++) {
       if (await listening()) { ready = true; break; }

@@ -73,11 +73,15 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       headers: { "content-type": "application/json" },
     });
   const customerUsers = new Map();
+  const recoveryTokens = new Map();
   const fetchImpl = async (url, options = {}) => {
     const u = new URL(url);
     if (u.hostname !== "supabase.test" && paymentFetch) return paymentFetch(url, options);
     const method = options.method || "GET";
     const body = typeof options.body === "string" ? JSON.parse(options.body) : null;
+    if(u.pathname==='/auth/v1/recover') {const customer=customerUsers.get(body.email);if(customer)recoveryTokens.set('test-recovery-'+customer.id,customer.id);return response({});}
+    if(u.pathname==='/auth/v1/verify') {const id=recoveryTokens.get(body.token_hash);if(!id||body.type!=='recovery')return response({},400);recoveryTokens.delete(body.token_hash);return response({user:{id},access_token:id});}
+    if(u.pathname==='/auth/v1/logout')return response(null,204);
     if (u.pathname === "/auth/v1/signup") {
       if(customerUsers.has(body.email))return response({user:{}},200);
       const id=crypto.randomUUID(); await db.query("insert into auth.users values($1)",[id]);
@@ -105,7 +109,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     if (u.pathname === "/auth/v1/user") {
       const id = options.headers.Authorization.replace("Bearer ", "");
       const customer=[...customerUsers.values()].find(c=>c.id===id);
-      if(customer)return response({id:customer.id,email:customer.email,user_metadata:customer.user_metadata});
+      if(customer){if(method==="PUT")customer.password=body.password;return response({id:customer.id,email:customer.email,user_metadata:customer.user_metadata});}
       return [ownerId, staffId].includes(id)
         ? response({
             id,
@@ -240,7 +244,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
-  app.get(["/admin", "/checkout", "/buy", "/account", "/track"], (_req, res) =>
+  app.get(["/admin", "/checkout", "/buy", "/account", "/track", "/forgot-password", "/reset-password"], (_req, res) =>
     res.sendFile(
       new URL("../dist/index.html", import.meta.url).pathname.replace(
         /^\/([A-Za-z]:)/,

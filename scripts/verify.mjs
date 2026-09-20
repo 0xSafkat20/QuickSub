@@ -1,7 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
 const steps=[['typecheck',['npm','run','typecheck']],['lint',['npm','run','lint']],['coverage',['npm','run','test:coverage']],['build',['npm','run','build']]];
-if(process.argv.includes('--browser'))steps.push(...[['browser-navigation','scripts/check-navigation.mjs'],['browser-responsive','scripts/check-responsive.mjs'],['browser-accounts','scripts/check-accounts.mjs'],['browser-checkout','scripts/check-checkout.mjs'],['browser-payments','scripts/check-payments.mjs'],['browser-admin','scripts/check-admin.mjs'],['browser-chat','scripts/check-chat.mjs'],['browser-privacy','scripts/check-privacy.mjs'],['browser-storefront','scripts/check-storefront.mjs']].map(([name,path])=>[name,['node',path]]));
+if(process.argv.includes('--browser'))steps.push(...[['browser-password-recovery','scripts/check-password-recovery.mjs'],['browser-navigation','scripts/check-navigation.mjs'],['browser-responsive','scripts/check-responsive.mjs'],['browser-accounts','scripts/check-accounts.mjs'],['browser-checkout','scripts/check-checkout.mjs'],['browser-payments','scripts/check-payments.mjs'],['browser-admin','scripts/check-admin.mjs'],['browser-chat','scripts/check-chat.mjs'],['browser-privacy','scripts/check-privacy.mjs'],['browser-storefront','scripts/check-storefront.mjs']].map(([name,path])=>[name,['node',path]]));
 mkdirSync('deliverables/test-report',{recursive:true});const results=[];
 for(const [name,[command,...args]] of steps){
  const start=Date.now();
