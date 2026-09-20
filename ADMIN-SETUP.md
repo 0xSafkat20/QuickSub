@@ -10,6 +10,10 @@ The admin dashboard is at `/admin`. It shares the existing Node API and Supabase
 2. In your Supabase project's SQL Editor, run these migrations in order (skip a migration if already applied):
    - `supabase/migrations/20260916000000_product_catalog.sql`
    - `supabase/migrations/20260917000000_admin_orders.sql`
+   - `supabase/migrations/20260918000000_admin_sessions.sql`
+   - `supabase/migrations/20260919000000_payments.sql`
+   - `supabase/migrations/20260920000000_customers.sql`
+   - `supabase/migrations/20260922000000_admin_reporting.sql`
 3. Copy `server/.env.example` to `server/.env` if you do not have one. Privately configure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `GEMINI_API_KEY`. The existing private file has blank values. Never put these keys in a `VITE_` variable or send them in chat.
 4. Run `npm run db:seed` to import the original catalog and content. Existing records are preserved. To copy original images to Storage for newly imported products, use `npm run db:seed -- --upload-images`. Images can also be uploaded individually from the admin product editor.
 5. In Supabase Authentication → Users, create your own email/password account. Copy its user UUID. Run the following SQL with your actual UUID:
@@ -40,7 +44,13 @@ Customers receive a receipt containing an order UUID and a private access code. 
 
 Customers submit their payment method and transaction reference. This does **not** verify payment. Staff must check the actual merchant account, mark payment verified, and then process/deliver the order. A customer-facing delivery note is required for delivery. Do not store account passwords, OTPs, payment PINs or card numbers in these notes. The site does not activate third-party subscriptions or move/refund money automatically. Record a refund only after processing it through your payment provider.
 
-The overview uses all-order database totals. Orders and customer directory are paginated in groups of 50. Search filters the displayed page. The customer directory aggregates each contact's complete history. Revenue includes verified payments and excludes records marked refunded. Current analytics do not attempt to reconcile external merchant statements.
+The overview uses all-order database totals. Orders and customer directory are paginated in groups of 50. Search filters the displayed page. The customer directory aggregates each contact's complete history.
+
+## Reports and CSV exports
+
+The Reports workspace provides revenue/order trends, net and gross revenue, completed refunds, product rankings, payment failures, and delivered subscriptions expiring in a selected period. Dates are interpreted in Bangladesh time and ranges are limited to two years. Revenue is recognized once through immutable `paid_at` and `refunded_at` order timestamps, so later fulfillment edits do not move historical totals.
+
+Owners and staff may view aggregate reports and export trends, products, and payment issues. Customer contact details are hidden from staff reporting responses, and expiring-subscription contact exports are owner-only. CSV exports are recorded in the audit log and protect spreadsheet applications from formula injection. Reporting reflects QuickSub records and does not replace reconciliation against merchant statements.
 
 ## Content and inbox
 
@@ -68,6 +78,8 @@ The original four category groups and existing customer reviews remain part of t
 - `npm run test:admin` — real local PostgreSQL (PGlite), simulated Supabase Auth/HTTP transport.
 - `npm run build`
 - `npm run check:admin` — Chrome browser flow against the local SQL test server.
+- `node --test scripts/reporting.integration.test.mjs` — reporting totals, boundaries, roles, CSV safety and audit trail.
+- `node scripts/check-reporting.mjs` — reporting UI, error recovery and responsive browser layouts.
 - `node scripts/check-chat.mjs` and `node scripts/check-privacy.mjs`
 
 Tests do not use real keys, send payments or contact customers. The browser fixture accounts are test-only and are never used by the production server. Live Supabase Auth, Storage and Gemini still require your credentials and deployment verification.

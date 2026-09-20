@@ -780,3 +780,53 @@ table small {
   .qs-admin-login { grid-template-columns: minmax(0, 1fr); }
   .qs-admin-login-form { padding: 24px 16px; }
 }
+
+/* Reporting uses the same cards, typography and controls as the workspace. */
+.qs-report { display: grid; gap: 24px; }
+.qs-report-filters { display: grid; gap: 18px; }
+.qs-report-filters > small { color: #7c8aa2; line-height: 1.6; }
+.qs-report-presets { display: flex; gap: 8px; flex-wrap: wrap; }
+.qs-report-presets button { border: 1px solid #dce4f0; color: #46617f; background: #f8faff; border-radius: 8px; padding: 9px 13px; font-size: 12px; font-weight: 650; }
+.qs-report-presets button:hover { border-color: #8cacec; color: #2563eb; }
+.qs-report-date-grid { display: grid; grid-template-columns: repeat(3,minmax(130px,1fr)) auto; gap: 14px; align-items: end; }
+.qs-report-date-grid label { display: grid; gap: 7px; color: #5c6b84; font-size: 12px; font-weight: 600; }
+.qs-report-date-grid input,.qs-report-date-grid select { min-height: 42px; border: 1px solid #dce3ee; border-radius: 8px; padding: 9px 11px; background: white; color: #253753; }
+.qs-report-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
+.qs-report-metrics span { color: #7f8ca2; font-size: 12px; }
+.qs-report-metrics strong { display: block; color: #1d3152; font-size: clamp(20px,2vw,28px); margin-top: 13px; overflow-wrap: anywhere; }
+.qs-report-grid { display: grid; grid-template-columns: minmax(0,2fr) minmax(240px,1fr); gap: 24px; }
+.qs-report-wide { min-width: 0; }
+.qs-report-chart { height: 260px; display: flex; gap: 9px; align-items: end; overflow-x: auto; padding: 18px 4px 0; border-top: 1px solid #edf1f7; }
+.qs-report-bar-column { display: grid; grid-template-rows: 180px auto auto; justify-items: center; gap: 5px; min-width: 38px; height: 100%; flex: 1; }
+.qs-report-bar-track { width: min(24px,70%); height: 180px; display: flex; align-items: end; background: #f1f5fc; border-radius: 6px 6px 2px 2px; overflow: hidden; }
+.qs-report-bar-track span { display: block; width: 100%; min-height: 3px; background: linear-gradient(#5c8df0,#2563eb); border-radius: 6px 6px 2px 2px; }
+.qs-report-bar-column strong { color: #385272; font-size: 11px; }
+.qs-report-bar-column small { width: 52px; color: #8794aa; font-size: 9px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qs-payment-health { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qs-payment-health > div { padding: 14px; background: #f7f9fd; border-radius: 9px; }
+.qs-payment-health span { display: block; color: #7c899f; font-size: 11px; }
+.qs-payment-health strong { display: block; color: #213654; font-size: 22px; margin-top: 8px; }
+.qs-report-section { margin: 0; }
+.qs-report-table-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 22px; }
+.qs-report-table-heading h2 { margin-bottom: 4px; }
+.qs-report-table-heading p { margin: 0; }
+.qs-report-generated { display: flex; align-items: center; gap: 7px; justify-content: flex-end; color: #8490a5; font-size: 11px; }
+@media (max-width: 1050px) {
+ .qs-report-date-grid { grid-template-columns: repeat(3,minmax(120px,1fr)); }
+ .qs-report-date-grid > button { grid-column: 1/-1; }
+ .qs-report-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .qs-report-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+ .qs-report { gap: 14px; }
+ .qs-report-date-grid { grid-template-columns: 1fr; }
+ .qs-report-date-grid > button { grid-column: auto; width: 100%; }
+ .qs-report-metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+ .qs-report-metrics .qs-admin-card { padding: 15px; }
+ .qs-report-metrics strong { font-size: 19px; }
+ .qs-report-chart { height: 235px; }
+ .qs-report-bar-column { min-width: 44px; grid-template-rows: 155px auto auto; }
+ .qs-report-bar-track { height: 155px; }
+ .qs-report-table-heading > button { width: 100%; }
+}
+@media (max-width: 350px) { .qs-report-metrics,.qs-payment-health { grid-template-columns: 1fr; } }

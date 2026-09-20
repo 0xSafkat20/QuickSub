@@ -2,6 +2,7 @@ import SiteLink from '../components/ui/SiteLink';
 import AdminSubscription from './AdminSubscription';
 import AdminPaymentSearch from "./AdminPaymentSearch";
 import AdminPayments from "./AdminPayments";
+import AdminReports from "./AdminReports";
 import {
   useCallback,
   useEffect,
@@ -23,6 +24,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Search,
+  BarChart3,
 } from "lucide-react";
 import { api } from "../utils/api";
 import type { Product } from "../data/products";
@@ -118,6 +120,7 @@ const sections = [
   { name: "Packages", icon: ShoppingBag },
   { name: "Orders", icon: ShoppingBag },
   { name: "Customers", icon: Users },
+  { name: "Reports", icon: BarChart3 },
   { name: "Inbox", icon: MessageSquare },
   { name: "Content", icon: FileText },
   { name: "Offers", icon: ShoppingBag },
@@ -500,6 +503,7 @@ export default function AdminApp() {
                   </div>
                 </>
               )}
+              {tab === "Reports" && <AdminReports role={session.role} />}
               {[
                 "Products",
                 "Packages",

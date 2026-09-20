@@ -19,6 +19,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260917000000_admin_orders.sql",
     "20260919000000_payments.sql",
     "20260920000000_customers.sql",
+    "20260922000000_admin_reporting.sql",
   ])
     await db.exec(
       await readFile(

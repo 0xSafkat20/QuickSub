@@ -191,6 +191,57 @@ function createAdminRouter({
   });
   const customers = require("./customers").installCustomers({router,run,db,remote,rate,string,contact,now});
   router.get("/admin/session", (req, res) => res.json(req.admin));
+  function reportPeriod(query) {
+    const iso = /^\d{4}-\d{2}-\d{2}$/;
+    const from = typeof query.from === "string" && iso.test(query.from) ? new Date(query.from + "T00:00:00+06:00") : null;
+    const last = typeof query.to === "string" && iso.test(query.to) ? new Date(query.to + "T00:00:00+06:00") : null;
+    const bucket = ["day", "week", "month"].includes(query.bucket) ? query.bucket : "day";
+    if (!from || !last || Number.isNaN(+from) || Number.isNaN(+last)) throw fail(400, "Choose a valid reporting date range.");
+    const to = new Date(+last + 86400000);
+    if (from >= to || +to - +from > 732 * 86400000) throw fail(400, "Reporting ranges must be between 1 day and 2 years.");
+    return { from: from.toISOString(), to: to.toISOString(), bucket };
+  }
+  async function report(query) {
+    const period = reportPeriod(query);
+    const data = await db("rpc/quicksub_admin_report", { method: "POST", body: { p_from: period.from, p_to: period.to, p_bucket: period.bucket } });
+    return { period: { from: query.from, to: query.to, bucket: period.bucket, timezone: "Asia/Dhaka" }, ...data, generatedAt: new Date(now()).toISOString() };
+  }
+  const csvCell = (value) => {
+    let text = value == null ? "" : String(value);
+    if (/^[=+\-@]/.test(text)) text = "'" + text;
+    return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  };
+  const csv = (headers, rows) => "\ufeff" + [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  router.get("/admin/reports", run(async (req, res) => {
+    rate(req, "admin-reports", 60);
+    const result = await report(req.query);
+    if (req.admin.role !== "owner") result.expiring = result.expiring.map(({ contact: _contact, ...row }) => row);
+    res.json(result);
+  }));
+  router.get("/admin/reports/export", run(async (req, res) => {
+    rate(req, "admin-report-export", 12);
+    const type = typeof req.query.type === "string" ? req.query.type : "";
+    if (!["trends", "products", "payments", "expiring"].includes(type)) throw fail(400, "Choose a valid export type.");
+    if (type === "expiring" && req.admin.role !== "owner") throw fail(403, "Owner access required for customer contact exports.");
+    const result = await report(req.query);
+    let headers, rows;
+    if (type === "trends") {
+      headers = ["Period", "Orders", "Paid orders", "Gross revenue BDT", "Refunds BDT", "Net revenue BDT"];
+      rows = result.trends.map((x) => [x.bucket, x.orders, x.paid_orders, x.gross_revenue, x.refunds, x.net_revenue]);
+    } else if (type === "products") {
+      headers = ["Product", "Package", "Paid orders", "Refunded orders", "Gross revenue BDT", "Refunds BDT", "Net revenue BDT"];
+      rows = result.products.map((x) => [x.product_name, x.package_name, x.paid_orders, x.refunded_orders, x.gross_revenue, x.refunds || 0, x.net_revenue]);
+    } else if (type === "payments") {
+      headers = ["Transaction", "Order", "Product", "Package", "Amount BDT", "Payment status", "Refund status", "Created at", "Checked at", "Refund updated at"];
+      rows = result.payment_issues.map((x) => [x.id, x.order_id, x.product_name, x.package_name, x.amount_bdt, x.status, x.refund_status, x.created_at, x.checked_at, x.refund_updated_at]);
+    } else {
+      headers = ["Order", "Customer", "Contact", "Product", "Package", "Amount BDT", "Expires at", "Days remaining"];
+      rows = result.expiring.map((x) => [x.id, x.customer_name, x.contact, x.product_name, x.package_name, x.amount_bdt, x.expires_at, x.days_remaining]);
+    }
+    await db("quicksub_audit", { method: "POST", body: { actor: req.admin.id, action: "report-export:" + type, record_id: result.period.from + ":" + result.period.to } });
+    const filename = `quicksub-${type}-${result.period.from}-to-${result.period.to}.csv`;
+    res.set({ "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${filename}"`, "X-Content-Type-Options": "nosniff" }).send(csv(headers, rows));
+  }));
   router.get('/payments/config', (_req,res) => res.json({ enabled: payments.enabled }));
   router.post('/orders/checkout', run(async (req,res) => {
     rate(req, 'checkout', 5);

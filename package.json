@@ -27,7 +27,8 @@
     "verify:full": "node scripts/verify.mjs --browser",
     "check:accounts": "node scripts/check-accounts.mjs",
     "check:responsive": "node scripts/check-responsive.mjs",
-    "check:navigation": "node scripts/check-navigation.mjs"
+    "check:navigation": "node scripts/check-navigation.mjs",
+    "check:reporting": "node scripts/check-reporting.mjs"
   },
   "engines": {
     "node": ">=22.18.0"
