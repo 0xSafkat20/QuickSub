@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T18:49:39.527Z",
+  "generatedAt": "2026-09-20T07:20:03.177Z",
   "browserIncluded": true,
   "results": [
     {
@@ -64,9 +64,21 @@
     },
     {
       "name": "browser-chat",
-      "exitCode": 1,
-      "durationMs": 34063,
-      "passed": false
+      "exitCode": 0,
+      "durationMs": 6158,
+      "passed": true
+    },
+    {
+      "name": "browser-privacy",
+      "exitCode": 0,
+      "durationMs": 53880,
+      "passed": true
+    },
+    {
+      "name": "browser-storefront",
+      "exitCode": 0,
+      "durationMs": 12930,
+      "passed": true
     }
   ]
 }

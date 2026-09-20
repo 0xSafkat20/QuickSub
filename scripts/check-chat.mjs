@@ -30,6 +30,7 @@ try {
   browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 1000 });
+  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
   await page.evaluateOnNewDocument(() => localStorage.setItem('quicksub-cookie-consent', 'accepted'));
   const errors = [];
   const requests = [];
@@ -50,13 +51,13 @@ try {
     } else if (request.url().startsWith(testBase + '/') || request.url().startsWith('data:')) await request.continue();
     else await request.abort('blockedbyclient');
   });
-  await page.goto(testBase + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(testBase + '/', { waitUntil: 'networkidle0', timeout: 60000 });
   await page.waitForSelector('[aria-label="Open chat"]');
   await page.waitForFunction(() => document.querySelector('#product-1')?.textContent.includes('Netflix Database Test') && document.querySelector('#product-1')?.textContent.includes('777'));
   await page.click('[aria-label="Open chat"]');
   await page.locator('[aria-label="Message QuickSub support"]').fill('I need study help');
   await page.locator('[aria-label="Send message"]').click();
-  await page.waitForFunction(() => document.querySelector('[role="log"]').textContent.includes('main study goal'));
+  try { await page.waitForFunction(() => document.querySelector('[role="log"]').textContent.includes('main study goal')); } catch(error) { console.log('Chat state:',await page.evaluate(()=>({log:document.querySelector('[role="log"]')?.textContent,input:document.querySelector('[aria-label="Message QuickSub support"]')?.value,open:!!document.querySelector('[aria-label="Close chat"]')})),requests,errors);throw error; }
   await page.locator('[aria-label="Message QuickSub support"]').fill('My budget is 500');
   await page.locator('[aria-label="Send message"]').click();
   await page.waitForSelector('[role="log"] a[href="/checkout?text=ChatGPT"]');

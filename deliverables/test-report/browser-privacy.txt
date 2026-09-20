@@ -1,3 +1,5 @@
+1:19:07 PM [vite] ✨ new dependencies optimized: react-dom
+1:19:07 PM [vite] ✨ optimized dependencies changed. reloading
 PASS normal: catalog and wishlist work with external requests blocked
 PASS storage-denied: catalog and wishlist work with external requests blocked
 PASS writes-denied: catalog and wishlist work with external requests blocked
