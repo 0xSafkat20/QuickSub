@@ -10,12 +10,13 @@ test('shared admin sessions survive instance changes and revoke on logout',async
  const fetchImpl=async(url,options={})=>{
   const u=new URL(url); const body=options.body?JSON.parse(options.body):null;
   const json=x=>new Response(JSON.stringify(x),{headers:{'Content-Type':'application/json'}});
-  if(u.pathname==='/auth/v1/token')return json({user,access_token:'private-token',expires_in:3600});
+  if(u.pathname==='/auth/v1/token')return json({user,access_token:'private-token',refresh_token:'private-refresh',expires_in:3600});
   if(u.pathname==='/auth/v1/user')return json(user);
   if(u.pathname.endsWith('/quicksub_admins'))return json([{role:'owner'}]);
   if(u.pathname.endsWith('/quicksub_admin_sessions')){
    const id=u.searchParams.get('id')?.slice(3);
    if(options.method==='POST'){rows.set(body.id,body);return new Response(null,{status:204});}
+   if(options.method==='PATCH'){if(rows.has(id))rows.set(id,{...rows.get(id),...body});return new Response(null,{status:204});}
    if(options.method==='DELETE'){rows.delete(id);return new Response(null,{status:204});}
    return json(rows.has(id)?[rows.get(id)]:[]);
   }
@@ -37,5 +38,8 @@ test('shared admin sessions survive instance changes and revoke on logout',async
  assert.equal((await call(first,'session',null,cookie)).status,401);
  const again=await call(first,'login',{email:user.email,password:'password'});
  clock+=3600001;
+ const stillActive=await call(second,'session',null,again.headers.get('set-cookie').split(';')[0]);
+ assert.equal(stillActive.status,200);
+ clock+=3600000;
  assert.equal((await call(second,'session',null,again.headers.get('set-cookie').split(';')[0])).status,401);
 });

@@ -9,7 +9,7 @@ const { createCatalog } = require("../server/catalog");
 export const ownerId = "10000000-0000-4000-8000-000000000001";
 export const staffId = "10000000-0000-4000-8000-000000000002";
 export const packageId = "20000000-0000-4000-8000-000000000001";
-export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false } = {}) {
+export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false, receiptSimulation = false } = {}) {
   const db = new PGlite();
   await db.exec(
     `create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users(id uuid primary key); create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`,
@@ -17,9 +17,13 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
   for (const name of [
     "20260916000000_product_catalog.sql",
     "20260917000000_admin_orders.sql",
+    "20260918000000_admin_sessions.sql",
     "20260919000000_payments.sql",
     "20260920000000_customers.sql",
     "20260922000000_admin_reporting.sql",
+    "20260924000000_two_hour_sessions.sql",
+    "20260925000000_account_cart.sql",
+    "20260926000000_receipts.sql",
   ])
     await db.exec(
       await readFile(
@@ -87,11 +91,17 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       if(customerUsers.has(body.email))return response({user:{}},200);
       const id=crypto.randomUUID(); await db.query("insert into auth.users values($1)",[id]);
       const user={id,email:body.email,user_metadata:body.data};customerUsers.set(body.email,{...user,password:body.password});
-      return response({user,access_token:id,expires_in:3600});
+      return response({user,access_token:id,refresh_token:id,expires_in:3600});
+    }
+    if (u.pathname === "/auth/v1/token" && u.searchParams.get('grant_type') === 'refresh_token') {
+      const id=body.refresh_token;
+      const customer=[...customerUsers.values()].find(c=>c.id===id);
+      const user=customer ? {id,email:customer.email} : [ownerId,staffId].includes(id) ? {id,email:id===ownerId?'owner@example.test':'staff@example.test'} : null;
+      return user ? response({user,access_token:id,refresh_token:id,expires_in:3600}) : response({},401);
     }
     if (u.pathname === "/auth/v1/token") {
       const customer=customerUsers.get(body.email);
-      if(customer&&customer.password===body.password)return response({user:{id:customer.id,email:customer.email,user_metadata:customer.user_metadata},access_token:customer.id,expires_in:3600});
+      if(customer&&customer.password===body.password)return response({user:{id:customer.id,email:customer.email,user_metadata:customer.user_metadata},access_token:customer.id,refresh_token:customer.id,expires_in:3600});
       if (body.password !== password) return response({}, 400);
       const id =
         body.email === "owner@example.test"
@@ -103,6 +113,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
         ? response({
             user: { id, email: body.email },
             access_token: id,
+            refresh_token: id,
             expires_in: 3600,
           })
         : response({}, 400);
@@ -134,7 +145,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
         const result = await db.query(
           `select ${name}(${args}) as result`,
           entries.map(([, v]) =>
-            typeof v === "object" ? JSON.stringify(v) : v,
+            v !== null && typeof v === "object" ? JSON.stringify(v) : v,
           ),
         );
         return response(result.rows[0].result);
@@ -225,6 +236,19 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
   const app = express();
   app.use(express.json({ limit: "16kb" }));
   app.get("/api/products", async (_req, res) => res.json(await catalog.get()));
+  // Explicit test-only payment simulation. Never mounted by server/index.js.
+  if(receiptSimulation){
+    app.get('/api/payments/config',(_req,res)=>res.json({enabled:true,simulation:true}));
+    app.post('/api/demo/pay', async(req,res,next)=>{try {
+      const {createHash}=await import('node:crypto');
+      const b=req.body||{};
+      if(!['bKash','Nagad','Visa / Mastercard'].includes(b.method)||typeof b.accessCode!=='string')return res.status(400).json({error:'Invalid demo payment'});
+      const rows=await db.query("update quicksub_orders set payment_status='verified',payment_method=$1,payment_reference='DEMO-ONLINE',updated_at=now() where id=$2 and tracking_hash=$3 and payment_status in ('unpaid','rejected') returning *",['Online / '+b.method+' (simulation)',b.id,createHash('sha256').update(b.accessCode).digest('hex')]);
+      if(!rows.rows.length)return res.status(409).json({error:'Order unavailable or payment already confirmed'});
+      const {tracking_hash,...order}=rows.rows[0];res.json({order});
+    }catch(error){next(error);}});
+  }
+
   app.use(
     "/api",
     createAdminRouter({
@@ -245,7 +269,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
-  app.get(["/admin", "/checkout", "/buy", "/account", "/track", "/forgot-password", "/reset-password"], (_req, res) =>
+  app.get(["/admin", "/cart", "/checkout", "/buy", "/account", "/track", "/forgot-password", "/reset-password"], (_req, res) =>
     res.sendFile(
       new URL("../dist/index.html", import.meta.url).pathname.replace(
         /^\/([A-Za-z]:)/,
@@ -253,6 +277,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
+  app.use(require("../server/http").errorHandler);
   const server = await new Promise((resolve) => {
     const s = app.listen(port, "127.0.0.1", () => resolve(s));
   });

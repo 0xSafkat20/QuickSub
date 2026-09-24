@@ -63,7 +63,7 @@ The original four category groups and existing customer reviews remain part of t
 ## Security and deployment notes
 
 - Supabase Auth checks identity; a private role table checks authorization. Tables and RPCs reject direct anonymous/authenticated access. The server service key stays private.
-- Admin sessions use random HttpOnly, SameSite=Strict cookies, expire after at most one hour, and are held in server memory. A restart requires signing in again. Use one Node instance or sticky sessions; use a shared session/rate-limit store before horizontally scaling.
+- Admin sessions use random HttpOnly, SameSite=Strict cookies and expire two hours after login. Apply the admin-session migration and `supabase/migrations/20260924000000_two_hour_sessions.sql` before deploying. Production uses shared database sessions; local development uses memory. Provider token refresh never extends the absolute deadline. Rate limits remain per-process and need shared storage before horizontal scaling.
 - Mutations require an exact same-origin request and a custom header. Login, order creation, tracking and public forms have per-IP rate limits. Set proxy configuration correctly.
 - Record changes and their audit entries commit together. Uploaded product images use randomized Storage names; only JPEG, PNG and WebP are accepted, with a 6 MB limit. Images are public; never upload private customer documents.
 - Catalog requests are cached for up to 60 seconds; admin changes invalidate the server cache. Customer pages refresh on focus and every 60 seconds while visible. Already-open package dialogs are rechecked against the database at checkout.

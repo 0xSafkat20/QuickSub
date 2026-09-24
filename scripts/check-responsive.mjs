@@ -14,7 +14,7 @@ try {
  const check=async label=>{const measurements=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,fields:[...document.querySelectorAll('input,select,textarea')].filter(el=>{const r=el.getBoundingClientRect();return r.width&&getComputedStyle(el).visibility!=='hidden'&&r.top>=0&&r.top<innerHeight&&!el.closest('[inert]');}).filter(el=>{const r=el.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1;}).map(el=>el.getAttribute('aria-label')||el.name||el.tagName)}));assert.ok(measurements.scroll<=measurements.width+1,label+': page overflows '+JSON.stringify(measurements));assert.deepEqual(measurements.fields,[],label+': fields outside viewport');};
  for(const [width,height] of [[320,640],[390,844],[768,1024],[1024,768],[1280,800],[1440,900],[2560,1440],[844,390]]){
   await page.setViewport({width,height});
-  for(const route of ['/','/checkout?product=3','/account','/track','/admin','/?payment=return']){
+  for(const route of ['/','/checkout?product=3','/account','/cart','/track','/admin','/?payment=return']){
    await visit(route);await check(`${route} ${width}x${height}`);
    if(route==='/'){
     const overlap=await page.$eval('header nav',nav=>{const children=[...nav.children].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0);return children.some((a,i)=>children.slice(i+1).some(b=>a.right>b.left+1&&b.right>a.left+1));});assert.equal(overlap,false,`Header overlaps at ${width}`);

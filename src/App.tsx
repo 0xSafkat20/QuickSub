@@ -5,7 +5,6 @@ import Footer from './components/layout/Footer';
 import Hero from './components/sections/Hero';
 import StatsSection from './components/sections/StatsSection';
 import TrustFeatures from './components/sections/TrustFeatures';
-import CategorySection from './components/sections/CategorySection';
 import CategoryStrip from './components/sections/CategoryStrip';
 import DealsSection from './components/sections/DealsSection';
 import ProductGrid from './components/sections/ProductGrid';
@@ -83,8 +82,7 @@ export default function App() {
           <main>
             <Hero />
             <StatsSection />
-            <TrustFeatures />
-            <CategorySection activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+
             <DealsSection />
             <CategoryStrip activeFilter={activeFilter} onFilterChange={handleFilterChange} />
             <ProductGrid
@@ -96,6 +94,8 @@ export default function App() {
               inStockOnly={inStockOnly}
               onInStockOnlyChange={setInStockOnly}
             />
+
+            <TrustFeatures />
             <PaymentMethods />
             <PromoBanner />
             <HowItWorks />

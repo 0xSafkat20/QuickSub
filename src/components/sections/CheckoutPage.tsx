@@ -22,7 +22,7 @@ export default function CheckoutPage() {
     return () => { active = false; document.title = 'QuickSub'; };
   }, []);
   return <div className="min-h-screen bg-page text-ink-800">
-    <PageNavigation current="checkout" accountHref={accountUrl(checkoutUrl(product?.id))}/>
+    <PageNavigation current="checkout" accountHref={accountUrl('/checkout'+window.location.search)}/>
     <main className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <SiteLink href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 mb-7"><ArrowLeft size={16} /> Back to store</SiteLink>
       <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-3">Complete your order</h1>

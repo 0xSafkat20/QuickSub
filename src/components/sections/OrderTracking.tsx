@@ -1,12 +1,14 @@
+import { savedReceipts } from '../../utils/savedReceipts';
 import { createPortal } from 'react-dom';
 import { useState } from "react";
 import { Package, X } from "lucide-react";
 import { api } from "../../utils/api";
 import { OrderReceipt, type TrackedOrder } from "./CustomerOrder";
 export default function OrderTracking({ inline = false }: { inline?: boolean }) {
+  const recent=savedReceipts().slice(-1)[0];
   const [open, setOpen] = useState(new URLSearchParams(window.location.search).get("payment") === "return"),
-    [id, setId] = useState(""),
-    [accessCode, setAccessCode] = useState(""),
+    [id, setId] = useState(recent?.id || ""),
+    [accessCode, setAccessCode] = useState(recent?.accessCode || ""),
     [order, setOrder] = useState<TrackedOrder | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -71,6 +73,7 @@ export default function OrderTracking({ inline = false }: { inline?: boolean }) 
                     value={id}
                     onChange={(e) => {
                       setId(e.target.value);
+                      setAccessCode(savedReceipts().find(r=>r.id===e.target.value)?.accessCode || "");
                       setOrder(null);
                     }}
                   />

@@ -40,6 +40,7 @@ function createPayments({ db, fetchImpl = fetch, env = process.env }) {
     const result = await gateway('/validator/api/validationserverAPI.php', { val_id: valId });
     const status = validate(result, payment);
     await rpc('quicksub_settle_payment', { p_id: payment.id, p_status: status, p_reference: result.bank_tran_id });
+    if(status==='verified' && typeof result.card_type==='string' && result.card_type.trim()) await db(`quicksub_orders?id=eq.${payment.order_id}&payment_reference=eq.SSLCOMMERZ:${payment.id}`, {method:'PATCH',body:{payment_method:'Online / '+result.card_type.trim().slice(0,60)+' (SSLCommerz)'}});
   }
   async function reconcile(payment) {
     if (['verified','review'].includes(payment.status)) return;
@@ -63,6 +64,7 @@ function createPayments({ db, fetchImpl = fetch, env = process.env }) {
       if (payment.checkout_url) return { url: payment.checkout_url };
       throw fail(409, 'A payment is awaiting confirmation. Check payment status before retrying.');
     }
+    await db(`quicksub_orders?id=eq.${order.id}`, {method:'PATCH',body:{payment_method:'Online payment (SSLCommerz)',receipt_email:body.email}});
     const callback = origin + '/api/payments/return';
     const result = await gateway('/gwprocess/v4/api.php', {
       tran_id: id, total_amount: Number(payment.amount_bdt).toFixed(2), currency: 'BDT',

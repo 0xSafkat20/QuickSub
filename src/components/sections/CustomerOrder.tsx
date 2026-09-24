@@ -1,4 +1,8 @@
-import { accountUrl, checkoutUrl } from '../../utils/navigation';
+import { rememberReceipt } from '../../utils/savedReceipts';
+import type { CartResponse } from '../../utils/cart';
+import { checkoutDrafts as drafts } from '../../utils/checkoutDrafts';
+import { useSessionExpiry } from '../../utils/session';
+import { accountUrl, checkoutUrl, navigate } from '../../utils/navigation';
 import SiteLink from '../ui/SiteLink';
 import DemoPayment from "./DemoPayment";
 import { motion, useReducedMotion } from "framer-motion";
@@ -6,6 +10,8 @@ import OnlinePayment from "./OnlinePayment";
 import { useEffect, useState, useRef } from "react";
 import { api } from "../../utils/api";
 import { useStore } from "../../data/store";
+import { useProducts } from '../../data/catalog';
+import { downloadReceipt, receiptDate } from '../../utils/receiptPdf';
 type Plan = { id: string; name: string; details: string; price_bdt: number; demo?: boolean };
 export type TrackedOrder = {
   id: string;
@@ -16,8 +22,12 @@ export type TrackedOrder = {
   payment_status: string;
   delivery_note: string;
   updated_at: string;
+  customer_name?: string; contact?: string; receipt_email?: string; game_account?: string;
+  package_details?: string; product_category?: string; subscription_period?: string;
+  subscription_started_at?: string | null; expires_at?: string | null; created_at?: string;
+  payment_method?: string; payment_reference?: string;
 };
-const drafts = new Map<string, {name:string;contact:string;note:string;packageId:string}>();
+
 const receipts = new Map<
   string,
   { id: string; accessCode: string; order: TrackedOrder | null }
@@ -65,7 +75,10 @@ export function OrderReceipt({
   onUpdate: (order: TrackedOrder) => void;
 }) {
   const { settings } = useStore();
+  useEffect(()=>rememberReceipt({id:order.id,accessCode}),[order.id,accessCode]);
   const [gatewayBlocked, setGatewayBlocked] = useState(true);
+  const [method,setMethod]=useState('bKash');
+  const [downloading,setDownloading]=useState(false);
   const [reference, setReference] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -82,32 +95,22 @@ export function OrderReceipt({
         <p className="break-all">
           <b>Order ID:</b> {order.id}
         </p>
-        <p className="break-all">
-          <b>Private access code:</b> {accessCode}
-        </p>
-        <p className="text-xs">
-          Save these details to track your order later. Keep your access code
-          private.
-        </p>
+        <p><b>Customer:</b> {order.customer_name || 'Not recorded'}</p>
+        <p className="break-all"><b>Email:</b> {order.receipt_email || (order.contact?.includes('@')?order.contact:'Not provided')}</p>
+        <p><b>Payment method:</b> {order.payment_method || 'Choose a payment option below'}</p>
+        {order.product_category==='gaming' ? <p><b>Game account / player ID:</b> {order.game_account || 'Not recorded'}</p> : order.subscription_period && <><p><b>Period:</b> {order.subscription_period}</p><p><b>Starts:</b> {receiptDate(order.subscription_started_at)}</p><p><b>Ends:</b> {receiptDate(order.expires_at)}</p></>}
+        {order.package_details&&<p className="whitespace-pre-wrap"><b>Package / device access:</b> {order.package_details}</p>}
         <button
           type="button"
           className="text-brand-600 underline"
-          onClick={() => {
-            const blob = new Blob(
-              [
-                `QuickSub order\nOrder ID: ${order.id}\nPrivate access code: ${accessCode}\n${order.product_name} / ${order.package_name}\nAmount: BDT ${order.amount_bdt}\nTrack at ${window.location.origin}/track`,
-              ],
-              { type: "text/plain" },
-            );
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "QuickSub-order-" + order.id.slice(0, 8) + ".txt";
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          disabled={downloading}
+          onClick={async () => {
+            setDownloading(true);setError('');
+            try {const result=await api<{order:TrackedOrder}>('/orders/track',{id:order.id,accessCode});onUpdate(result.order);await downloadReceipt(result.order);}
+            catch(err){setError((err as Error).message);}finally{setDownloading(false);}
           }}
         >
-          Download order receipt
+          {downloading?'Preparing PDF…':'Download order receipt (PDF)'}
         </button>
       </div>
       <OnlinePayment order={order} accessCode={accessCode} onUpdate={onUpdate} onBlockingChange={setGatewayBlocked} />
@@ -129,6 +132,7 @@ export function OrderReceipt({
                   id: order.id,
                   accessCode,
                   reference,
+                  method,
                 });
                 const result = await api<{ order: TrackedOrder }>(
                   "/orders/track",
@@ -146,6 +150,7 @@ export function OrderReceipt({
               {settings.paymentInstructions ||
                 "Contact support with your order ID to confirm payment instructions before paying."}
             </p>
+            <label className="block">Payment method<select className={input+' mt-2'} value={method} onChange={e=>setMethod(e.target.value)}><option>bKash</option><option>Nagad</option><option>Rocket</option><option>Bank transfer</option><option>Other manual payment</option></select></label>
             <label className="block">
               Payment method and transaction reference
               <input
@@ -181,6 +186,12 @@ export default function CustomerOrder({
   productId: string;
   productName: string;
 }) {
+  const query = new URLSearchParams(window.location.search);
+  const products=useProducts();
+  const isGame=products.find(p=>p.id===productId)?.category==='gaming';
+  const fromCart = query.get('cart') === '1';
+  const requestedPackage = query.get('package') || '';
+  const receiptKey = fromCart ? productId + ':' + requestedPackage + ':' + query.get('saved') : productId;
   const draft = drafts.get(productId);
   const reducedMotion = useReducedMotion();
   const stepRef = useRef<HTMLDivElement>(null);
@@ -192,35 +203,38 @@ export default function CustomerOrder({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [order, setOrder] = useState<TrackedOrder | null>(
-      () => receiptFor(productId).order,
+      () => receiptFor(receiptKey).order,
     );
   const [savedProfile, setSavedProfile] = useState<{name:string;contact:string}|null>(null);
   const [accountError, setAccountError] = useState('');
+  const [cartMessage,setCartMessage] = useState('');
+  useSessionExpiry('customer', () => { setSavedProfile(null); setAccountError('Session ended. Your checkout draft is saved. Sign in again to link your purchase to your account.'); });
   useEffect(() => { let active=true; api<{user:unknown;profile:{name:string;contact:string}|null}>('/account/session').then(data=>{if(active)setSavedProfile(data.user?data.profile:null);}).catch(()=>{if(active)setAccountError('Account details could not be loaded. Sign in again to save this order to your account.');}); return()=>{active=false;}; }, []);
-  const [credentials, setCredentials] = useState(() => receiptFor(productId));
+  const [credentials, setCredentials] = useState(() => receiptFor(receiptKey));
   useEffect(() => {
     let cancelled = false;
     setLoading(true); setError("");
-    api<{ packages: Plan[] }>("/packages/" + encodeURIComponent(productId))
-      .then((data) => {
-        if (!cancelled) {
-          setPlans(data.packages);
-          setSelected(data.packages.some(p=>p.id===drafts.get(productId)?.packageId) ? drafts.get(productId)!.packageId : data.packages[0]?.id || "");
-        }
-      })
-      .catch(() => {
-        if (!cancelled)
-          setError(
-            "We could not load packages. Please retry; your checkout stays on this page.",
-          );
-      })
+    void (async () => {
+      const data = await api<{ packages: Plan[] }>("/packages/" + encodeURIComponent(productId));
+      if (fromCart) {
+        const cart = await api<CartResponse>('/cart');
+        const item = cart.items.find(item => item.package_id === requestedPackage && item.product_id === productId);
+        if (!item || !item.available || !data.packages.some(plan => plan.id === item.package_id)) throw new Error('This cart item is unavailable or has already been checked out. Open your cart or account to continue.');
+        if (!cancelled) drafts.set(productId,{name:item.name,contact:item.contact,note:item.note,packageId:item.package_id});
+      }
+      if (!cancelled) {
+        setPlans(data.packages);
+        setSelected(data.packages.some(p=>p.id===drafts.get(productId)?.packageId) ? drafts.get(productId)!.packageId : data.packages[0]?.id || "");
+      }
+    })()
+      .catch((err) => { if (!cancelled) { setPlans([]); setError(err.message || "We could not load packages. Please retry."); } })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [productId, attempt]);
+  }, [productId, attempt, fromCart, requestedPackage]);
   useEffect(() => {
     if (order || demoPlan) {
       stepRef.current?.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
@@ -252,8 +266,9 @@ export default function CustomerOrder({
               )
             ) {
               drafts.delete(productId);
-              receipts.delete(productId);
-              setCredentials(receiptFor(productId));
+              receipts.delete(receiptKey);
+              if (fromCart) { navigate(checkoutUrl(productId)); return; }
+              setCredentials(receiptFor(receiptKey));
               setOrder(null);
             }
           }}
@@ -267,7 +282,7 @@ export default function CustomerOrder({
   if (!plans.length)
     return <div className="space-y-4 rounded-xl bg-brand-50 p-5">
       <h2 className="font-bold text-lg">{error ? 'Checkout temporarily unavailable' : 'Packages coming soon'}</h2>
-      <p role={error ? 'alert' : 'status'} className="text-sm text-ink-600">{error || `There are no purchasable packages for ${productName} yet. Please check again shortly.`}</p>
+      <p role={error ? 'alert' : 'status'} className="text-sm text-ink-600">{error || `There are no purchasable packages for ${productName} yet. Please check again shortly.`}</p><SiteLink href="/cart" className="text-brand-600 underline">Open my cart</SiteLink>
       <button type="button" className={button} onClick={() => setAttempt(n => n + 1)}>Retry loading packages</button>
     </div>;
   const plan = plans.find((p) => p.id === selected);
@@ -284,11 +299,14 @@ export default function CustomerOrder({
         try {
           const result = await api<{ order: TrackedOrder }>("/orders", {
             ...credentials,
+            fromCart,
             packageId: selected,
             expectedPrice: Number(plan?.price_bdt),
             name: values.get("name"),
             contact: values.get("contact"),
             note: values.get("note"),
+            email: values.get('receiptEmail') || (String(values.get('contact')).includes('@') ? values.get('contact') : ''),
+            gameAccount: values.get('gameAccount') || '',
           });
           credentials.order = result.order;
           setOrder(result.order);
@@ -301,7 +319,7 @@ export default function CustomerOrder({
     >
       {plan?.demo && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900"><strong>Demo packages</strong> — sample prices for testing. No money will be collected.</p>}
       <h2 className="text-xl font-bold">Package &amp; delivery details</h2>
-      {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>Use my saved details</button> : <p className="text-xs"><SiteLink href={accountUrl(checkoutUrl(productId))} className="text-brand-600 underline">Sign in or create an account</SiteLink> to save real purchases to your order history.</p>}
+      {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>Use my saved details</button> : <p className="text-xs"><SiteLink href={accountUrl(fromCart ? '/checkout'+window.location.search : checkoutUrl(productId))} className="text-brand-600 underline">Sign in or create an account</SiteLink> to save real purchases to your order history.</p>}
       {accountError && <p className="text-xs text-amber-700">{accountError}</p>}
       <label className="block font-semibold">
         Choose your package
@@ -310,6 +328,7 @@ export default function CustomerOrder({
           name="packageId"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
+          disabled={fromCart}
         >
           {plans.map((p) => (
             <option key={p.id} value={p.id}>
@@ -346,8 +365,10 @@ export default function CustomerOrder({
           autoComplete="email"
         />
       </label>
+      <label className="block">Receipt email<input className={input+' mt-1'} name="receiptEmail" type="email" required maxLength={160} autoComplete="email" defaultValue={draft?.contact?.includes('@')?draft.contact:''} placeholder="you@example.com" /></label>
+      {isGame&&<label className="block">Game account name / player ID<input className={input+' mt-1'} name="gameAccount" required maxLength={160} placeholder="Player ID, account name and server / zone if required" /></label>}
       <label className="block">
-        Delivery details / game player ID (optional)
+        Delivery details (optional)
         <textarea
           className={input + " mt-1"}
           name="note"
@@ -359,6 +380,18 @@ export default function CustomerOrder({
       <p className="text-xs text-ink-400">
         {plan?.demo ? "Demo details stay in this preview and are not submitted." : "Your contact and order details are saved to fulfill this order. Continue to choose an available payment method."}
       </p>
+      {cartMessage && <p role="status" className="rounded-xl bg-brand-50 p-3">{cartMessage} <SiteLink href="/cart" className="font-semibold underline">View my cart</SiteLink></p>}
+      {!plan?.demo && <button type="button" disabled={busy} className="w-full rounded-xl border border-brand-300 text-brand-700 px-4 py-3 font-semibold disabled:opacity-50" onClick={async e=>{
+        const form=e.currentTarget.form;
+        if(!form || !selected)return;
+        const values=new FormData(form);
+        const details={name:String(values.get('name')||''),contact:String(values.get('contact')||''),note:String(values.get('note')||'')};
+        drafts.set(productId,{...details,packageId:selected});
+        setBusy(true);setError('');setCartMessage('');
+        try {await api('/cart/items/'+selected,details,'PUT');setCartMessage(fromCart?'Cart details updated.':'Package saved to your account cart.');}
+        catch(err){setError((err as Error).message);}finally{setBusy(false);}
+      }}>{busy?'Please wait…':fromCart?'Save cart changes':'Add to cart'}</button>}
+      {fromCart && <SiteLink href="/cart" className="inline-block text-brand-600 underline">Back to my cart</SiteLink>}
       {error && (
         <p role="alert" className="text-red-600">
           {error}

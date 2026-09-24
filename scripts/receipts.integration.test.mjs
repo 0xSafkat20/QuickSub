@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID,randomBytes} from 'node:crypto';
+import {startTestServer,packageId} from './admin-test-server.mjs';
+test('receipt snapshots, ownership, payment dates, repeat confirmation and game orders',async t=>{
+ const env=await startTestServer();t.after(()=>env.close());
+ const call=async(path,body)=>{const r=await fetch(env.base+'/api'+path,{method:'POST',headers:{origin:env.base,'x-quicksub-client':'web','content-type':'application/json'},body:JSON.stringify(body)});return {status:r.status,...await r.json()};};
+ await env.db.query("update quicksub_packages set details='1 device; phone, PC or TV' where id=$1",[packageId]);
+ const credentials={id:randomUUID(),accessCode:randomBytes(32).toString('hex')};
+ const body={...credentials,packageId,expectedPrice:299,name:'Receipt Buyer',contact:'buyer@example.test',email:'receipt@example.test',note:''};
+ const created=await call('/orders',body);assert.equal(created.status,201);assert.equal(created.order.receipt_email,'receipt@example.test');assert.equal(created.order.subscription_period,'1 month');assert.equal(created.order.subscription_started_at,null);assert.equal(created.order.package_details,'1 device; phone, PC or TV');
+ assert.equal((await call('/orders/track',{...credentials,accessCode:'0'.repeat(64)})).status,404);
+ await env.db.query("update quicksub_packages set details='changed',name='1 year' where id=$1",[packageId]);
+ const retry=await call('/orders',{...body,email:'changed@example.test'});assert.equal(retry.order.receipt_email,'receipt@example.test');assert.equal(retry.order.subscription_period,'1 month');
+ assert.equal((await call('/orders/payment',{...credentials,method:'Nagad',reference:'TX-RECEIPT-1'})).status,200);
+ await env.db.query("update quicksub_orders set payment_status='verified' where id=$1",[credentials.id]);
+ const paid=(await call('/orders/track',credentials)).order;assert.equal(paid.payment_method,'Nagad');assert.ok(paid.subscription_started_at);assert.ok(paid.expires_at);assert.equal(paid.tracking_hash,undefined);
+ const diff=(Date.parse(paid.expires_at)-Date.parse(paid.subscription_started_at))/86400000;assert.ok(diff>=28&&diff<=31);
+ await env.db.query("update quicksub_orders set payment_status='verified',status='delivered' where id=$1",[credentials.id]);
+ assert.equal((await call('/orders/track',credentials)).order.expires_at,paid.expires_at);
+ const gameId=randomUUID();await env.db.query("insert into quicksub_packages(id,product_id,name,price_bdt,details) values($1,'3','325 UC',499,'One-time top-up')",[gameId]);
+ const game=await call('/orders',{...body,id:randomUUID(),packageId:gameId,expectedPrice:499,gameAccount:'Player-987 / Asia'});assert.equal(game.status,201);assert.equal(game.order.game_account,'Player-987 / Asia');assert.equal(game.order.subscription_period,'');
+ await env.db.query("update quicksub_orders set payment_status='verified' where id=$1",[game.order.id]);
+ const row=(await env.db.query('select expires_at,subscription_started_at from quicksub_orders where id=$1',[game.order.id])).rows[0];assert.equal(row.expires_at,null);assert.equal(row.subscription_started_at,null);
+ assert.equal((await env.db.query("select has_function_privilege('anon','quicksub_place_order(uuid,boolean,uuid,text,uuid,text,text,text,numeric,text,text)','EXECUTE') allowed")).rows[0].allowed,false);
+});

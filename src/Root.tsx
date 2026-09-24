@@ -7,6 +7,7 @@ const Checkout = lazy(() => import('./components/sections/CheckoutPage'));
 const PaymentReturn = lazy(() => import('./components/sections/PaymentReturn'));
 const Tracking = lazy(() => import('./components/sections/TrackingPage'));
 const PasswordRecovery = lazy(() => import('./components/sections/PasswordRecovery'));
+const Cart = lazy(() => import('./components/sections/CartPage'));
 const Account = lazy(() => import('./components/sections/AccountPage'));
 function Route({ location }: { location: string }) {
   const path = location.split(/[?#]/)[0];
@@ -28,6 +29,7 @@ function Route({ location }: { location: string }) {
   if (path === '/forgot-password') return <PasswordRecovery />;
   if (path === '/reset-password') return <PasswordRecovery reset />;
   if (path === '/track') return <Tracking />;
+  if (path === '/cart') return <Cart />;
   if (path === '/account') return <Account />;
   if (path === '/admin' || path.startsWith('/admin/')) return <Admin />;
   if (new URL(window.location.href).searchParams.get('payment') === 'return') return <PaymentReturn />;

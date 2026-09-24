@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { run, errorHandler } = require('./http');
 const fs = require('fs');
 const path = require('path');
 const { createChatHandler } = require('./chat');
@@ -13,7 +14,8 @@ const app = express();
 app.disable('x-powered-by');
 // Configure only the exact number of trusted reverse proxies in production.
 if (process.env.TRUST_PROXY_HOPS) app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS));
-app.use(cors());
+// Same-origin requests need no CORS; grant cross-origin access only to the configured frontend.
+app.use(cors({ origin: process.env.PUBLIC_ORIGIN || false }));
 
 const cfgPath = path.join(__dirname, 'config.json');
 let cfg = { phone: '', country: '', defaultMessage: '' };
@@ -63,13 +65,13 @@ app.get(['/buy', '/api/buy'], (req, res) => {
   else if (typeof req.query.text === 'string') params.set('text', req.query.text.slice(0,1000));
   res.redirect(302, '/checkout' + (params.size ? '?' + params : ''));
 });
-app.get(['/checkout', '/account', '/track', '/forgot-password', '/reset-password'], (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
+app.get(['/cart', '/checkout', '/account', '/track', '/forgot-password', '/reset-password'], (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
 app.use(express.json({ limit: '16kb' }));
 const catalog = createCatalog({ localProducts: require('./catalog.json'), localKnowledge: require('./knowledge.json') });
-app.get('/api/products', async (_req, res) => {
+app.get('/api/products', run(async (_req, res) => {
   const { products, source, stale } = await catalog.get();
   res.set('Cache-Control', 'no-store').json({ products, source, stale });
-});
+}));
 app.post('/api/chat', createChatHandler({ knowledge: require('./knowledge.json'), getKnowledge: async () => {
   const snapshot = await catalog.get();
   return { ...snapshot.knowledge, freshness: snapshot.stale ? 'Database unavailable. Cached prices and availability may be outdated. Clearly state this and ask support to confirm before ordering.' : 'Current catalog snapshot (cached up to 60 seconds).' };
@@ -82,9 +84,7 @@ app.use('/assets', express.static(path.join(__dirname, '../dist/assets'), { maxA
 app.use(express.static(path.join(__dirname, '../dist'), {
   setHeaders: (res, file) => { if (file.endsWith('.html')) res.set('Cache-Control', 'no-cache'); },
 }));
-app.use((err, _req, res, _next) => {
-  res.status(err.type === 'entity.too.large' ? 413 : 400).json({ error: 'Invalid request body.' });
-});
+app.use(errorHandler);
 
 if (require.main === module) {
   const port = process.env.PORT || 4000;

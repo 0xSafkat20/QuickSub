@@ -28,7 +28,11 @@
     "check:accounts": "node scripts/check-accounts.mjs",
     "check:responsive": "node scripts/check-responsive.mjs",
     "check:navigation": "node scripts/check-navigation.mjs",
-    "check:reporting": "node scripts/check-reporting.mjs"
+    "check:reporting": "node scripts/check-reporting.mjs",
+    "test:cart": "node --test scripts/cart.integration.test.mjs",
+    "check:cart": "node scripts/check-cart.mjs",
+    "check:sessions": "node scripts/check-session-expiry.mjs",
+    "demo:cart": "node scripts/demo-cart.mjs"
   },
   "engines": {
     "node": ">=22.18.0"
@@ -36,6 +40,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "framer-motion": "^12.40.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

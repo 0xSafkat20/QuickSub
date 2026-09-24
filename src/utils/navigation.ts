@@ -24,5 +24,5 @@ export function checkoutReturn() {
   const next = new URLSearchParams(window.location.search).get('next');
   if (!next) return null;
   try { const url = new URL(next, window.location.origin);
-  return url.origin === window.location.origin && url.pathname === '/checkout' ? url.pathname + url.search : null; } catch { return null; }
+  return url.origin === window.location.origin && ['/checkout','/cart'].includes(url.pathname) ? url.pathname + url.search : null; } catch { return null; }
 }

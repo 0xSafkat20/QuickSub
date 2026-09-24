@@ -131,7 +131,7 @@ test("Admin/customer integration with real local SQL and simulated Supabase Auth
     );
     const result = await call("/orders/track", credentials);
     assert.equal(result.status, 200);
-    assert.equal(result.body.order.contact, undefined);
+    assert.equal(result.body.order.contact, 'buyer@example.test'); // Authorized receipt includes customer details.
     assert.equal(result.body.order.tracking_hash, undefined);
   });
   await t.test(

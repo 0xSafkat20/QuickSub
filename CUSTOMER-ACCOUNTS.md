@@ -8,7 +8,7 @@ Enable email/password signup in Supabase Authentication. Keep email confirmation
 
 Visit `/account` to create an account, sign in, edit saved details, view paginated order history, or link a guest order using its ID and private receipt code. Real purchases made while signed in are linked atomically to the authenticated user. Checkout offers a button to reuse saved contact details. Demo purchases still do not create real orders or save checkout details.
 
-Sessions last at most one hour. Logout invalidates the database session immediately. Expired sessions require another password sign-in. Customer login does not grant admin access. Tables and RPCs deny direct public/anonymous/authenticated access; only the backend service role can use them, with ownership verified in the API. Contact details are not used to infer order ownership.
+New sessions last exactly two hours from sign-in; activity and access-token refresh never extend the deadline. Apply `supabase/migrations/20260924000000_two_hour_sessions.sql` before deploying. Logout invalidates the database session immediately. Expired sessions require another password sign-in. Customer login does not grant admin access. Tables and RPCs deny direct public/anonymous/authenticated access; only the backend service role can use them, with ownership verified in the API. Contact details are not used to infer order ownership.
 
 In Admin > Orders, save the payment as verified and the order as delivered, then reopen the order and save its confirmed subscription expiry date. One-time products should have no expiry. This action is audited. Account order cards show expiry and opt-in dashboard reminders seven days before expiry and after expiration. Renew opens a fresh checkout with current packages and prices; there are no automatic charges or email reminders.
 
@@ -25,3 +25,5 @@ In Supabase Authentication:
 4. Test using an account you own: Sign in > Forgot password > email link > save a new password > sign in again.
 
 Reset links are removed from the address bar and kept only in memory. Refreshing the reset form requires reopening the email link. A consumed or expired link requires a new email. The automated tests simulate email delivery and do not send messages.
+
+Session expiry only ends authentication. Saved profiles and orders remain in the database and return after signing in to the same account. Checkout drafts and selected packages remain in the same browser across logout and reload when local storage is available. They are not synced across devices.

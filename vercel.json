@@ -12,14 +12,45 @@
     }
   },
   "rewrites": [
-    { "source": "/forgot-password", "destination": "/index.html" },
-    { "source": "/reset-password", "destination": "/index.html" },
-    { "source": "/api/:path*", "destination": "/api/index" },
-    { "source": "/buy", "destination": "/index.html" },
-    { "source": "/track", "destination": "/index.html" },
-    { "source": "/account", "destination": "/index.html" },
-    { "source": "/checkout", "destination": "/index.html" },
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
+    {
+      "source": "/cart",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/reset-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/buy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/track",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index.html"
+    }
   ]
 }

@@ -1,29 +1,9 @@
 const express = require("express");
 const { createPayments } = require("./payments");
-const { randomBytes, createHash, randomUUID } = require("node:crypto");
+const { randomUUID } = require("node:crypto");
 const { toProduct } = require("./catalog");
-const uuid =
-  /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
-const hash = (value) => createHash("sha256").update(value).digest("hex");
-const fail = (status, message) => Object.assign(new Error(message), { status });
-function string(value, max, min = 1, trim = true) {
-  if (
-    typeof value !== "string" ||
-    (trim ? value.trim() : value).length < min ||
-    value.length > max
-  )
-    throw fail(400, "Please check the required fields.");
-  return trim ? value.trim() : value;
-}
-function contact(value) {
-  const result = string(value, 160, 5);
-  if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result) &&
-    (!/^\+?[\d ()-]{8,24}$/.test(result) || result.replace(/\D/g, "").length < 8)
-  )
-    throw fail(400, "Enter a valid email or phone number.");
-  return result;
-}
+const { fail, run, errorHandler } = require("./http");
+const { string, contact, uuid } = require("./validation");
 function createAdminRouter({
   url = process.env.SUPABASE_URL,
   key = process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -32,10 +12,9 @@ function createAdminRouter({
   now = Date.now,
   paymentEnv = process.env,
   demoCheckout = process.env.QUICKSUB_DEMO_CHECKOUT === "true",
-  sharedSessions = process.env.VERCEL === "1",
+  sharedSessions = process.env.VERCEL === "1" || process.env.NODE_ENV === "production",
 } = {}) {
   const router = express.Router();
-  const sessions = new Map();
   const limits = new Map();
   const configured = !!url && !!key;
   const base = (url || "").replace(/\/$/, "");
@@ -74,8 +53,6 @@ function createAdminRouter({
     return response.status === 204 ? null : response.json();
   }
   const db = (path, options) => remote("/rest/v1/" + path, options);
-  const run = (handler) => (req, res, next) =>
-    Promise.resolve(handler(req, res)).catch(next);
   const payments = createPayments({ db, fetchImpl, env: paymentEnv });
   router.use('/payments', (req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -108,88 +85,11 @@ function createAdminRouter({
     if (++item.count > maximum)
       throw fail(429, "Too many requests. Please try again in a minute.");
   }
-  const cookieId = (req) =>
-    (req.headers.cookie || "")
-      .split(";")
-      .map((s) => s.trim())
-      .find((s) => s.startsWith("qs_admin="))
-      ?.slice(9);
-  const cookieOptions = (req) => ({
-    httpOnly: true,
-    secure: req.secure || process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/api/admin",
-  });
-  router.post(
-    "/admin/login",
-    run(async (req, res) => {
-      rate(req, "login", 6);
-      const email = string(req.body?.email, 254),
-        password = string(req.body?.password, 256, 1, false);
-      const auth = await remote("/auth/v1/token?grant_type=password", {
-        method: "POST",
-        body: { email, password },
-      });
-      const roles = await db(
-        `quicksub_admins?user_id=eq.${encodeURIComponent(auth.user.id)}&select=role`,
-      );
-      if (!["owner", "staff"].includes(roles[0]?.role))
-        throw fail(403, "This account does not have admin access.");
-      for (const [id, session] of sessions)
-        if (session.expires <= now()) sessions.delete(id);
-      if (sessions.size >= 1000)
-        throw fail(503, "Please try signing in later.");
-      const id = randomBytes(32).toString("hex");
-      const duration = Math.min(Number(auth.expires_in) || 3600, 3600) * 1000;
-      const session = {
-        userId: auth.user.id,
-        token: auth.access_token,
-        expires: now() + duration,
-      };
-      if (sharedSessions) {
-        await db("quicksub_admin_sessions", { method: "POST", body: {
-          id: hash(id), user_id: session.userId, token: session.token,
-          expires_at: new Date(session.expires).toISOString(),
-        } });
-      } else sessions.set(id, session);
-      res.cookie("qs_admin", id, { ...cookieOptions(req), maxAge: duration });
-      res.json({ email: auth.user.email, role: roles[0].role });
-    }),
-  );
-  router.post("/admin/logout", run(async (req, res) => {
-    const id = cookieId(req);
-    if (sharedSessions && /^[a-f0-9]{64}$/.test(id || "")) {
-      await db(`quicksub_admin_sessions?id=eq.${hash(id)}`, { method: "DELETE" });
-    }
-    sessions.delete(cookieId(req));
-    res.clearCookie("qs_admin", cookieOptions(req));
-    res.json({ ok: true });
-  }));
-  // Authentication is checked against Supabase, and role membership is checked on every request.
-  router.use("/admin", (req, res, next) => {
-    (async () => {
-      const id = cookieId(req);
-      let session;
-      if (sharedSessions && /^[a-f0-9]{64}$/.test(id || "")) {
-        const rows = await db(`quicksub_admin_sessions?id=eq.${hash(id)}&select=user_id,token,expires_at`);
-        if (rows[0]) session = { userId: rows[0].user_id, token: rows[0].token, expires: Date.parse(rows[0].expires_at) };
-      } else if (!sharedSessions) session = sessions.get(id);
-      if (!session || session.expires <= now()) {
-        sessions.delete(cookieId(req));
-        throw fail(401, "Please sign in to the admin dashboard.");
-      }
-      const user = await remote("/auth/v1/user", { token: session.token });
-      if (user.id !== session.userId) throw fail(401, "Please sign in again.");
-      const roles = await db(
-        `quicksub_admins?user_id=eq.${encodeURIComponent(user.id)}&select=role`,
-      );
-      if (!["owner", "staff"].includes(roles[0]?.role))
-        throw fail(403, "Admin access has been removed.");
-      req.admin = { id: user.id, email: user.email, role: roles[0].role };
-      next();
-    })().catch(next);
-  });
+  require("./auth").installAdminAuth({ router, db, remote, rate, now, sharedSessions });
   const customers = require("./customers").installCustomers({router,run,db,remote,rate,string,contact,now});
+  const { router: ordersRouter, findOrder } = require("./orders").createOrders({ db, rate, customers, now });
+  router.use(ordersRouter);
+  router.use(require("./cart").createCartRouter({ db, customers, rate }));
   router.get("/admin/session", (req, res) => res.json(req.admin));
   function reportPeriod(query) {
     const iso = /^\d{4}-\d{2}-\d{2}$/;
@@ -566,77 +466,6 @@ function createAdminRouter({
     }),
   );
   router.post(
-    "/orders",
-    run(async (req, res) => {
-      rate(req, "order", 5);
-      const b = req.body || {};
-      if (
-        !uuid.test(b.id) ||
-        !uuid.test(b.packageId) ||
-        !/^[a-f0-9]{64}$/.test(b.accessCode)
-      )
-        throw fail(400, "Invalid order details.");
-      if (!Number.isFinite(b.expectedPrice) || b.expectedPrice <= 0)
-        throw fail(400, "Refresh packages and confirm the current price.");
-      const customer = await customers.user(req, false);
-      const order = await db(customer ? "rpc/quicksub_customer_order" : "rpc/quicksub_create_order", {
-        method: "POST",
-        body: {
-          ...(customer ? { p_user: customer.id } : {}),
-          p_id: b.id,
-          p_hash: hash(b.accessCode),
-          p_package: b.packageId,
-          p_name: string(b.name, 120),
-          p_contact: contact(b.contact),
-          p_note: string(b.note, 1000, 0),
-          p_expected: b.expectedPrice,
-        },
-      });
-      res.status(201).json({ order });
-    }),
-  );
-  async function findOrder(req) {
-    rate(req, "tracking", 20);
-    const b = req.body || {};
-    if (!uuid.test(b.id) || !/^[a-f0-9]{64}$/.test(b.accessCode))
-      throw fail(404, "Order not found. Check your order ID and access code.");
-    const rows = await db(
-      `quicksub_orders?id=eq.${b.id}&tracking_hash=eq.${hash(b.accessCode)}&select=id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,updated_at`,
-    );
-    if (!rows[0])
-      throw fail(404, "Order not found. Check your order ID and access code.");
-    return rows[0];
-  }
-  router.post(
-    "/orders/track",
-    run(async (req, res) => res.json({ order: await findOrder(req) })),
-  );
-  router.post(
-    "/orders/payment",
-    run(async (req, res) => {
-      await findOrder(req);
-      const reference = string(req.body.reference, 160, 4);
-      const rows = await db(
-        `quicksub_orders?id=eq.${req.body.id}&tracking_hash=eq.${hash(req.body.accessCode)}&payment_status=in.(unpaid,rejected)&status=eq.pending`,
-        {
-          method: "PATCH",
-          headers: { Prefer: "return=representation" },
-          body: {
-            payment_reference: reference,
-            payment_status: "submitted",
-            updated_at: new Date(now()).toISOString(),
-          },
-        },
-      );
-      if (!rows.length)
-        throw fail(
-          409,
-          "Payment has already been submitted or this order is no longer pending.",
-        );
-      res.json({ ok: true });
-    }),
-  );
-  router.post(
     "/requests",
     run(async (req, res) => {
       rate(req, "request", 5);
@@ -655,18 +484,7 @@ function createAdminRouter({
       res.json({ ok: true });
     }),
   );
-  router.use((err, req, res, _next) => {
-    if (err.status === 429) res.set("Retry-After", "60");
-    res
-      .status(err.status || (err.type === "entity.too.large" ? 413 : 500))
-      .json({
-        error: err.status
-          ? err.message
-          : err.type === "entity.too.large"
-            ? "Image is too large."
-            : "Unable to complete the request. Please try again.",
-      });
-  });
+  router.use(errorHandler);
   return router;
 }
 module.exports = { createAdminRouter };

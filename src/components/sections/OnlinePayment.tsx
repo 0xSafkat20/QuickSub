@@ -7,10 +7,12 @@ const button = 'px-4 py-2 rounded-xl bg-brand-600 text-white disabled:opacity-50
 export default function OnlinePayment({ order, accessCode, onUpdate, onBlockingChange }: { order: TrackedOrder; accessCode: string; onUpdate: (order: TrackedOrder) => void; onBlockingChange: (blocked: boolean) => void }) {
   const [enabled, setEnabled] = useState(false), [payments, setPayments] = useState<Payment[]>([]), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [simulation,setSimulation]=useState(false);
+  const [demoMethod,setDemoMethod]=useState('bKash');
   useEffect(() => {
     let active = true;
-    Promise.all([api<{ enabled: boolean }>('/payments/config'), api<{ payments: Payment[] }>('/orders/payments', { id: order.id, accessCode })])
-      .then(([config, data]) => { if (active) { setEnabled(config.enabled); setPayments(data.payments); onBlockingChange(data.payments.some(p => p.status === "pending" || (p.status === "review" && p.refund_status !== "completed"))); } })
+    Promise.all([api<{ enabled: boolean; simulation?: boolean }>('/payments/config'), api<{ payments: Payment[] }>('/orders/payments', { id: order.id, accessCode })])
+      .then(([config, data]) => { if (active) { setEnabled(config.enabled); setSimulation(!!config.simulation); setPayments(data.payments); onBlockingChange(data.payments.some(p => p.status === "pending" || (p.status === "review" && p.refund_status !== "completed"))); } })
       .catch(() => { if (active) setError('Online payment history is unavailable. Refresh before paying again.'); });
     return () => { active = false; };
   }, [order.id, accessCode, order.payment_status, onBlockingChange]);
@@ -22,15 +24,17 @@ export default function OnlinePayment({ order, accessCode, onUpdate, onBlockingC
       e.preventDefault(); setBusy(true); setError('');
       const data = new FormData(e.currentTarget);
       try {
+        if(simulation){const result=await api<{order:TrackedOrder}>('/demo/pay',{id:order.id,accessCode,email:data.get('email'),method:demoMethod});onUpdate(result.order);return;}
         const result = await api<{ url: string }>('/orders/checkout', { id: order.id, accessCode, email: data.get('email'), phone: data.get('phone') });
         window.location.assign(result.url);
       } catch (err) { setError((err as Error).message); } finally { setBusy(false); }
     }}>
-      <label className="block">Receipt email<input className={field} type="email" name="email" required maxLength={50} autoComplete="email" /></label>
+      <label className="block">Receipt email<input className={field} type="email" name="email" defaultValue={order.receipt_email} required maxLength={50} autoComplete="email" /></label>
       <label className="block">Phone number<input className={field} type="tel" name="phone" required pattern="\+?[0-9]{8,20}" maxLength={21} autoComplete="tel" placeholder="01712345678" /></label>
-      <label className="flex items-start gap-2"><input type="checkbox" checked={saved} onChange={e => setSaved(e.target.checked)} required />I saved my order ID and private access code from the receipt above.</label>
-      <p className="text-xs">You will leave QuickSub to pay. Your email and phone are shared with the payment provider. Keep your receipt to check the result when you return.</p>
-      <button className={button} disabled={busy || !saved}>{busy ? 'Opening checkout…' : payments.some(p => p.status === 'pending') ? 'Resume checkout' : `Pay online · ৳${order.amount_bdt}`}</button>
+      {simulation&&<label className="block">Demo payment method<select className={field} value={demoMethod} onChange={e=>setDemoMethod(e.target.value)}><option>bKash</option><option>Nagad</option><option>Visa / Mastercard</option></select></label>}
+      <label className="flex items-start gap-2"><input type="checkbox" checked={saved} onChange={e => setSaved(e.target.checked)} required />I have saved my order receipt. Keep this browser available to track a guest order.</label>
+      <p className="text-xs">{simulation?'Simulation only. No money will be collected.':'You will leave QuickSub to select a payment method. Your email and phone are shared with the payment provider.'}</p>
+      <button className={button} disabled={busy || !saved}>{busy ? 'Opening checkout…' : simulation ? 'Simulate online payment' : payments.some(p => p.status === 'pending') ? 'Resume checkout' : `Pay online · ৳${order.amount_bdt}`}</button>
     </form>}
     {payments.length > 0 && <>
       <ul className="space-y-2">{payments.map(p => <li key={p.id} className="rounded-lg bg-brand-50 p-3 break-words">

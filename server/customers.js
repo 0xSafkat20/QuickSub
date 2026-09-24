@@ -1,32 +1,39 @@
+const { SESSION_DURATION_MS, createSessionManager, sessionHeader } = require("./sessions");
+const { validateBody, authSchemas } = require("./validation");
 const { randomBytes, createHash } = require('node:crypto');
 const hash = value => createHash('sha256').update(value).digest('hex');
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const fail = (status,message) => Object.assign(new Error(message),{status});
 function installCustomers({router,run,db,remote,rate,string,contact,now}) {
+ const sessions = createSessionManager({ table: "quicksub_customer_sessions", db, remote, now });
  const cookie = req => (req.headers.cookie || '').split(';').map(x=>x.trim()).find(x=>x.startsWith('qs_customer='))?.slice(12);
  const options = req => ({httpOnly:true,secure:req.secure || process.env.NODE_ENV==='production',sameSite:'lax',path:'/api'});
  async function user(req,required=true) {
   const id=cookie(req);
   if (!id && !required) return null;
-  if (!/^[a-f0-9]{64}$/.test(id||'')) throw fail(401,'Please sign in to your customer account.');
-  const [session]=await db(`quicksub_customer_sessions?id=eq.${hash(id)}&select=user_id,token,expires_at`);
-  if (!session || Date.parse(session.expires_at)<=now()) throw fail(401,'Your session expired. Please sign in again.');
-  const person=await remote('/auth/v1/user',{token:session.token});
-  if (person.id!==session.user_id) throw fail(401,'Please sign in again.');
-  return person;
+  try {
+   const active = await sessions.get(id);
+   sessionHeader(req.res, 'customer', active.expiresAt);
+   return active.user;
+  } catch (err) {
+   if (err.status === 401) req.res.clearCookie('qs_customer', options(req));
+   throw err;
+  }
  }
+
  async function session(req,res,auth) {
   if (!auth.access_token || !auth.user?.id) return false;
   const id=randomBytes(32).toString('hex');
-  const duration=Math.min(Number(auth.expires_in)||3600,3600)*1000;
-  await db('quicksub_customer_sessions',{method:'POST',body:{id:hash(id),user_id:auth.user.id,token:auth.access_token,expires_at:new Date(now()+duration).toISOString()}});
-  res.cookie('qs_customer',id,{...options(req),maxAge:duration});
+  const record=await sessions.create(id,auth);
+  res.cookie('qs_customer',id,{...options(req),maxAge:SESSION_DURATION_MS});
+  sessionHeader(res,'customer',record.expires_at);
   return true;
  }
  const email = value => { const v=string(value,254).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))throw fail(400,'Enter a valid email address.');return v; };
 
  router.post('/account/forgot-password',run(async(req,res)=>{
   rate(req,'password-recovery',3);
+  validateBody(req.body, authSchemas.forgotPassword);
   const address=email(req.body?.email);
   // The same trusted origin enforced by the router; never accept redirect URLs from the body.
   const origin=process.env.PUBLIC_ORIGIN || req.get('origin');
@@ -40,6 +47,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  }));
  router.post('/account/reset-password',run(async(req,res)=>{
   rate(req,'password-reset',6);
+  validateBody(req.body, authSchemas.resetPassword);
   const b=req.body||{};const password=string(b.password,128,10,false);
   if(password!==b.confirmPassword)throw fail(400,'The passwords do not match.');
   const tokenHash=string(b.tokenHash,512,20);
@@ -59,6 +67,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  }));
  router.post('/account/signup',run(async(req,res)=>{
   rate(req,'customer-signup',4);
+  validateBody(req.body, authSchemas.signup);
   // Check the schema before creating an Auth user.
   await db('quicksub_customers?select=user_id&limit=1');
   const b=req.body||{};const name=string(b.name,120);
@@ -69,6 +78,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  }));
  router.post('/account/login',run(async(req,res)=>{
   rate(req,'customer-login',6);
+  validateBody(req.body, authSchemas.login);
   const b=req.body||{};
   const auth=await remote('/auth/v1/token?grant_type=password',{method:'POST',body:{email:email(b.email),password:string(b.password,128,1,false)}});
   const [profile]=await db(`quicksub_customers?user_id=eq.${auth.user.id}&select=user_id`);
@@ -78,7 +88,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  }));
  router.post('/account/logout',run(async(req,res)=>{
   const id=cookie(req);
-  if(/^[a-f0-9]{64}$/.test(id||''))await db(`quicksub_customer_sessions?id=eq.${hash(id)}`,{method:'DELETE'});
+  await sessions.remove(id);
   res.clearCookie('qs_customer',options(req));res.json({ok:true});
  }));
  router.get('/account/session',run(async(req,res)=>{

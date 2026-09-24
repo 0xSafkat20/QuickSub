@@ -1,6 +1,6 @@
 import SiteLink from '../ui/SiteLink';
 import { useState, useEffect } from 'react';
-import { Menu, X, Search, ShoppingCart } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, Heart } from 'lucide-react';
 import OrderTracking from '../sections/OrderTracking';
 import { useWishlist } from '../../context/WishlistContext';
 
@@ -130,6 +130,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
 
         {/* Desktop Actions */}
         <div className="hidden xl:flex items-center gap-2">
+          <SiteLink href="/cart" aria-label="My cart" className={`p-2 rounded-lg ${scrolled ? 'text-brand-600' : 'text-white'}`}><ShoppingCart size={18}/></SiteLink>
           <button
             onClick={onSearchOpen}
             className={`p-2 rounded-lg transition-colors ${
@@ -147,7 +148,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
             }`}
             aria-label="Saved products"
           >
-            <ShoppingCart size={18} />
+            <Heart size={18} />
             {favorites.length > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {favorites.length}
@@ -165,6 +166,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
 
         {/* Mobile Actions */}
         <div className="flex xl:hidden items-center gap-1">
+          <SiteLink href="/cart" aria-label="My cart" className={`p-2 ${scrolled ? 'text-brand-600' : 'text-white'}`}><ShoppingCart size={18}/></SiteLink>
           <button
             onClick={onSearchOpen}
             className={`p-2 ${scrolled ? 'text-ink-400' : 'text-white/70'}`}
@@ -177,7 +179,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
             className={`p-2 relative ${scrolled ? 'text-ink-400' : 'text-white/70'}`}
             aria-label="Saved products"
           >
-            <ShoppingCart size={18} />
+            <Heart size={18} />
             {favorites.length > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-brand-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                 {favorites.length}

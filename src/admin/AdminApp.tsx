@@ -1,3 +1,4 @@
+import { useSessionExpiry } from '../utils/session';
 import SiteLink from '../components/ui/SiteLink';
 import AdminSubscription from './AdminSubscription';
 import AdminPaymentSearch from "./AdminPaymentSearch";
@@ -176,6 +177,7 @@ export default function AdminApp() {
     [order, setOrder] = useState<Order | null>(null);
   const [store, setStore] = useState<Store | null>(null),
     [settings, setSettings] = useState<SettingsData>(emptySettings);
+  useSessionExpiry('admin', () => { setSession(null); setData(null); setNotice('Session ended. Please sign in again.'); });
   useEffect(() => {
     api<Session>("/admin/session")
       .then(setSession)
