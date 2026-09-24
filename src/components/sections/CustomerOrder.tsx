@@ -191,7 +191,8 @@ export default function CustomerOrder({
   const isGame=products.find(p=>p.id===productId)?.category==='gaming';
   const fromCart = query.get('cart') === '1';
   const requestedPackage = query.get('package') || '';
-  const receiptKey = fromCart ? productId + ':' + requestedPackage + ':' + query.get('saved') : productId;
+  const renewalOf = query.get('renewal') || '';
+  const receiptKey = renewalOf ? productId + ':renewal:' + renewalOf : fromCart ? productId + ':' + requestedPackage + ':' + query.get('saved') : productId;
   const draft = drafts.get(productId);
   const reducedMotion = useReducedMotion();
   const stepRef = useRef<HTMLDivElement>(null);
@@ -224,7 +225,7 @@ export default function CustomerOrder({
       }
       if (!cancelled) {
         setPlans(data.packages);
-        setSelected(data.packages.some(p=>p.id===drafts.get(productId)?.packageId) ? drafts.get(productId)!.packageId : data.packages[0]?.id || "");
+        setSelected(data.packages.some(p=>p.id===requestedPackage) ? requestedPackage : data.packages.some(p=>p.id===drafts.get(productId)?.packageId) ? drafts.get(productId)!.packageId : data.packages[0]?.id || "");
       }
     })()
       .catch((err) => { if (!cancelled) { setPlans([]); setError(err.message || "We could not load packages. Please retry."); } })
@@ -307,6 +308,7 @@ export default function CustomerOrder({
             note: values.get("note"),
             email: values.get('receiptEmail') || (String(values.get('contact')).includes('@') ? values.get('contact') : ''),
             gameAccount: values.get('gameAccount') || '',
+            renewalOf: renewalOf || undefined,
           });
           credentials.order = result.order;
           setOrder(result.order);
@@ -318,6 +320,7 @@ export default function CustomerOrder({
       }}
     >
       {plan?.demo && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900"><strong>Demo packages</strong> — sample prices for testing. No money will be collected.</p>}
+      {renewalOf&&<p className="rounded-xl bg-brand-50 p-3 text-brand-800"><strong>Subscription renewal</strong> — your new period starts after the current term when it is still active.</p>}
       <h2 className="text-xl font-bold">Package &amp; delivery details</h2>
       {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>Use my saved details</button> : <p className="text-xs"><SiteLink href={accountUrl(fromCart ? '/checkout'+window.location.search : checkoutUrl(productId))} className="text-brand-600 underline">Sign in or create an account</SiteLink> to save real purchases to your order history.</p>}
       {accountError && <p className="text-xs text-amber-700">{accountError}</p>}

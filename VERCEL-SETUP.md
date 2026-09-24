@@ -13,3 +13,7 @@ New sessions expire two hours after login, without sliding renewal, are revalida
 Rate limits and Gemini conversation history remain per-instance; use shared rate limiting or platform firewall controls before increasing traffic. Vercel request-size limits can also constrain image uploads below the app's 6 MB limit. Live platform verification requires deployment and configured credentials.
 
 The account-cart migration `20260925000000_account_cart.sql` adds private saved carts. `/cart` has an explicit frontend rewrite. Deploy the matching frontend and API code together after applying the migration.
+
+## Subscription processing
+
+Set `CRON_SECRET` in the production environment. `vercel.json` schedules `/api/jobs/subscriptions` once daily at 18:00 UTC (midnight in Bangladesh) to activate upcoming renewals and expire completed terms. The endpoint rejects requests without the exact bearer secret.

@@ -4,6 +4,7 @@ import AdminSubscription from './AdminSubscription';
 import AdminPaymentSearch from "./AdminPaymentSearch";
 import AdminPayments from "./AdminPayments";
 import AdminReports from "./AdminReports";
+import AdminSubscriptions from './AdminSubscriptions';
 import {
   useCallback,
   useEffect,
@@ -121,6 +122,7 @@ const sections = [
   { name: "Packages", icon: ShoppingBag },
   { name: "Orders", icon: ShoppingBag },
   { name: "Customers", icon: Users },
+  { name: "Subscriptions", icon: RefreshCw },
   { name: "Reports", icon: BarChart3 },
   { name: "Inbox", icon: MessageSquare },
   { name: "Content", icon: FileText },
@@ -506,6 +508,7 @@ export default function AdminApp() {
                 </>
               )}
               {tab === "Reports" && <AdminReports role={session.role} />}
+              {tab === "Subscriptions" && <AdminSubscriptions />}
               {[
                 "Products",
                 "Packages",

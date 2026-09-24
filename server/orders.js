@@ -12,7 +12,7 @@ function createOrders({ db, rate, customers, now }) {
     if (!uuid.test(b.id) || !/^[a-f0-9]{64}$/.test(b.accessCode))
       throw fail(404, "Order not found. Check your order ID and access code.");
     const rows = await db(
-      `quicksub_orders?id=eq.${b.id}&tracking_hash=eq.${hash(b.accessCode)}&select=id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,updated_at,customer_name,contact,receipt_email,game_account,package_details,product_category,subscription_period,subscription_started_at,expires_at,payment_method,payment_reference`,
+      `quicksub_orders?id=eq.${b.id}&tracking_hash=eq.${hash(b.accessCode)}&select=id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,updated_at,customer_name,contact,receipt_email,game_account,package_details,product_category,subscription_period,subscription_started_at,expires_at,payment_method,payment_reference,renewal_of,payment_confirmed_at`,
     );
     if (!rows[0])
       throw fail(404, "Order not found. Check your order ID and access code.");
@@ -32,7 +32,8 @@ function createOrders({ db, rate, customers, now }) {
       if (!Number.isFinite(b.expectedPrice) || b.expectedPrice <= 0)
         throw fail(400, "Refresh packages and confirm the current price.");
       if (b.fromCart !== undefined && typeof b.fromCart !== 'boolean') throw fail(400, 'Invalid checkout source.');
-      const customer = await customers.user(req, b.fromCart === true);
+      if (b.renewalOf !== undefined && !uuid.test(b.renewalOf)) throw fail(400, 'Invalid renewal subscription.');
+      const customer = await customers.user(req, b.fromCart === true || !!b.renewalOf);
       const receiptEmail = b.email === undefined ? (String(b.contact).includes('@') ? contact(b.contact) : '') : contact(b.email);
       if (receiptEmail && !receiptEmail.includes('@')) throw fail(400, 'Enter a valid receipt email.');
       const order = await db("rpc/quicksub_place_order", {
@@ -42,6 +43,7 @@ function createOrders({ db, rate, customers, now }) {
           p_cart: b.fromCart === true,
           p_email: receiptEmail,
           p_game: b.gameAccount === undefined ? '' : string(b.gameAccount, 160, 0),
+          p_renewal: b.renewalOf || null,
           p_id: b.id,
           p_hash: hash(b.accessCode),
           p_package: b.packageId,

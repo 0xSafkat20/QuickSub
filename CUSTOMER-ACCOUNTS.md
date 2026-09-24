@@ -27,3 +27,11 @@ In Supabase Authentication:
 Reset links are removed from the address bar and kept only in memory. Refreshing the reset form requires reopening the email link. A consumed or expired link requires a new email. The automated tests simulate email delivery and do not send messages.
 
 Session expiry only ends authentication. Saved profiles and orders remain in the database and return after signing in to the same account. Checkout drafts and selected packages remain in the same browser across logout and reload when local storage is available. They are not synced across devices.
+
+## Subscription lifecycle
+
+Apply `supabase/migrations/20260927000000_subscriptions.sql` after the receipt migration. It creates protected subscription and reminder tables, activates subscriptions when payment becomes verified, preserves renewal chains, and backfills eligible paid account orders.
+
+Set `CRON_SECRET` to a long random value in production. The Vercel daily cron calls `/api/jobs/subscriptions` at 00:00 Bangladesh time and must send `Authorization: Bearer <CRON_SECRET>`. Account reads also reconcile dates, so status remains correct if a scheduled run is delayed.
+
+Customer routes require the two-hour account session. Admin routes require an owner or staff session; only owners can cancel a subscription. Never store passwords in the account-reference or delivery-instructions fields.

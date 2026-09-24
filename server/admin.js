@@ -90,6 +90,7 @@ function createAdminRouter({
   const { router: ordersRouter, findOrder } = require("./orders").createOrders({ db, rate, customers, now });
   router.use(ordersRouter);
   router.use(require("./cart").createCartRouter({ db, customers, rate }));
+  router.use(require("./subscriptions").createSubscriptions({ db, customers, rate, now }));
   router.get("/admin/session", (req, res) => res.json(req.admin));
   function reportPeriod(query) {
     const iso = /^\d{4}-\d{2}-\d{2}$/;

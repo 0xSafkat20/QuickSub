@@ -19,8 +19,10 @@ try{
  const id=crypto.randomUUID(),accessCode='b'.repeat(64);
  const response=await fetch('/api/orders',{method:'POST',headers:{'content-type':'application/json','x-quicksub-client':'web'},body:JSON.stringify({id,accessCode,packageId,name:'Account Tester',contact:'customer@example.test',note:'',expectedPrice:299})});return {status:response.status,id};
  },packageId);assert.equal(result.status,201);
- await env.db.query("update quicksub_orders set status='delivered',payment_status='verified',expires_at=now()+interval '3 days' where id=$1",[result.id]);
- await click('Refresh');await page.waitForFunction(()=>document.body.innerText.includes('Renewal reminder:'));
+ await env.db.query("update quicksub_orders set status='delivered',payment_status='verified' where id=$1",[result.id]);
+ const subscription=(await env.db.query('select id from quicksub_subscriptions where order_id=$1',[result.id])).rows[0];
+ await env.db.query("update quicksub_subscriptions set ends_at=now()+interval '2 days 23 hours' where id=$1",[subscription.id]);await env.db.query('select quicksub_sync_subscription_reminders($1)',[subscription.id]);
+ await page.reload({waitUntil:'networkidle0'});await page.waitForFunction(()=>document.body.innerText.includes('expires in 3 days'));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await mkdir('deliverables/account-preview',{recursive:true});await page.screenshot({path:'deliverables/account-preview/mobile.png',fullPage:true});
  await page.click('a[href="/checkout?product=1"]');await page.waitForSelector('input[name="name"]');

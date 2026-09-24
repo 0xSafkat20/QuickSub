@@ -32,7 +32,9 @@
     "test:cart": "node --test scripts/cart.integration.test.mjs",
     "check:cart": "node scripts/check-cart.mjs",
     "check:sessions": "node scripts/check-session-expiry.mjs",
-    "demo:cart": "node scripts/demo-cart.mjs"
+    "demo:cart": "node scripts/demo-cart.mjs",
+    "test:subscriptions": "node --test scripts/subscriptions.integration.test.mjs",
+    "check:subscriptions": "node scripts/check-subscriptions.mjs"
   },
   "engines": {
     "node": ">=22.18.0"

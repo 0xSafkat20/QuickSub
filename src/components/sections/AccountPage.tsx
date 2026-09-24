@@ -3,6 +3,7 @@ import PageNavigation from '../layout/PageNavigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../utils/api';
 import SiteLink from '../ui/SiteLink';
+import CustomerSubscriptions from './CustomerSubscriptions';
 import { checkoutUrl, checkoutReturn, navigate } from '../../utils/navigation';
 type Profile = { name: string; contact: string; renewal_reminders: boolean };
 type Session = { user: { id: string; email: string } | null; profile: Profile | null };
@@ -54,6 +55,7 @@ export default function AccountPage() {
  {signup&&<p className="border-t border-brand-100 pt-4 text-xs leading-relaxed text-ink-500">Already confirmed your email? You can sign in with your password.</p>}
  </section>:<>
  <div className="flex flex-wrap items-center justify-between gap-3"><p className="break-all">Signed in as <strong>{session.user.email}</strong></p><button disabled={busy} className="text-brand-600 underline" onClick={()=>void action(async()=>{await api('/account/logout',{});setSession({user:null,profile:null});setOrders([]);setProfile({name:'',contact:'',renewal_reminders:true});setMessage('Signed out.');})}>Sign out</button></div>
+ <CustomerSubscriptions />
  <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6 items-start"><div className="space-y-6"><section className={panel}><h2 className="font-bold text-xl">Saved details</h2><form className="space-y-4" onSubmit={e=>{e.preventDefault();void action(async()=>{await api('/account/profile',profile);setMessage('Your profile has been saved.');});}}>
  <label className="block">Your name<input className={field} value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} placeholder="Enter your name" autoComplete="name" required maxLength={120}/></label>
  <label className="block">Contact email or phone<input className={field} value={profile.contact} onChange={e=>setProfile({...profile,contact:e.target.value})} placeholder="yourname@gmail.com" required minLength={5} maxLength={160}/></label>

@@ -9,6 +9,7 @@ const Tracking = lazy(() => import('./components/sections/TrackingPage'));
 const PasswordRecovery = lazy(() => import('./components/sections/PasswordRecovery'));
 const Cart = lazy(() => import('./components/sections/CartPage'));
 const Account = lazy(() => import('./components/sections/AccountPage'));
+const Subscription = lazy(() => import('./components/sections/SubscriptionPage'));
 function Route({ location }: { location: string }) {
   const path = location.split(/[?#]/)[0];
   useEffect(() => {
@@ -31,6 +32,7 @@ function Route({ location }: { location: string }) {
   if (path === '/track') return <Tracking />;
   if (path === '/cart') return <Cart />;
   if (path === '/account') return <Account />;
+  if (/^\/subscriptions\/[a-f0-9-]{36}$/i.test(path)) return <Subscription />;
   if (path === '/admin' || path.startsWith('/admin/')) return <Admin />;
   if (new URL(window.location.href).searchParams.get('payment') === 'return') return <PaymentReturn />;
   if (path === '/checkout' || path === '/buy') return <Checkout />;

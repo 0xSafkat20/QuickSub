@@ -24,6 +24,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260924000000_two_hour_sessions.sql",
     "20260925000000_account_cart.sql",
     "20260926000000_receipts.sql",
+    "20260927000000_subscriptions.sql",
   ])
     await db.exec(
       await readFile(
@@ -269,7 +270,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
       ),
     ),
   );
-  app.get(["/admin", "/cart", "/checkout", "/buy", "/account", "/track", "/forgot-password", "/reset-password"], (_req, res) =>
+  app.get(["/admin", "/cart", "/checkout", "/buy", "/account", "/track", "/forgot-password", "/reset-password", "/subscriptions/*"], (_req, res) =>
     res.sendFile(
       new URL("../dist/index.html", import.meta.url).pathname.replace(
         /^\/([A-Za-z]:)/,
