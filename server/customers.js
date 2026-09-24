@@ -74,22 +74,56 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   res.clearCookie('qs_customer',options(req));
   res.json({message:'Your password has been changed. Sign in with your new password.'});
  }));
+ router.post('/account/resend-confirmation',run(async(req,res)=>{
+  rate(req,'confirmation-email',3);
+  validateBody(req.body, authSchemas.forgotPassword);
+  const address=email(req.body?.email);
+  const origin=process.env.PUBLIC_ORIGIN || req.get('origin');
+  const redirect=origin+'/account';
+  try {await remote('/auth/v1/resend?redirect_to='+encodeURIComponent(redirect),{method:'POST',body:{type:'signup',email:address}});}
+  catch(err) {
+   if(err.providerStatus===429)throw fail(429,'Please wait a few minutes before requesting another confirmation email.');
+   if(![400,404,422].includes(err.providerStatus))throw fail(503,'Confirmation emails are temporarily unavailable. Please try again later.');
+  }
+  res.json({message:'If this account is waiting for confirmation, a new email has been sent. Check your inbox and spam folder.'});
+ }));
  router.post('/account/signup',run(async(req,res)=>{
   rate(req,'customer-signup',4);
   validateBody(req.body, authSchemas.signup);
   // Check the schema before creating an Auth user.
   await db('quicksub_customers?select=user_id&limit=1');
   const b=req.body||{};const name=string(b.name,120);
-  const auth=await remote('/auth/v1/signup',{method:'POST',body:{email:email(b.email),password:string(b.password,128,10,false),data:{name}}});
+  const origin=process.env.PUBLIC_ORIGIN || req.get('origin');
+  const redirect=origin+'/account';
+  const auth=await remote('/auth/v1/signup?redirect_to='+encodeURIComponent(redirect),{method:'POST',body:{email:email(b.email),password:string(b.password,128,10,false),data:{name}}});
   const signedIn=await session(req,res,auth);
   if(signedIn)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:name,p_contact:auth.user.email,p_reminders:true}});
   res.json({signedIn,message:signedIn?'Account created.':'Check your email for a confirmation link, then sign in. If you already have an account, sign in instead.'});
+ }));
+ router.post('/account/confirm',run(async(req,res)=>{
+  rate(req,'customer-confirmation',6);
+  validateBody(req.body, authSchemas.confirmSignup);
+  const b=req.body||{};
+  let confirmed;
+  try {confirmed=await remote('/auth/v1/user',{token:string(b.accessToken,4096,20,false)});}
+  catch {throw fail(400,'This confirmation link is invalid or expired. Request a new confirmation email.');}
+  if(!uuid.test(confirmed?.id)||!confirmed.email)throw fail(400,'This confirmation link is invalid. Request a new confirmation email.');
+  const auth={user:confirmed,access_token:b.accessToken,refresh_token:b.refreshToken,expires_in:3600};
+  const [profile]=await db('quicksub_customers?user_id=eq.'+confirmed.id+'&select=user_id');
+  if(!profile)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:confirmed.id,p_name:String(confirmed.user_metadata?.name||'').slice(0,120),p_contact:confirmed.email,p_reminders:true}});
+  if(!await session(req,res,auth))throw fail(401,'Confirmation succeeded, but sign-in could not be completed.');
+  res.json({message:'Email confirmed. You are now signed in.'});
  }));
  router.post('/account/login',run(async(req,res)=>{
   rate(req,'customer-login',6);
   validateBody(req.body, authSchemas.login);
   const b=req.body||{};
-  const auth=await remote('/auth/v1/token?grant_type=password',{method:'POST',body:{email:email(b.email),password:string(b.password,128,1,false)}});
+  let auth;
+  try {auth=await remote('/auth/v1/token?grant_type=password',{method:'POST',body:{email:email(b.email),password:string(b.password,128,1,false)}});}
+  catch(err) {
+   if(err.providerCode==='email_not_confirmed'||/email not confirmed/i.test(err.providerMessage||''))throw fail(403,'Confirm your email before signing in. You can request a new confirmation email below.');
+   throw err;
+  }
   const [profile]=await db(`quicksub_customers?user_id=eq.${auth.user.id}&select=user_id`);
   if(!profile)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:String(auth.user.user_metadata?.name||'').slice(0,120),p_contact:auth.user.email,p_reminders:true}});
   if(!await session(req,res,auth))throw fail(401,'Sign-in failed.');

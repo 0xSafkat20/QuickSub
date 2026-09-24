@@ -1,7 +1,7 @@
 import { useSessionExpiry } from '../../utils/session';
 import PageNavigation from '../layout/PageNavigation';
 import { useEffect, useState } from 'react';
-import { api } from '../../utils/api';
+import { api, ApiError } from '../../utils/api';
 import SiteLink from '../ui/SiteLink';
 import CustomerSubscriptions from './CustomerSubscriptions';
 import { checkoutUrl, checkoutReturn, navigate } from '../../utils/navigation';
@@ -14,9 +14,17 @@ const panel='rounded-2xl border border-brand-100 bg-white p-5 sm:p-7 space-y-4';
 export default function AccountPage() {
  const returnTo = checkoutReturn();
  const [showPassword,setShowPassword]=useState(false);
+ const [confirmation]=useState(()=>{
+  const hash=new URLSearchParams(window.location.hash.slice(1));
+  return {
+   accessToken:hash.get('type')==='signup'?hash.get('access_token')||'':'',
+   refreshToken:hash.get('type')==='signup'?hash.get('refresh_token')||'':'',
+   error:hash.get('error_description')||'',
+  };
+ });
 
  const [session,setSession]=useState<Session|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
- const [signup,setSignup]=useState(false),[orders,setOrders]=useState<Order[]>([]),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[ordersLoading,setOrdersLoading]=useState(false);
+ const [signup,setSignup]=useState(false),[confirmationEmail,setConfirmationEmail]=useState(''),[orders,setOrders]=useState<Order[]>([]),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[ordersLoading,setOrdersLoading]=useState(false);
  useEffect(()=>setShowPassword(false),[signup]);
  const [profile,setProfile]=useState<Profile>({name:'',contact:'',renewal_reminders:true});
  useSessionExpiry('customer', () => {
@@ -28,11 +36,24 @@ export default function AccountPage() {
  async function loadOrders(page:number) {setOrdersLoading(true);try {const result=await api<{orders:Order[];hasMore:boolean}>('/account/orders?offset='+page);setOrders(result.orders);setHasMore(result.hasMore);setOffset(page);}finally{setOrdersLoading(false);}}
  useEffect(()=>{
   document.title='My account | QuickSub';
-  // Email confirmation may return a Supabase token fragment. Password sign-in establishes our HTTP-only session.
-  if(window.location.hash.includes('access_token=')||window.location.hash.includes('error='))window.history.replaceState(null,'','/account');
-  void loadSession().catch(e=>setError(e.message)).finally(()=>setLoading(false));
+  if(window.location.hash)window.history.replaceState(null,'',window.location.pathname+window.location.search);
+  void (async()=>{
+   try {
+    let confirmationMessage='';
+    if(confirmation.error)throw new Error('This confirmation link is invalid or expired. Request a new confirmation email.');
+    if(confirmation.accessToken||confirmation.refreshToken) {
+     if(!confirmation.accessToken||!confirmation.refreshToken)throw new Error('This confirmation link is incomplete. Request a new confirmation email.');
+     const result=await api<{message:string}>('/account/confirm',{accessToken:confirmation.accessToken,refreshToken:confirmation.refreshToken});
+     confirmationMessage=result.message;
+    }
+    const active=await loadSession();
+    if(active.user&&returnTo){navigate(returnTo);return;}
+    if(confirmationMessage)setMessage(confirmationMessage);
+   } catch(e) {setError((e as Error).message);}
+   finally {setLoading(false);}
+  })();
   return ()=>{document.title='QuickSub';};
- },[]);
+ },[confirmation.accessToken,confirmation.error,confirmation.refreshToken,returnTo]);
  const userId=session?.user?.id;
  useEffect(()=>{if(userId)void loadOrders(0).catch(e=>setError(e.message));},[userId]);
  async function action(work:()=>Promise<void>) {setBusy(true);setError('');setMessage('');try{await work();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
@@ -44,15 +65,23 @@ export default function AccountPage() {
  <h2 className="text-xl font-bold">{signup?'Create your account':'Welcome back'}</h2>
  {signup&&<p className="text-sm text-ink-500">Save your details for easier checkout and keep track of every order.</p>}
  <form key={String(signup)} className="space-y-4" onSubmit={e=>{e.preventDefault();const data=new FormData(e.currentTarget);void action(async()=>{
- const result=await api<{message?:string}>(signup?'/account/signup':'/account/login',{...(signup?{name:data.get('name')}:{}),email:data.get('email'),password:data.get('password')});const active=await loadSession();if(active.user && returnTo){navigate(returnTo);return;}setMessage(result.message||'Signed in.');
+ const address=String(data.get('email')||'');setConfirmationEmail('');
+ try {
+  const result=await api<{message?:string;signedIn?:boolean}>(signup?'/account/signup':'/account/login',{...(signup?{name:data.get('name')}:{}),email:address,password:data.get('password')});
+  if(signup&&!result.signedIn)setConfirmationEmail(address);
+  const active=await loadSession();if(active.user && returnTo){navigate(returnTo);return;}setMessage(result.message||'Signed in.');
+ } catch(e) {
+  if(!signup&&e instanceof ApiError&&e.status===403)setConfirmationEmail(address);
+  throw e;
+ }
  });}}>
  {signup&&<label className="block">Your name<input name="name" className={field} placeholder="Enter your name" autoComplete="name" required maxLength={120}/></label>}
  <label className="block">Email<input name="email" type="email" className={field} placeholder="yourname@gmail.com" autoComplete="email" required maxLength={254}/></label>
  <div><label htmlFor="account-password" className="block">Password</label><div className="relative mt-2"><input id="account-password" name="password" type={showPassword?'text':'password'} className={field.replace('mt-2', 'pr-20')} aria-describedby="password-guidance" autoComplete={signup?'new-password':'current-password'} required minLength={signup?10:1} maxLength={128}/><button type="button" aria-label={showPassword?'Hide password':'Show password'} aria-controls="account-password" aria-pressed={showPassword} onClick={()=>setShowPassword(value=>!value)} className="absolute right-1 top-1 bottom-1 w-16 rounded-lg text-sm font-semibold text-brand-600 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600">{showPassword?'Hide':'Show'}</button></div></div>
  <p id="password-guidance" className="rounded-xl bg-brand-50 p-3 text-xs leading-relaxed text-ink-500"><strong className="text-ink-800">Keep your account secure.</strong> {signup?'Choose':'When creating an account, choose'} a unique password with at least 10 characters. A longer passphrase with a mix of letters, numbers, and symbols is a good choice.</p>
  <button disabled={busy} className={button+' w-full hover:bg-brand-700 transition-colors'}>{busy?'Please wait…':signup?'Create account':'Sign in'}</button>
- </form>{!signup&&<SiteLink href={'/forgot-password'+(returnTo?'?next='+encodeURIComponent(returnTo):'')} className="block text-brand-600 underline">Forgot password?</SiteLink>}<button type="button" disabled={busy} className="text-brand-600 underline" onClick={()=>{setSignup(!signup);setError('');setMessage('');}}>{signup?'Already registered? Sign in':'New here? Create an account'}</button>
- {signup&&<p className="border-t border-brand-100 pt-4 text-xs leading-relaxed text-ink-500">Already confirmed your email? You can sign in with your password.</p>}
+ </form>{confirmationEmail&&<button type="button" disabled={busy} className="block text-brand-600 underline font-semibold" onClick={()=>void action(async()=>{const result=await api<{message:string}>('/account/resend-confirmation',{email:confirmationEmail});setMessage(result.message);})}>Resend confirmation email</button>}<SiteLink href={'/forgot-password'+(returnTo?'?next='+encodeURIComponent(returnTo):'')} className="block text-brand-600 underline">{signup?'Used this email before? Reset your password':'Forgot password?'}</SiteLink><button type="button" disabled={busy} className="text-brand-600 underline" onClick={()=>{setSignup(!signup);setConfirmationEmail('');setError('');setMessage('');}}>{signup?'Already registered? Sign in':'New here? Create an account'}</button>
+ {signup&&<p className="border-t border-brand-100 pt-4 text-xs leading-relaxed text-ink-500"><strong className="text-ink-800">Already used this email?</strong> Do not register it again. Sign in with the existing password or use password recovery. Creating another account will not replace the old password.</p>}
  </section>:<>
  <div className="flex flex-wrap items-center justify-between gap-3"><p className="break-all">Signed in as <strong>{session.user.email}</strong></p><button disabled={busy} className="text-brand-600 underline" onClick={()=>void action(async()=>{await api('/account/logout',{});setSession({user:null,profile:null});setOrders([]);setProfile({name:'',contact:'',renewal_reminders:true});setMessage('Signed out.');})}>Sign out</button></div>
  <CustomerSubscriptions />

@@ -45,12 +45,19 @@ function createAdminRouter({
     }
     if (!response.ok) {
       if (path.startsWith("/auth/")) {
+        let provider = {};
+        try { provider = await response.json(); } catch {}
+        if (!provider || typeof provider !== 'object') provider = {};
         const error = response.status === 429
           ? fail(429, "Too many authentication attempts. Please wait a few minutes and try again.")
           : response.status >= 500
             ? Object.assign(fail(503, "Authentication service is temporarily unavailable. Please try again."), { expose: true })
             : fail(401, "Email or password is incorrect. Try again or reset your password.");
-        throw Object.assign(error, { providerStatus: response.status });
+        throw Object.assign(error, {
+          providerStatus: response.status,
+          providerCode: provider.error_code || provider.code || '',
+          providerMessage: provider.msg || provider.message || provider.error_description || '',
+        });
       }
       throw fail(
         response.status === 400 || response.status === 409 ? 409 : 503,

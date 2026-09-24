@@ -9,7 +9,7 @@ const { createCatalog } = require("../server/catalog");
 export const ownerId = "10000000-0000-4000-8000-000000000001";
 export const staffId = "10000000-0000-4000-8000-000000000002";
 export const packageId = "20000000-0000-4000-8000-000000000001";
-export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false, receiptSimulation = false } = {}) {
+export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false, receiptSimulation = false, emailConfirmation = false } = {}) {
   const db = new PGlite();
   await db.exec(
     `create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users(id uuid primary key); create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`,
@@ -86,13 +86,14 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     const method = options.method || "GET";
     const body = typeof options.body === "string" ? JSON.parse(options.body) : null;
     if(u.pathname==='/auth/v1/recover') {const customer=customerUsers.get(body.email);if(customer)recoveryTokens.set('test-recovery-'+customer.id,customer.id);return response({});}
+    if(u.pathname==='/auth/v1/resend')return response({});
     if(u.pathname==='/auth/v1/verify') {const id=recoveryTokens.get(body.token_hash);if(!id||body.type!=='recovery')return response({},400);recoveryTokens.delete(body.token_hash);return response({user:{id},access_token:id});}
     if(u.pathname==='/auth/v1/logout')return response(null,204);
     if (u.pathname === "/auth/v1/signup") {
       if(customerUsers.has(body.email))return response({user:{}},200);
       const id=crypto.randomUUID(); await db.query("insert into auth.users values($1)",[id]);
-      const user={id,email:body.email,user_metadata:body.data};customerUsers.set(body.email,{...user,password:body.password});
-      return response({user,access_token:id,refresh_token:id,expires_in:3600});
+      const user={id,email:body.email,user_metadata:body.data};customerUsers.set(body.email,{...user,password:body.password,confirmed:!emailConfirmation});
+      return emailConfirmation ? response({user}) : response({user,access_token:id,refresh_token:id,expires_in:3600});
     }
     if (u.pathname === "/auth/v1/token" && u.searchParams.get('grant_type') === 'refresh_token') {
       const id=body.refresh_token;
@@ -102,6 +103,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     }
     if (u.pathname === "/auth/v1/token") {
       const customer=customerUsers.get(body.email);
+      if(customer&&customer.password===body.password&&!customer.confirmed)return response({code:'email_not_confirmed',msg:'Email not confirmed'},400);
       if(customer&&customer.password===body.password)return response({user:{id:customer.id,email:customer.email,user_metadata:customer.user_metadata},access_token:customer.id,refresh_token:customer.id,expires_in:3600});
       if (body.password !== password) return response({}, 400);
       const id =

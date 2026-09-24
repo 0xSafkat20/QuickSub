@@ -27,6 +27,10 @@ const authSchemas = {
   login: { email, password: text(128, 1, false) },
   signup: { email, password: text(128, 10, false), name: text(120) },
   forgotPassword: { email },
+  confirmSignup: {
+    accessToken: text(4096, 20, false),
+    refreshToken: text(4096, 20, false),
+  },
   resetPassword: {
     password: text(128, 10, false),
     confirmPassword: text(128, 10, false),
