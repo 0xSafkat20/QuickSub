@@ -12,7 +12,7 @@ function errorHandler(err, req, res, next) {
   if (status === 429) res.set('Retry-After', '60');
   const message = err.type === 'entity.too.large' ? 'Request body is too large.'
     : err.type === 'entity.parse.failed' ? 'Invalid request body.'
-    : status >= 500 ? 'Unable to complete the request. Please try again.'
+    : status >= 500 && err.expose !== true ? 'Unable to complete the request. Please try again.'
     : err.message;
   res.status(status).json({ error: message, ...(err.fields ? { fields: err.fields } : {}) });
 }

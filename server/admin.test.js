@@ -29,6 +29,13 @@ test('provider authentication failures do not expose account existence or provid
  const call=await setup(t,{url:'https://test.example',key:'secret',fetchImpl:async()=>new Response(JSON.stringify({error:'account details secret'}),{status:400})});
  const r=await call('/admin/login',{email:'admin@example.test',password:'password'});assert.equal(r.status,401);assert.doesNotMatch(JSON.stringify(r.data),/account details|secret/);
 });
+test('authentication rate limits and outages return actionable status codes',async t=>{
+ for(const [provider,status,message] of [[429,429,/too many authentication attempts/i],[500,503,/authentication service is temporarily unavailable/i]]){
+  const call=await setup(t,{url:'https://test.example',key:'secret',fetchImpl:async()=>new Response('{}',{status:provider})});
+  const result=await call('/admin/login',{email:'admin@example.test',password:'password'});
+  assert.equal(result.status,status);assert.match(result.data.error,message);
+ }
+});
 test('invalid login fields are rejected before any provider request',async t=>{
  let requests=0;const call=await setup(t,{url:'https://test.example',key:'secret',fetchImpl:async()=>{requests++;throw Error('unexpected');}});
  for(const body of [{},{email:'admin@example.test'},{email:42,password:'pw'},{email:'x',password:''},{email:'x',password:'x'.repeat(257)}])assert.equal((await call('/admin/login',body)).status,400);

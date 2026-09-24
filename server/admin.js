@@ -39,11 +39,19 @@ function createAdminRouter({
         signal: AbortSignal.timeout(10000),
       });
     } catch {
-      throw fail(503, "Database unavailable. Please try again.");
+      throw path.startsWith("/auth/")
+        ? Object.assign(fail(503, "Authentication service is temporarily unavailable. Please try again."), { expose: true })
+        : fail(503, "Database unavailable. Please try again.");
     }
     if (!response.ok) {
-      if (path.startsWith("/auth/"))
-        throw Object.assign(fail(401, "Sign-in failed or your session expired."), { providerStatus: response.status });
+      if (path.startsWith("/auth/")) {
+        const error = response.status === 429
+          ? fail(429, "Too many authentication attempts. Please wait a few minutes and try again.")
+          : response.status >= 500
+            ? Object.assign(fail(503, "Authentication service is temporarily unavailable. Please try again."), { expose: true })
+            : fail(401, "Email or password is incorrect. Try again or reset your password.");
+        throw Object.assign(error, { providerStatus: response.status });
+      }
       throw fail(
         response.status === 400 || response.status === 409 ? 409 : 503,
         response.status === 400 || response.status === 409
