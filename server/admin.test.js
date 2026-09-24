@@ -15,6 +15,12 @@ test('unconfigured admin API fails closed while public catalog helpers remain us
  assert.equal((await call('/admin/data')).status,401);
  assert.equal((await call('/admin/login',{email:'admin@example.test',password:'password'})).status,503);
 });
+test('local preview exposes seeded packages as simulation-only plans',async t=>{
+ const call=await setup(t,{url:'',key:'',previewCheckout:true,fetchImpl:()=>{throw Error('Must not access network');}});
+ const available=(await call('/packages/1')).data.packages;
+ assert.equal(available.length,1);assert.equal(available[0].name,'1 Month Premium');assert.equal(available[0].price_bdt,299);assert.equal(available[0].demo,true);assert.match(available[0].id,/^preview-/);
+ assert.deepEqual((await call('/packages/5')).data,{packages:[]});
+});
 test('network errors return safe outage messages without leaking credentials',async t=>{
  const call=await setup(t,{url:'https://test.example',key:'private-secret',fetchImpl:async()=>{throw Error('private-secret upstream details');}});
  const r=await call('/admin/login',{email:'admin@example.test',password:'password'});assert.equal(r.status,503);assert.doesNotMatch(JSON.stringify(r.data),/private-secret|upstream details/);

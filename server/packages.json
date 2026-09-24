@@ -1,0 +1,23 @@
+[
+  { "id": "30000000-0000-4000-8000-000000000001", "product_id": "1", "name": "1 Month Premium", "details": "1 month subscription. Access: 1 device at a time on phone, tablet, computer, or TV.", "price_bdt": 299, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000002", "product_id": "2", "name": "1 Month Individual", "details": "1 month individual subscription. Access: 1 device at a time.", "price_bdt": 149, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000003", "product_id": "3", "name": "325 UC", "details": "325 UC top-up delivered to the PUBG player ID supplied at checkout.", "price_bdt": 199, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000004", "product_id": "4", "name": "100 Diamonds", "details": "100 Diamonds top-up delivered to the Free Fire player ID supplied at checkout.", "price_bdt": 99, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000005", "product_id": "5", "name": "100 Coins", "details": "100 Coins top-up delivered to the eFootball account supplied at checkout.", "price_bdt": 249, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000006", "product_id": "6", "name": "86 Diamonds", "details": "86 Diamonds top-up delivered to the Mobile Legends player ID supplied at checkout.", "price_bdt": 89, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000007", "product_id": "7", "name": "1 Month Plus", "details": "1 month ChatGPT Plus subscription. Access: 1 device at a time.", "price_bdt": 499, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000008", "product_id": "8", "name": "1 Month Premium", "details": "1 month QuillBot Premium subscription. Access: 1 device at a time.", "price_bdt": 349, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000009", "product_id": "9", "name": "1 Month Premium", "details": "1 month Disney+ Hotstar subscription. Access: 1 device at a time.", "price_bdt": 199, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000010", "product_id": "10", "name": "1 Month Individual", "details": "1 month YouTube Premium subscription. Access: 1 device at a time.", "price_bdt": 179, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000011", "product_id": "11", "name": "475 VP", "details": "475 VP top-up delivered to the Valorant account supplied at checkout.", "price_bdt": 149, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000012", "product_id": "12", "name": "1 Month Pro", "details": "1 month Canva Pro subscription. Access: 1 device at a time.", "price_bdt": 399, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000013", "product_id": "13", "name": "1 Month Personal", "details": "1 month Microsoft 365 Personal subscription. Access: 1 device at a time.", "price_bdt": 599, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000014", "product_id": "14", "name": "1 Month Individual", "details": "1 month Apple Music subscription. Access: 1 device at a time.", "price_bdt": 169, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000015", "product_id": "15", "name": "80 Gems", "details": "80 Gems top-up delivered to the Clash of Clans player tag supplied at checkout.", "price_bdt": 149, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000016", "product_id": "16", "name": "400 Robux", "details": "400 Robux delivered to the Roblox account supplied at checkout.", "price_bdt": 99, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000017", "product_id": "17", "name": "1 Month Basic", "details": "1 month Midjourney Basic subscription. Access: 1 device at a time.", "price_bdt": 449, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000018", "product_id": "18", "name": "1 Month Plus", "details": "1 month Notion Plus with AI subscription. Access: 1 device at a time.", "price_bdt": 399, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000019", "product_id": "19", "name": "1 Month Premium", "details": "1 month Grammarly Premium subscription. Access: 1 device at a time.", "price_bdt": 299, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000020", "product_id": "20", "name": "1 Month All Apps", "details": "1 month Adobe Creative Cloud All Apps subscription. Access: 1 device at a time.", "price_bdt": 799, "active": true },
+  { "id": "30000000-0000-4000-8000-000000000021", "product_id": "21", "name": "1 Month Prime", "details": "1 month Amazon Prime Video subscription. Access: 1 device at a time.", "price_bdt": 199, "active": true }
+]

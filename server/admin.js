@@ -12,6 +12,7 @@ function createAdminRouter({
   now = Date.now,
   paymentEnv = process.env,
   demoCheckout = process.env.QUICKSUB_DEMO_CHECKOUT === "true",
+  previewCheckout = process.env.QUICKSUB_PREVIEW_CHECKOUT === "true",
   sharedSessions = process.env.VERCEL === "1" || process.env.NODE_ENV === "production",
 } = {}) {
   const router = express.Router();
@@ -444,7 +445,9 @@ function createAdminRouter({
   router.get(
     "/packages/:productId",
     run(async (req, res) => {
-      const examples = demoCheckout ? require('./demo-packages.json')[req.params.productId] || [] : [];
+      const examples = previewCheckout
+        ? require('./packages.json').filter((p) => p.product_id === req.params.productId && p.active).map(({ product_id, active, ...p }) => ({ ...p, id: `preview-${p.id}`, demo: true }))
+        : demoCheckout ? require('./demo-packages.json')[req.params.productId] || [] : [];
       if (!configured) {
         const available = require('./catalog.json').some(p => p.id === req.params.productId && !p.outOfStock);
         return res.json({ packages: available ? examples : [] });

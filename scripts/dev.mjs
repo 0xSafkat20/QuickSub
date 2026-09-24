@@ -34,7 +34,7 @@ try {
     if (typeof data?.enabled !== 'boolean') throw new Error('Port 4000 is occupied by another service. Stop it before starting QuickSub.');
     console.log('Using the running QuickSub backend on port 4000.');
   } else {
-    start('server/index.js', [], { ...process.env, PORT: '4000' }, true);
+    start('server/index.js', [], { ...process.env, PORT: '4000', QUICKSUB_PREVIEW_CHECKOUT: process.env.QUICKSUB_PREVIEW_CHECKOUT || 'true' }, true);
     let ready = false;
     for (let attempt = 0; attempt < 40 && !stopping; attempt++) {
       if (await listening()) { ready = true; break; }

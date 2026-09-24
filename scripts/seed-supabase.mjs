@@ -9,6 +9,7 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) throw new Error('Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in server/.env first.');
 const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 const products = JSON.parse(readFileSync(new URL('../server/catalog.json', import.meta.url), 'utf8'));
+const packages = JSON.parse(readFileSync(new URL('../server/packages.json', import.meta.url), 'utf8'));
 const knowledge = JSON.parse(readFileSync(new URL('../server/knowledge.json', import.meta.url), 'utf8'));
 const uploadImages = process.argv.includes('--upload-images');
 
@@ -58,4 +59,6 @@ for (const [index, p] of products.entries()) {
 }
 const result = await client.from('quicksub_content').upsert({ id: 'store', data: { faq: knowledge.faq, policies: knowledge.policies, operations: knowledge.operations } }, { onConflict: 'id', ignoreDuplicates: true });
 if (result.error) throw new Error('Could not save store policies. Check the quicksub_content table.');
-console.log(`Catalog import complete: ${inserted} new products; ${known.size} existing rows preserved. Images ${uploadImages ? 'copied to Storage for new products' : 'saved as current URLs'}.`);
+const packageResult = await client.from('quicksub_packages').upsert(packages, { onConflict: 'id', ignoreDuplicates: true });
+if (packageResult.error) throw new Error(`Could not save product packages: ${packageResult.error.message}`);
+console.log(`Catalog import complete: ${inserted} new products; ${known.size} existing rows preserved; ${packages.length} default packages ensured. Images ${uploadImages ? 'copied to Storage for new products' : 'saved as current URLs'}.`);
