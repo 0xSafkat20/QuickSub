@@ -181,7 +181,7 @@ http://localhost:5173
 npm run dev
 ```
 
-Starts both the backend on port 4000 and Vite. Keep this terminal open. If the QuickSub backend is already running, it is reused. Use `npm run dev:client` only when you intentionally manage the backend separately.
+Starts both the backend on port 4000 and Vite. Keep this terminal open. When `server/.env` has Supabase credentials, development uses the live backend. Without those credentials, it starts a disposable local database and simulated authentication so accounts, carts, checkout, and subscriptions still work. Local simulation data is discarded when the process stops. If the QuickSub backend is already running, it is reused. Use `npm run dev:client` only when you intentionally manage the backend separately.
 
 ```bash
 npm run build

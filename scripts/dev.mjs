@@ -2,7 +2,11 @@
 import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 const root = fileURLToPath(new URL('../', import.meta.url));
+const envFile = new URL('../server/.env', import.meta.url);
+if (existsSync(envFile)) process.loadEnvFile(envFile);
+const hasDatabase = !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 const children = new Set();
 let stopping = false;
 function stop(code = 0) {
@@ -34,7 +38,7 @@ try {
     if (typeof data?.enabled !== 'boolean') throw new Error('Port 4000 is occupied by another service. Stop it before starting QuickSub.');
     console.log('Using the running QuickSub backend on port 4000.');
   } else {
-    start('server/index.js', [], { ...process.env, PORT: '4000', QUICKSUB_PREVIEW_CHECKOUT: process.env.QUICKSUB_PREVIEW_CHECKOUT || 'true' }, true);
+    start(hasDatabase ? 'server/index.js' : 'scripts/dev-api.mjs', [], { ...process.env, PORT: '4000' }, true);
     let ready = false;
     for (let attempt = 0; attempt < 40 && !stopping; attempt++) {
       if (await listening()) { ready = true; break; }
