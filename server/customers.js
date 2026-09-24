@@ -50,16 +50,25 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   validateBody(req.body, authSchemas.resetPassword);
   const b=req.body||{};const password=string(b.password,128,10,false);
   if(password!==b.confirmPassword)throw fail(400,'The passwords do not match.');
-  const tokenHash=string(b.tokenHash,512,20);
-  let auth;
-  try {auth=await remote('/auth/v1/verify',{method:'POST',body:{token_hash:tokenHash,type:'recovery'}});}
+  if(Boolean(b.tokenHash)===Boolean(b.accessToken))throw fail(400,'This reset link is invalid. Request a new link.');
+  let auth,user;
+  try {
+   if(b.tokenHash) {
+    auth=await remote('/auth/v1/verify',{method:'POST',body:{token_hash:string(b.tokenHash,512,20),type:'recovery'}});
+    user=auth.user;
+   } else {
+    const accessToken=string(b.accessToken,4096,20,false);
+    user=await remote('/auth/v1/user',{token:accessToken});
+    auth={access_token:accessToken,user};
+   }
+  }
   catch {throw fail(400,'This reset link is invalid, expired, or already used. Request a new link.');}
-  if(!auth.access_token || !uuid.test(auth.user?.id))throw fail(400,'This reset link is invalid. Request a new link.');
+  if(!auth.access_token || !uuid.test(user?.id))throw fail(400,'This reset link is invalid. Request a new link.');
   try {await remote('/auth/v1/user',{method:'PUT',token:auth.access_token,body:{password}});}
   catch {throw fail(400,'The password could not be updated. Use a different strong password and request a new reset link.');}
   // Invalidate every QuickSub session, including sessions on other devices.
   try {
-   await db('quicksub_customer_sessions?user_id=eq.'+auth.user.id,{method:'DELETE'});
+   await db('quicksub_customer_sessions?user_id=eq.'+user.id,{method:'DELETE'});
    await remote('/auth/v1/logout?scope=global',{method:'POST',token:auth.access_token});
   } catch {throw fail(503,'Your password changed, but session cleanup is incomplete. Contact support before continuing.');}
   res.clearCookie('qs_customer',options(req));

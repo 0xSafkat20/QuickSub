@@ -18,7 +18,10 @@ try{
  await page.click('a[href="/forgot-password"]');await page.waitForFunction(()=>document.querySelector('h1')?.textContent==='Forgot your password?');
  await page.locator('[name="email"]').fill(email);await page.locator('form button').click();
  await page.waitForSelector('[role="status"]');
- await page.goto(env.base+'/reset-password#token_hash=test-recovery-'+session.user.id,{waitUntil:'networkidle0'});
+ await page.goto(env.base+'/reset-password#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired',{waitUntil:'networkidle0'});
+ assert.equal(page.url(),env.base+'/reset-password');
+ assert.match(await page.locator('[role="alert"]').innerText(),/invalid or has expired/i);
+ await page.goto(env.base+'/reset-password#access_token='+session.user.id+'&type=recovery',{waitUntil:'networkidle0'});
  assert.equal(page.url(),env.base+'/reset-password');
  await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('[name="confirmPassword"]').fill('mismatch-password');await page.locator('form button').click();
  await page.waitForSelector('[role="alert"]');

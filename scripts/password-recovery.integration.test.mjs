@@ -22,6 +22,14 @@ test('password recovery validates links, changes passwords and revokes sessions'
   assert.equal((await request('login',{email,password})).status,401);
   assert.equal((await request('login',{email,password:newPassword})).status,200);
   assert.equal((await request('reset-password',{tokenHash,password:newPassword,confirmPassword:newPassword})).status,400);
+  const accessPassword='access-token-password-123';
+  const accessLogin=await request('login',{email,password:newPassword});
+  assert.equal(accessLogin.status,200);
+  assert.equal((await request('reset-password',{accessToken:session.body.user.id,password:accessPassword,confirmPassword:accessPassword})).status,200);
+  assert.equal((await request('login',{email,password:newPassword})).status,401);
+  assert.equal((await request('login',{email,password:accessPassword})).status,200);
+  assert.equal((await request('reset-password',{accessToken:'expired-recovery-access-token',password:newPassword,confirmPassword:newPassword})).status,400);
+  assert.equal((await request('reset-password',{password:newPassword,confirmPassword:newPassword})).status,400);
   assert.equal((await request('forgot-password',{email:'invalid'})).status,400);
   assert.equal((await request('forgot-password',{email})).status,429);
  }finally{await env.close();}

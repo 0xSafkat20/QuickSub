@@ -16,6 +16,7 @@ function contact(value) {
 }
 
 const text = (max, min = 1, trim = true) => value => string(value, max, min, trim);
+const optional = parse => value => value === undefined ? undefined : parse(value);
 const email = value => {
   const result = string(value, 254);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result)) throw fail(400, 'Enter a valid email address.');
@@ -26,7 +27,12 @@ const authSchemas = {
   login: { email, password: text(128, 1, false) },
   signup: { email, password: text(128, 10, false), name: text(120) },
   forgotPassword: { email },
-  resetPassword: { password: text(128, 10, false), confirmPassword: text(128, 10, false), tokenHash: text(512, 20) },
+  resetPassword: {
+    password: text(128, 10, false),
+    confirmPassword: text(128, 10, false),
+    tokenHash: optional(text(512, 20)),
+    accessToken: optional(text(4096, 20, false)),
+  },
 };
 
 // Reject unexpected keys instead of silently accepting privilege-related input.
