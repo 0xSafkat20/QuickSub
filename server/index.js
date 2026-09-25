@@ -66,7 +66,7 @@ app.get(['/buy', '/api/buy'], (req, res) => {
   res.redirect(302, '/checkout' + (params.size ? '?' + params : ''));
 });
 app.get(['/cart', '/checkout', '/account', '/track', '/forgot-password', '/reset-password', '/subscriptions/*'], (_req, res) => res.set('Cache-Control','no-store').sendFile(path.join(__dirname, '../dist/index.html')));
-app.use(express.json({ limit: '16kb' }));
+app.use(express.json({ limit: '32kb' }));
 const catalog = createCatalog({ localProducts: require('./catalog.json'), localKnowledge: require('./knowledge.json') });
 app.get('/api/products', run(async (_req, res) => {
   const { products, source, stale } = await catalog.get();

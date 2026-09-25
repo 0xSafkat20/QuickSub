@@ -25,6 +25,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260925000000_account_cart.sql",
     "20260926000000_receipts.sql",
     "20260927000000_subscriptions.sql",
+    "20260929000000_verified_reviews.sql",
   ])
     await db.exec(
       await readFile(
@@ -237,7 +238,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     fetchImpl,
   });
   const app = express();
-  app.use(express.json({ limit: "16kb" }));
+  app.use(express.json({ limit: "32kb" }));
   app.get("/api/products", async (_req, res) => res.json(await catalog.get()));
   // Explicit test-only payment simulation. Never mounted by server/index.js.
   if(receiptSimulation){

@@ -321,6 +321,16 @@ export default function ProductGrid({
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  const suggestions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return products
+      .filter(product => [product.name, product.category, product.shortDescription, ...product.badges].some(value => value.toLowerCase().includes(query)))
+      .sort((a, b) => Number(b.name.toLowerCase().startsWith(query)) - Number(a.name.toLowerCase().startsWith(query)))
+      .slice(0, 6);
+  }, [products, searchQuery]);
 
   const filtered = useMemo(() => {
     let list = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
@@ -380,7 +390,13 @@ export default function ProductGrid({
               type="text"
               value={searchQuery}
               onChange={e => onSearchQueryChange(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
               placeholder="Search products (e.g. Netflix, PUBG, AI…)"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={searchFocused && !!searchQuery.trim()}
+              aria-controls="product-search-suggestions"
               className="w-full pl-11 pr-10 py-3 bg-white border-2 border-brand-100 rounded-2xl text-sm text-ink-800 placeholder-ink-300 focus:outline-none focus:border-brand-400 focus:shadow-blue-sm transition-all shadow-card"
             />
             {searchQuery && (
@@ -392,6 +408,13 @@ export default function ProductGrid({
                 <X size={15} />
               </button>
             )}
+            <AnimatePresence>
+              {searchFocused && searchQuery.trim() && <motion.div id="product-search-suggestions" role="listbox" initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} className="absolute z-30 left-0 right-0 mt-2 overflow-hidden rounded-2xl border border-brand-100 bg-white p-2 text-left shadow-2xl">
+                {suggestions.length ? suggestions.map(product => <button key={product.id} role="option" aria-selected="false" type="button" onMouseDown={event => event.preventDefault()} onClick={() => { onSearchQueryChange(product.name); onFilterChange('all'); setDetailProduct(product); setSearchFocused(false); }} className="flex w-full items-center gap-3 rounded-xl p-3 hover:bg-brand-50 focus:bg-brand-50">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white" style={{backgroundColor:product.accentColor}}>{product.name.slice(0,2)}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-ink-800">{product.name}</span><span className="block truncate text-xs capitalize text-ink-400">{product.category} · {product.startingPrice}</span></span><ArrowRight size={14} className="text-brand-500"/>
+                </button>) : <p className="p-4 text-center text-sm text-ink-400">No matching products. Try a brand, category, or product type.</p>}
+              </motion.div>}
+            </AnimatePresence>
           </div>
 
           {searchQuery && (

@@ -19,6 +19,7 @@ const supportLinks: { label: string; href?: string; action?: () => void }[] = [
   { label: 'Order Status', href: '/track' },
   { label: 'My account', href: '/account' },
   { label: 'Refund Policy', action: () => openLegalDoc('Refund Policy') },
+  { label: 'Return Policy', action: () => openLegalDoc('Return Policy') },
   { label: 'Delivery Policy', action: () => openLegalDoc('Delivery Policy') },
 ];
 const legalLinks = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];

@@ -105,6 +105,7 @@ function createAdminRouter({
   const customers = require("./customers").installCustomers({router,run,db,remote,rate,string,contact,now});
   const { router: ordersRouter, findOrder } = require("./orders").createOrders({ db, rate, customers, now });
   router.use(ordersRouter);
+  router.use(require('./reviews').createReviews({ db, customers, rate }));
   router.use(require("./cart").createCartRouter({ db, customers, rate }));
   router.use(require("./subscriptions").createSubscriptions({ db, customers, rate, now }));
   router.get("/admin/session", (req, res) => res.json(req.admin));

@@ -4,9 +4,10 @@ import SupportRequest from '../ui/SupportRequest';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Clock, Tag, Shield, MessageCircle,
-  Truck, RefreshCw, Headphones,
+  Truck, RefreshCw, Headphones, Star, BadgeCheck,
 } from 'lucide-react';
 import type { Product } from '../../data/products';
+import { useCustomerReviews } from '../../data/customerReviews';
 
 const trustBadges = [
   { icon: Shield, label: 'Secure Payment' },
@@ -21,6 +22,7 @@ interface ProductDetailModalProps {
 }
 
 export default function ProductDetailModal({ product, onClose }: ProductDetailModalProps) {
+  const { reviews, summary, loading } = useCustomerReviews(product?.id, !!product);
   if (!product) return null;
 
   const oos = !!product.outOfStock;
@@ -149,6 +151,17 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                   </div>
                 </div>
               )}
+
+              <section className="mb-6 rounded-2xl border border-brand-100 bg-brand-50/40 p-4 sm:p-5" aria-label={`${product.name} reviews`}>
+                <div className="flex items-center justify-between gap-3 mb-3"><h3 className="font-heading font-bold text-ink-900">Customer reviews</h3>{summary.count > 0 && <span className="text-sm font-bold text-amber-600">★ {summary.average} ({summary.count})</span>}</div>
+                {loading ? <p className="text-sm text-ink-400">Loading reviews…</p> : reviews.length === 0 ? <p className="text-sm text-ink-400">No verified reviews yet. Customers can review this product after a paid order is delivered.</p> : <div className="space-y-3">
+                  {reviews.slice(0, 4).map(review => <article key={review.id} className="rounded-xl bg-white border border-brand-100 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-bold text-ink-800">{review.display_name}</p><span className="flex items-center gap-1 text-[10px] font-semibold text-green-700"><BadgeCheck size={12}/> Verified purchase</span></div>
+                    <div className="flex gap-0.5 my-1">{[1,2,3,4,5].map(value => <Star key={value} size={12} className={value <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}/>)}</div>
+                    <p className="text-xs leading-relaxed text-ink-500">{review.comment}</p>
+                  </article>)}
+                </div>}
+              </section>
 
               {/* Trust badges */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7">

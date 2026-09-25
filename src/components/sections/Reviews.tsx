@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { reviews } from '../../data/reviews';
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { useCustomerReviews } from '../../data/customerReviews';
+import { Star, ChevronLeft, ChevronRight, Quote, BadgeCheck } from 'lucide-react';
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -20,6 +21,11 @@ function StarRating({ rating }: { rating: number }) {
 const avatarColors = ['#2563EB', '#7C3AED', '#D97706', '#16A34A', '#0D9488'];
 
 export default function Reviews() {
+  const { reviews: customerReviews, summary } = useCustomerReviews();
+  const displayReviews = useMemo(() => customerReviews.length ? customerReviews.map(review => ({
+    id: review.id, name: review.display_name, rating: review.rating, review: review.comment,
+    product: review.product_name, initials: review.display_name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase(), verified: true,
+  })) : reviews.map(review => ({ ...review, verified: false })), [customerReviews]);
   const [current, setCurrent] = useState(0);
   const [perView, setPerView] = useState(3);
 
@@ -41,11 +47,11 @@ export default function Reviews() {
 
   // Reset current index when perView changes and current exceeds max
   useEffect(() => {
-    const maxIndex = Math.max(0, reviews.length - perView);
+    const maxIndex = Math.max(0, displayReviews.length - perView);
     if (current > maxIndex) {
       setCurrent(maxIndex);
     }
-  }, [perView, current]);
+  }, [perView, current, displayReviews.length]);
 
   return (
     <section id="reviews" className="py-12 sm:py-16 md:py-20 bg-white">
@@ -64,8 +70,9 @@ export default function Reviews() {
             Trusted by Digital Users and Gamers
           </h2>
           <p className="text-ink-400 text-sm sm:text-base max-w-xl mx-auto">
-            Here's what customers say about ordering through QuickSub.
+            Verified buyer comments about digital subscriptions, gaming top-ups, delivery, and support.
           </p>
+          {summary.count > 0 && <p className="mt-3 text-sm font-semibold text-amber-600">★ {summary.average} average from {summary.count} verified review{summary.count === 1 ? '' : 's'}</p>}
         </motion.div>
 
         <div className="relative overflow-hidden">
@@ -75,7 +82,7 @@ export default function Reviews() {
               transform: `translateX(calc(-${current} * (${100 / perView}% + ${perView === 1 ? '0px' : perView === 2 ? '10px' : '12px'})))`
             }}
           >
-            {reviews.map((review, i) => (
+            {displayReviews.map((review, i) => (
               <div
                 key={review.id}
                 className="flex-shrink-0"
@@ -105,6 +112,7 @@ export default function Reviews() {
                       {review.product && (
                         <p className="text-[10px] sm:text-xs text-ink-300 truncate">{review.product}</p>
                       )}
+                      {review.verified && <p className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-green-700"><BadgeCheck size={11}/> Verified purchase</p>}
                     </div>
                   </div>
                 </motion.blockquote>
@@ -124,7 +132,7 @@ export default function Reviews() {
             <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
           <div className="flex gap-1 sm:gap-2">
-            {Array.from({ length: Math.max(0, reviews.length - perView + 1) }).map((_, i) => (
+            {Array.from({ length: Math.max(0, displayReviews.length - perView + 1) }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
@@ -136,8 +144,8 @@ export default function Reviews() {
             ))}
           </div>
           <button
-            onClick={() => setCurrent(c => Math.min(Math.max(0, reviews.length - perView), c + 1))}
-            disabled={current === Math.max(0, reviews.length - perView)}
+            onClick={() => setCurrent(c => Math.min(Math.max(0, displayReviews.length - perView), c + 1))}
+            disabled={current === Math.max(0, displayReviews.length - perView)}
             className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg sm:rounded-xl card-white flex items-center justify-center text-ink-400 hover:text-brand-600 hover:border-brand-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             aria-label="Next"
           >

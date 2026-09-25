@@ -335,6 +335,32 @@
         }
       ]
     },
+    "Return Policy": {
+      "title": "Return Policy",
+      "lastUpdated": "September 2026",
+      "sections": [
+        {
+          "heading": "Digital Products and Returns",
+          "body": "QuickSub sells digitally delivered subscriptions and gaming top-ups, so completed products cannot be physically returned. Please check the product, package, account email, player ID, region, and device requirements before payment."
+        },
+        {
+          "heading": "Before Delivery",
+          "body": "If fulfillment has not started, contact support immediately with your order ID. We will check whether the order can be cancelled or changed. A change is not guaranteed after payment verification or processing begins."
+        },
+        {
+          "heading": "Incorrect, Duplicate, or Failed Delivery",
+          "body": "Contact support within 48 hours if the wrong product was delivered, delivery failed despite correct customer details, or you were charged twice. Keep the order receipt and payment proof so the team can investigate."
+        },
+        {
+          "heading": "Completed and Activated Orders",
+          "body": "A correctly delivered or activated digital product is not returnable. Problems caused by an incorrect player ID, account detail, region, device incompatibility, change of mind, or a third-party account restriction are not eligible for return."
+        },
+        {
+          "heading": "Resolution",
+          "body": "When a claim is approved, QuickSub may correct the delivery, replace the product where possible, issue store credit, or provide a refund under the Refund Policy. The available resolution depends on the product provider and order status."
+        }
+      ]
+    },
     "Delivery Policy": {
       "title": "Delivery Policy",
       "lastUpdated": "June 2026",

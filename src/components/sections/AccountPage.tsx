@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api, ApiError } from '../../utils/api';
 import SiteLink from '../ui/SiteLink';
 import CustomerSubscriptions from './CustomerSubscriptions';
+import ProductReviewForm from './ProductReviewForm';
 import { checkoutUrl, checkoutReturn, navigate } from '../../utils/navigation';
 type Profile = { name: string; contact: string; renewal_reminders: boolean };
 type Session = { user: { id: string; email: string } | null; profile: Profile | null };
@@ -95,6 +96,7 @@ export default function AccountPage() {
  {ordersLoading?<p role="status">Loading orders…</p>:!orders.length?<p className="text-ink-500">No orders yet. Purchases made while signed in appear here. Demo payments do not create orders.</p>:orders.map(order=>{const days=order.expires_at?Math.ceil((Date.parse(order.expires_at)-Date.now())/86400000):null;const subscription=order.status==='delivered'&&order.payment_status==='verified';return <article key={order.id} className="border border-brand-100 rounded-xl p-4 space-y-2"><h3 className="font-bold">{order.product_name}</h3><p>{order.package_name} · ৳{order.amount_bdt}</p><p className="text-xs [overflow-wrap:anywhere] text-ink-500">{order.id} · {new Date(order.created_at).toLocaleDateString()}</p><p className="text-sm">Order: <strong>{order.status}</strong> · Payment: <strong>{order.payment_status}</strong></p>{order.delivery_note&&<p className="text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">{order.delivery_note}</p>}
  {subscription&&order.expires_at&&<p className="text-sm">Expires: {new Date(order.expires_at).toLocaleDateString()}</p>}
  {subscription&&profile.renewal_reminders&&days!==null&&days<=7&&<p className="bg-amber-50 text-amber-900 rounded-lg p-3 text-sm" role="status">{days<=0?'Your subscription has expired or expires today.':`Renewal reminder: your subscription expires in ${days} day${days===1?'':'s'}.`}</p>}
+ {subscription&&<ProductReviewForm orderId={order.id} productName={order.product_name}/>}
  {order.product_id&&<SiteLink href={checkoutUrl(order.product_id)} className="inline-block text-brand-600 font-semibold text-sm">{subscription&&order.expires_at?'Renew subscription':'Buy again'} →</SiteLink>}
  </article>;})}
  <div className="flex justify-between"><button disabled={busy||ordersLoading||offset===0} className="text-brand-600 disabled:opacity-40" onClick={()=>void action(()=>loadOrders(Math.max(0,offset-20)))}>Previous</button><button disabled={busy||ordersLoading||!hasMore} className="text-brand-600 disabled:opacity-40" onClick={()=>void action(()=>loadOrders(offset+20))}>Next</button></div>
