@@ -75,7 +75,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     [packageId, "1", "Premium · 1 month", 299, "One month package"],
   );
   const response = (body, status = 200) =>
-    new Response(status === 204 ? null : JSON.stringify(body), {
+    new Response(status === 204 || body === undefined ? null : JSON.stringify(body), {
       status,
       headers: { "content-type": "application/json" },
     });
@@ -223,7 +223,9 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
           `insert into ${path}(${entries.map(([k]) => k).join(",")}) values(${entries.map((_, i) => "$" + (i + 1)).join(",")})`,
           entries.map(([, v]) => v),
         );
-        return response(null, 204);
+        // Supabase PostgREST commonly returns 201 with an empty body when no
+        // representation was requested. This guards the production transport.
+        return response(undefined, 201);
       }
     } catch (e) {
       return response({ message: e.message }, 400);

@@ -38,7 +38,11 @@ try {
     if (typeof data?.enabled !== 'boolean') throw new Error('Port 4000 is occupied by another service. Stop it before starting QuickSub.');
     console.log('Using the running QuickSub backend on port 4000.');
   } else {
-    start(hasDatabase ? 'server/index.js' : 'scripts/dev-api.mjs', [], { ...process.env, PORT: '4000' }, true);
+    // Node's broad watch mode follows dependencies under server/node_modules. On
+    // Windows/OneDrive, metadata changes there can restart the API mid-request
+    // (notably during sign-in), so keep the backend stable. Vite still hot-reloads
+    // the client; restart `npm run dev` after backend code changes.
+    start(hasDatabase ? 'server/index.js' : 'scripts/dev-api.mjs', [], { ...process.env, PORT: '4000' });
     let ready = false;
     for (let attempt = 0; attempt < 40 && !stopping; attempt++) {
       if (await listening()) { ready = true; break; }

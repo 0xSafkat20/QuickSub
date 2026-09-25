@@ -66,7 +66,11 @@ function createAdminRouter({
           : "Database unavailable. Check configuration and migrations.",
       );
     }
-    return response.status === 204 ? null : response.json();
+    if (response.status === 204) return null;
+    const text = await response.text();
+    if (!text.trim()) return null;
+    try { return JSON.parse(text); }
+    catch { throw fail(503, "The database returned an invalid response. Please try again."); }
   }
   const db = (path, options) => remote("/rest/v1/" + path, options);
   const payments = createPayments({ db, fetchImpl, env: paymentEnv });
