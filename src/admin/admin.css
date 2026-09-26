@@ -105,6 +105,21 @@
   padding: 2px 6px;
   border-radius: 5px;
 }
+.qs-admin-sidebar nav .qs-admin-notification-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px white;
+}
+.qs-admin-sidebar nav .selected .qs-admin-notification-count {
+  box-shadow: 0 0 0 2px #edf3ff;
+}
 .qs-admin-sidebar-bottom {
   margin-top: auto;
   padding-top: 24px;
@@ -619,6 +634,11 @@ table small {
   width: 100%;
   margin: 8px 0 22px;
 }
+.qs-admin-login-secondary {
+  width: 100%;
+  margin: -10px 0 22px;
+}
+
 .qs-admin-back {
   display: block;
   text-align: center;

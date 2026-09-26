@@ -40,8 +40,9 @@ try {
   async function clickText(page, selector, text) {
     await page.waitForFunction(
       (s, t) =>
-        [...document.querySelectorAll(s)].some(
-          (e) => e.textContent.trim() === t,
+        [...document.querySelectorAll(s)].some((e) =>
+          e.textContent.trim() === t ||
+          (e.matches('nav button') && e.textContent.trim().startsWith(t)),
         ),
       {},
       selector,
@@ -50,7 +51,8 @@ try {
     await page.evaluate(
       (s, t) =>
         [...document.querySelectorAll(s)]
-          .find((e) => e.textContent.trim() === t)
+          .find((e) => e.textContent.trim() === t ||
+            (e.matches('nav button') && e.textContent.trim().startsWith(t)))
           .click(),
       selector,
       text,
@@ -107,6 +109,7 @@ try {
   await customer.waitForSelector("form select");
   await customer.type("input[name=name]", "Browser Customer");
   await customer.type("input[name=contact]", "browser@example.test");
+  await customer.type("input[name=receiptEmail]", "browser@example.test");
   await customer.type(
     "textarea[name=note]",
     "Please activate my subscription.",
@@ -115,20 +118,25 @@ try {
   const created = customer.waitForResponse(
     (r) => r.url().endsWith("/api/orders") && r.request().method() === "POST",
   );
-  await clickText(customer, "button", "Continue to payment · ৳299");
+  await customer.evaluate(() =>
+    [...document.querySelectorAll("button")]
+      .find((button) => button.textContent.startsWith("Continue to payment"))
+      .click(),
+  );
   const createdResponse = await created;
   assert.equal(createdResponse.status(), 201);
   const order = (await createdResponse.json()).order;
   await customer.waitForFunction(() =>
-    document.body.textContent.includes("Private access code:"),
+    document.body.textContent.includes("Download order receipt"),
   );
   console.log("PASS order created");
-  const code = await customer.evaluate(() =>
-    [...document.querySelectorAll("p")]
-      .find((p) => p.textContent.startsWith("Private access code:"))
-      .textContent.split(":")[1]
-      .trim(),
+  const code = await customer.evaluate(
+    (id) =>
+      JSON.parse(localStorage.getItem("quicksub-private-receipts") || "[]")
+        .find((receipt) => receipt.id === id)?.accessCode,
+    order.id,
   );
+  assert.match(code, /^[a-f0-9]{64}$/);
   await customer.type(
     'input[placeholder="e.g. bKash — transaction reference"]',
     "TEST-REFERENCE-999",
@@ -154,8 +162,15 @@ try {
   await clickText(customer, "a", "Back to store");
   await clickText(customer, "button", "Track Order");
   const fields = await customer.$$("[role=dialog] input");
-  await fields[0].type(order.id);
-  await fields[1].type(code);
+  const fill = (field, value) => field.evaluate((element, nextValue) => {
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    ).set;
+    setter.call(element, nextValue);
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+  }, value);
+  await fill(fields[0], order.id); await fill(fields[1], code);
   await clickText(customer, "button", "Track order");
   await customer.waitForFunction(() =>
     document

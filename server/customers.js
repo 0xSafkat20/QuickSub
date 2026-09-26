@@ -66,9 +66,10 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   if(!auth.access_token || !uuid.test(user?.id))throw fail(400,'This reset link is invalid. Request a new link.');
   try {await remote('/auth/v1/user',{method:'PUT',token:auth.access_token,body:{password}});}
   catch {throw fail(400,'The password could not be updated. Use a different strong password and request a new reset link.');}
-  // Invalidate every QuickSub session, including sessions on other devices.
+  // Invalidate every QuickSub customer and administrator session on every device.
   try {
    await db('quicksub_customer_sessions?user_id=eq.'+user.id,{method:'DELETE'});
+   await db('quicksub_admin_sessions?user_id=eq.'+user.id,{method:'DELETE'});
    await remote('/auth/v1/logout?scope=global',{method:'POST',token:auth.access_token});
   } catch {throw fail(503,'Your password changed, but session cleanup is incomplete. Contact support before continuing.');}
   res.clearCookie('qs_customer',options(req));

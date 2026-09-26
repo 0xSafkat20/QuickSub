@@ -88,6 +88,7 @@ type Data = {
     revenue: number;
     customers: number;
   };
+  notifications: Record<string, number>;
   customers: {
     contact: string;
     name: string;
@@ -116,6 +117,7 @@ type Data = {
   }[];
 };
 type Session = { email: string; role: "owner" | "staff" };
+type TwoStep = { requiresTwoStep: true; email: string };
 const sections = [
   { name: "Overview", icon: LayoutDashboard },
   { name: "Products", icon: Package },
@@ -179,6 +181,7 @@ export default function AdminApp() {
     [order, setOrder] = useState<Order | null>(null);
   const [store, setStore] = useState<Store | null>(null),
     [settings, setSettings] = useState<SettingsData>(emptySettings);
+  const [twoStepEmail, setTwoStepEmail] = useState("");
   useSessionExpiry('admin', () => { setSession(null); setData(null); setNotice('Session ended. Please sign in again.'); });
   useEffect(() => {
     api<Session>("/admin/session")
@@ -186,8 +189,8 @@ export default function AdminApp() {
       .catch(() => {})
       .finally(() => setChecking(false));
   }, []);
-  const reload = useCallback(async () => {
-    setLoading(true);
+  const reload = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const value = await api<Data>("/admin/data?offset=" + offset);
       setData(value);
@@ -199,11 +202,16 @@ export default function AdminApp() {
     } catch (e) {
       setError((e as Error).message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [offset]);
   useEffect(() => {
     if (session) void reload();
+  }, [session, reload]);
+  useEffect(() => {
+    if (!session) return;
+    const timer = window.setInterval(() => void reload(true), 30_000);
+    return () => window.clearInterval(timer);
   }, [session, reload]);
   async function action(task: () => Promise<unknown>, message: string) {
     setBusy(true);
@@ -227,12 +235,43 @@ export default function AdminApp() {
     setBusy(true);
     setError("");
     try {
-      setSession(
-        await api<Session>("/admin/login", {
-          email: fields.get("email"),
-          password: fields.get("password"),
-        }),
-      );
+      const result = await api<
+        Session | TwoStep
+      >("/admin/login", {
+        email: fields.get("email"),
+        password: fields.get("password"),
+      });
+      if ("requiresTwoStep" in result) setTwoStepEmail(result.email);
+      else setSession(result);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function verify(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fields = new FormData(e.currentTarget);
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<Session>("/admin/verify", {
+        code: fields.get("code"),
+      });
+      setTwoStepEmail("");
+      setSession(result);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function cancelTwoStep() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("/admin/two-step/cancel", {});
+      setTwoStepEmail("");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -272,34 +311,69 @@ export default function AdminApp() {
           </div>
         </div>
         <main className="qs-admin-login-form">
-          <form onSubmit={login}>
+          <form onSubmit={twoStepEmail ? verify : login}>
             <span className="qs-admin-eyebrow">QUICKSUB ADMIN</span>
-            <h2>Welcome back</h2>
-            <p>Sign in with your authorized Supabase account.</p>
+            <h2>{twoStepEmail ? "Check your email" : "Welcome back"}</h2>
+            <p>
+              {twoStepEmail
+                ? `Enter the six-digit code sent to ${twoStepEmail}. It expires in 10 minutes.`
+                : "Sign in with your authorized Supabase account."}
+            </p>
             {error && (
               <div role="alert" className="qs-admin-error">
                 {error}
               </div>
             )}
-            <Field label="Email address">
-              <input
-                name="email"
-                type="email"
-                autoComplete="username"
-                required
-              />
-            </Field>
-            <Field label="Password">
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </Field>
-            <button className="qs-admin-primary" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in to dashboard"}
-            </button>
+            {twoStepEmail ? (
+              <>
+                <Field label="Verification code">
+                  <input
+                    name="code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    minLength={6}
+                    maxLength={6}
+                    required
+                    autoFocus
+                  />
+                </Field>
+                <button className="qs-admin-primary" disabled={busy}>
+                  {busy ? "Verifying…" : "Verify and open dashboard"}
+                </button>
+                <button
+                  className="qs-admin-secondary qs-admin-login-secondary"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void cancelTwoStep()}
+                >
+                  Use a different account
+                </button>
+              </>
+            ) : (
+              <>
+                <Field label="Email address">
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="username"
+                    required
+                  />
+                </Field>
+                <Field label="Password">
+                  <input
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                </Field>
+                <button className="qs-admin-primary" disabled={busy}>
+                  {busy ? "Signing in…" : "Sign in to dashboard"}
+                </button>
+              </>
+            )}
             <SiteLink href="/" className="qs-admin-back">
               ← Back to customer website
             </SiteLink>
@@ -327,10 +401,13 @@ export default function AdminApp() {
                 owner ||
                 !["Content", "Offers", "Settings", "Activity"].includes(s.name),
             )
-            .map(({ name, icon: Icon }) => (
+            .map(({ name, icon: Icon }) => {
+              const notificationCount = data?.notifications?.[name] || 0;
+              return (
               <button
                 key={name}
                 className={tab === name ? "selected" : ""}
+                aria-label={notificationCount ? `${name}, ${notificationCount} notifications` : name}
                 onClick={() => {
                   setTab(name);
                   setQuery("");
@@ -342,15 +419,18 @@ export default function AdminApp() {
               >
                 <Icon size={18} />
                 {name}
-                {name === "Inbox" &&
-                  !!data?.requests.filter((r) => r.status === "open")
-                    .length && (
-                    <small>
-                      {data.requests.filter((r) => r.status === "open").length}
-                    </small>
-                  )}
+                {!!notificationCount && (
+                  <small
+                    className="qs-admin-notification-count"
+                    aria-label={`${notificationCount} notifications`}
+                    title={`${notificationCount} items need attention`}
+                  >
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </small>
+                )}
               </button>
-            ))}
+              );
+            })}
         </nav>
         <div className="qs-admin-sidebar-bottom">
           <a href="/" target="_blank" rel="noreferrer">

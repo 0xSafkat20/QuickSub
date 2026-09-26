@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
 import puppeteer from 'puppeteer';
 import { startTestServer, packageId } from './admin-test-server.mjs';
 
 const env = await startTestServer();
 let browser;
 try {
-  browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+  await mkdir('deliverables/feature-preview', { recursive: true });
+  browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, timeout: 120_000 });
   const page = await browser.newPage();
+  page.setDefaultTimeout(60_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.setViewport({ width: 1280, height: 900 });
@@ -17,6 +20,7 @@ try {
     await page.evaluate(value => [...document.querySelectorAll('button')].find(button => button.textContent.trim() === value).click(), text);
   };
 
+  console.log('STEP create isolated customer and completed purchase');
   await page.goto(env.base + '/account', { waitUntil: 'networkidle0' });
   await clickText('New here? Create an account');
   await page.type('[name="name"]', 'Feature Reviewer');
@@ -37,11 +41,15 @@ try {
   await page.locator('textarea[placeholder*="Tell other customers"]').fill('Excellent Netflix product and quick verified delivery.');
   await clickText('Publish review');
   await page.waitForFunction(() => document.body.innerText.includes('your verified review is now visible'));
+  await page.screenshot({ path: 'deliverables/feature-preview/completed-purchase-review.png', fullPage: true });
   console.log('PASS review form appears only on a completed purchase and publishes a 4-star product comment');
 
   await page.goto(env.base, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.body.innerText.includes('Excellent Netflix product and quick verified delivery.'));
   assert.match(await page.$eval('#reviews', element => element.innerText), /Verified purchase/);
+  const reviewSection = await page.$('#reviews');
+  assert.ok(reviewSection);
+  await reviewSection.screenshot({ path: 'deliverables/feature-preview/landing-page-verified-review.png' });
   console.log('PASS published review appears in the storefront verified-review section');
 
   const search = '#products input[role="combobox"]';

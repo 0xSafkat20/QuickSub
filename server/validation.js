@@ -24,6 +24,11 @@ const email = value => {
 };
 const authSchemas = {
   adminLogin: { email, password: text(256, 1, false) },
+  adminVerify: { code: value => {
+    const result = string(value, 6, 6);
+    if (!/^\d{6}$/.test(result)) throw fail(400, 'Enter the six-digit verification code.');
+    return result;
+  } },
   login: { email, password: text(128, 1, false) },
   signup: { email, password: text(128, 10, false), name: text(120) },
   forgotPassword: { email },

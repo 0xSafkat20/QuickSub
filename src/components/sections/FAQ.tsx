@@ -143,6 +143,7 @@ export default function FAQ() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
+          // Escape "<" so administrator-authored text cannot close the script tag.
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
@@ -151,7 +152,7 @@ export default function FAQ() {
               name: item.question,
               acceptedAnswer: { '@type': 'Answer', text: item.answer },
             })),
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
     </section>

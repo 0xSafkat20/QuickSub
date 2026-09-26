@@ -16,8 +16,10 @@ test('password recovery validates links, changes passwords and revokes sessions'
   const unknown=await request('forgot-password',{email:'unknown@example.test'});
   assert.equal(known.status,200);assert.deepEqual(known.body,unknown.body);
   const tokenHash='test-recovery-'+session.body.user.id,newPassword='replacement-password-123';
+  await env.db.query("insert into quicksub_admin_sessions(id,user_id,token,expires_at,refresh_token,token_expires_at) values(repeat('a',64),$1,'test-token',now()+interval '1 hour','test-refresh',now()+interval '1 hour')",[session.body.user.id]);
   assert.equal((await request('reset-password',{tokenHash,password:newPassword,confirmPassword:'different-password'})).status,400);
   assert.equal((await request('reset-password',{tokenHash,password:newPassword,confirmPassword:newPassword})).status,200);
+  assert.equal((await env.db.query('select count(*)::int n from quicksub_admin_sessions where user_id=$1',[session.body.user.id])).rows[0].n,0);
   assert.equal((await request('orders',undefined,signup.cookie)).status,401);
   assert.equal((await request('login',{email,password})).status,401);
   assert.equal((await request('login',{email,password:newPassword})).status,200);

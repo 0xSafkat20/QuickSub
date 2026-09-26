@@ -14,6 +14,8 @@ function createAdminRouter({
   demoCheckout = process.env.QUICKSUB_DEMO_CHECKOUT === "true",
   previewCheckout = process.env.QUICKSUB_PREVIEW_CHECKOUT === "true",
   sharedSessions = process.env.VERCEL === "1" || process.env.NODE_ENV === "production",
+  adminTwoStep = paymentEnv.ADMIN_TWO_STEP === "true",
+  sendAdminCode,
 } = {}) {
   const router = express.Router();
   const limits = new Map();
@@ -59,10 +61,27 @@ function createAdminRouter({
           providerMessage: provider.msg || provider.message || provider.error_description || '',
         });
       }
+      let provider = {};
+      try { provider = await response.json(); } catch {}
+      const providerMessage = provider && typeof provider === "object"
+        ? String(provider.message || provider.details || "")
+        : "";
+      const knownConflict = [
+        [/Verify payment before fulfillment/i, "Set Payment status to verified before changing the order to processing or delivered."],
+        [/Payment reference required/i, "A payment reference is required before payment can be submitted or verified. Ask the customer to submit the transaction reference, then refresh."],
+        [/Cancelled orders cannot reopen/i, "Cancelled orders cannot be reopened. Create a new order instead."],
+        [/Delivered orders cannot move backwards/i, "Delivered orders cannot be moved back to pending or processing."],
+        [/Verified payments cannot be reset/i, "A verified payment cannot be changed back to unpaid, submitted, or rejected."],
+        [/Refunded payments cannot be reset/i, "A refunded payment cannot be changed to another payment status."],
+        [/Only verified payments can be refunded/i, "Only a verified payment can be marked as refunded."],
+        [/Package unavailable/i, "That package is no longer available. Refresh the dashboard and choose an active package."],
+        [/Product unavailable/i, "That product is unavailable or out of stock. Refresh the dashboard before trying again."],
+        [/Price changed/i, "The package price changed. Refresh the dashboard and try again with the current price."],
+      ].find(([pattern]) => pattern.test(providerMessage));
       throw fail(
         response.status === 400 || response.status === 409 ? 409 : 503,
         response.status === 400 || response.status === 409
-          ? "The update conflicts with the current record. Check availability, payment reference and order status, then refresh."
+          ? knownConflict?.[1] || "The update conflicts with the current record. Check availability, payment reference and order status, then refresh."
           : "Database unavailable. Check configuration and migrations.",
       );
     }
@@ -94,10 +113,11 @@ function createAdminRouter({
     }
     next();
   });
-  function rate(req, name, maximum) {
+  function rate(req, name, maximum, discriminator = "") {
     const time = now();
     for (const [id, item] of limits) if (item.until <= time) limits.delete(id);
-    const id = name + ":" + req.ip;
+    const safeDiscriminator = String(discriminator).trim().toLowerCase().slice(0, 254);
+    const id = name + ":" + req.ip + (safeDiscriminator ? ":" + safeDiscriminator : "");
     const item = limits.get(id) || { count: 0, until: time + 60000 };
     if (limits.size >= 10000 && !limits.has(id))
       throw fail(429, "Please try again in a minute.");
@@ -105,7 +125,31 @@ function createAdminRouter({
     if (++item.count > maximum)
       throw fail(429, "Too many requests. Please try again in a minute.");
   }
-  require("./auth").installAdminAuth({ router, db, remote, rate, now, sharedSessions });
+  const deliverAdminCode = sendAdminCode || (async ({ email, code }) => {
+    const apiKey = paymentEnv.RESEND_API_KEY;
+    const from = paymentEnv.ADMIN_TWO_STEP_FROM || paymentEnv.PAYMENT_RECEIPT_FROM;
+    if (!apiKey || !from) throw new Error("Admin two-step email is not configured.");
+    const response = await fetchImpl("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + apiKey,
+        "Content-Type": "application/json",
+        "Idempotency-Key": "quicksub-admin-code-" + randomUUID(),
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: "Your QuickSub admin verification code",
+        text: "Your QuickSub admin verification code is " + code + ". It expires in 10 minutes. If you did not request it, change your password immediately.",
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error("Admin two-step email delivery failed.");
+  });
+  require("./auth").installAdminAuth({
+    router, db, remote, rate, now, sharedSessions,
+    twoStep: { enabled: adminTwoStep, sendCode: deliverAdminCode },
+  });
   const customers = require("./customers").installCustomers({router,run,db,remote,rate,string,contact,now});
   const { router: ordersRouter, findOrder } = require("./orders").createOrders({ db, rate, customers, now });
   router.use(ordersRouter);
@@ -227,6 +271,8 @@ function createAdminRouter({
         audit,
         overview,
         customers,
+        subscriptions,
+        paymentsForAttention,
       ] = await Promise.all([
         db("quicksub_products?select=*&order=sort_order.asc,id.asc&limit=1000"),
         db("quicksub_packages?select=*&order=name.asc&limit=1000"),
@@ -243,7 +289,43 @@ function createAdminRouter({
           method: "POST",
           body: { p_offset: offset },
         }),
+        db("quicksub_subscriptions?select=id,status,ends_at&limit=1000").catch(
+          () => [],
+        ),
+        db("quicksub_payments?select=id,status,refund_status&limit=1000").catch(
+          () => [],
+        ),
       ]);
+      const currentTime = now();
+      const expiringBefore = currentTime + 7 * 86400000;
+      const notifications = {
+        Products: products.filter((p) => p.active && !p.in_stock).length,
+        Packages: products.filter(
+          (product) =>
+            product.active &&
+            product.in_stock &&
+            !packages.some(
+              (plan) => plan.product_id === product.id && plan.active,
+            ),
+        ).length,
+        Orders: Number(overview.pending || 0),
+        Subscriptions: subscriptions.filter(
+          (subscription) =>
+            ["active", "upcoming"].includes(subscription.status) &&
+            Date.parse(subscription.ends_at) <= expiringBefore,
+        ).length,
+        Reports: paymentsForAttention.filter(
+          (payment) =>
+            ["pending", "failed", "cancelled", "review"].includes(
+              payment.status,
+            ) || ["requested", "pending", "failed"].includes(payment.refund_status),
+        ).length,
+        Inbox: requests.filter((request) => request.status === "open").length,
+      };
+      notifications.Overview = Object.values(notifications).reduce(
+        (total, count) => total + count,
+        0,
+      );
       res.json({
         products: products.map((p) => ({
           ...p,
@@ -258,6 +340,7 @@ function createAdminRouter({
         requests,
         audit,
         overview,
+        notifications,
         customers,
         offset,
       });
