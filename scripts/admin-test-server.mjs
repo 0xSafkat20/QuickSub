@@ -9,7 +9,7 @@ const { createCatalog } = require("../server/catalog");
 export const ownerId = "10000000-0000-4000-8000-000000000001";
 export const staffId = "10000000-0000-4000-8000-000000000002";
 export const packageId = "20000000-0000-4000-8000-000000000001";
-export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false, receiptSimulation = false, emailConfirmation = false, adminTwoStep = false, sendAdminCode } = {}) {
+export async function startTestServer({ port = 0, now = Date.now, password = "test-password", paymentEnv = {}, paymentFetch, demoCheckout = false, receiptSimulation = false, emailConfirmation = false, adminTwoStep = false, sendAdminCode, notificationMigration = true } = {}) {
   const db = new PGlite();
   await db.exec(
     `create role anon; create role authenticated; create role service_role; create schema auth; create table auth.users(id uuid primary key); create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`,
@@ -28,7 +28,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260929000000_verified_reviews.sql",
     "20260930000000_admin_two_step.sql",
     "20261001000000_admin_notifications.sql",
-  ])
+  ].filter((name) => notificationMigration || name !== "20261001000000_admin_notifications.sql"))
     await db.exec(
       await readFile(
         new URL("../supabase/migrations/" + name, import.meta.url),

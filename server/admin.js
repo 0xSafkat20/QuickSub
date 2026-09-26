@@ -106,6 +106,37 @@ function createAdminRouter({
     catch { throw fail(503, "The database returned an invalid response. Please try again."); }
   }
   const db = (path, options) => remote("/rest/v1/" + path, options);
+  const legacyNotificationReadId = (userId) => `notification-read-${userId}`;
+  async function loadLegacyNotificationReads(userId) {
+    const rows = await db(
+      `quicksub_content?id=eq.${encodeURIComponent(legacyNotificationReadId(userId))}&select=data&limit=1`,
+    );
+    const data = rows[0]?.data;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+    return notificationSections.flatMap((section) => {
+      const readAt = data[section];
+      return typeof readAt === "string" && Number.isFinite(Date.parse(readAt))
+        ? [{ section, read_at: readAt }]
+        : [];
+    });
+  }
+  async function saveLegacyNotificationReads(userId, sections, readAt) {
+    const id = legacyNotificationReadId(userId);
+    const existing = await loadLegacyNotificationReads(userId);
+    const data = Object.fromEntries(existing.map((item) => [item.section, item.read_at]));
+    for (const section of sections) data[section] = readAt;
+    const rows = await db(`quicksub_content?id=eq.${encodeURIComponent(id)}&select=id&limit=1`);
+    const body = { data, updated_at: readAt };
+    if (rows.length) {
+      await db(`quicksub_content?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", body });
+      return;
+    }
+    try {
+      await db("quicksub_content", { method: "POST", body: { id, ...body } });
+    } catch {
+      await db(`quicksub_content?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", body });
+    }
+  }
   const payments = createPayments({ db, fetchImpl, env: paymentEnv });
   router.use('/payments', (req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -284,9 +315,13 @@ function createAdminRouter({
         body: { p_user: req.admin.id, p_sections: sections, p_read_at: readAt },
       });
     } catch (error) {
-      if (sharedSessions) throw error;
-      for (const name of sections)
-        localNotificationReads.set(`${req.admin.id}:${name}`, readAt);
+      try {
+        await saveLegacyNotificationReads(req.admin.id, sections, readAt);
+      } catch (fallbackError) {
+        if (sharedSessions) throw fallbackError;
+        for (const name of sections)
+          localNotificationReads.set(`${req.admin.id}:${name}`, readAt);
+      }
     }
     res.json({ ok: true, sections });
   }));
@@ -303,7 +338,6 @@ function createAdminRouter({
         try {
           return await db(`quicksub_orders?is_demo=eq.false&select=${orderFields}&order=created_at.desc,id.desc&limit=50&offset=${offset}`);
         } catch (error) {
-          if (sharedSessions) throw error;
           legacyOrders = (await db(`quicksub_orders?select=${orderFields}&order=created_at.desc,id.desc&limit=1000`))
             .filter((order) => !isDemoOrder(order));
           return legacyOrders.slice(offset, offset + 50);
@@ -342,16 +376,21 @@ function createAdminRouter({
         db("quicksub_payments?select=id,status,refund_status,created_at,checked_at,refund_updated_at&limit=1000").catch(
           () => [],
         ),
-        db(`quicksub_admin_notification_reads?user_id=eq.${encodeURIComponent(req.admin.id)}&select=section,read_at`).catch((error) => {
-          if (sharedSessions) throw error;
-          return notificationSections.flatMap((section) => {
-            const read_at = localNotificationReads.get(`${req.admin.id}:${section}`);
-            return read_at ? [{ section, read_at }] : [];
-          });
+        db(`quicksub_admin_notification_reads?user_id=eq.${encodeURIComponent(req.admin.id)}&select=section,read_at`).catch(async () => {
+          try {
+            return await loadLegacyNotificationReads(req.admin.id);
+          } catch (error) {
+            if (sharedSessions) throw error;
+            return notificationSections.flatMap((section) => {
+              const read_at = localNotificationReads.get(`${req.admin.id}:${section}`);
+              return read_at ? [{ section, read_at }] : [];
+            });
+          }
         }),
-        (sharedSessions
-          ? db('rpc/quicksub_admin_notifications', { method: 'POST', body: { p_user: req.admin.id } })
-          : db('rpc/quicksub_admin_notifications', { method: 'POST', body: { p_user: req.admin.id } }).catch(() => null)),
+        db('rpc/quicksub_admin_notifications', {
+          method: 'POST',
+          body: { p_user: req.admin.id },
+        }).catch(() => null),
       ]);
       const visibleCustomers = customers.filter((customer) => !isDemoOrder({ customer_name: customer.name }));
       const visibleOverview = legacyOrders ? {
@@ -426,12 +465,12 @@ function createAdminRouter({
           price_bdt: Number(p.price_bdt),
         })),
         orders,
-        content,
+        content: content.filter((item) => ["store", "settings"].includes(item.id)),
         requests,
         audit,
-        overview,
+        overview: visibleOverview,
         notifications,
-        customers,
+        customers: visibleCustomers,
         offset,
       });
     }),

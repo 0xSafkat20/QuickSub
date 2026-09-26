@@ -100,3 +100,57 @@ test("admin notifications use real unread data and exclude demo records", async 
     400,
   );
 });
+test("admin dashboard remains usable before the notification migration", async (t) => {
+  const env = await startTestServer({ notificationMigration: false });
+  t.after(() => env.close());
+  const call = async (path, body, cookie = "") => {
+    const response = await fetch(env.base + "/api" + path, {
+      method: body === undefined ? "GET" : "POST",
+      headers: {
+        Origin: env.base,
+        "Content-Type": "application/json",
+        "X-QuickSub-Client": "web",
+        Cookie: cookie,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    return {
+      status: response.status,
+      body: await response.json(),
+      cookie: response.headers.get("set-cookie")?.split(";")[0],
+    };
+  };
+
+  await call("/orders", {
+    id: randomUUID(),
+    accessCode: randomBytes(32).toString("hex"),
+    packageId,
+    name: "Legacy Customer",
+    contact: "legacy@example.test",
+    note: "",
+    expectedPrice: 299,
+  });
+  const login = await call("/admin/login", {
+    email: "owner@example.test",
+    password: "test-password",
+  });
+  assert.equal(login.status, 200);
+
+  const initial = await call("/admin/data", undefined, login.cookie);
+  assert.equal(initial.status, 200);
+  assert.equal(initial.body.overview.pending, 1);
+  assert.equal(initial.body.notifications.Orders, 1);
+
+  assert.equal(
+    (await call("/admin/notifications/read", { section: "Orders" }, login.cookie)).status,
+    200,
+  );
+  const read = await call("/admin/data", undefined, login.cookie);
+  assert.equal(read.status, 200);
+  assert.equal(read.body.notifications.Orders, 0);
+  assert.deepEqual(read.body.content.map((item) => item.id).sort(), ["settings", "store"]);
+  assert.equal(
+    (await env.db.query("select count(*)::int count from quicksub_content where id like 'notification-read-%'")).rows[0].count,
+    1,
+  );
+});
