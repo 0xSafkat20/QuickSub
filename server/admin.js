@@ -4,6 +4,19 @@ const { randomUUID } = require("node:crypto");
 const { toProduct } = require("./catalog");
 const { fail, run, errorHandler } = require("./http");
 const { string, contact, uuid } = require("./validation");
+const notificationSections = Object.freeze([
+  "Products",
+  "Packages",
+  "Orders",
+  "Customers",
+  "Subscriptions",
+  "Reports",
+  "Inbox",
+]);
+const isDemoOrder = (order) =>
+  /^\[DEMO\]/i.test(String(order.customer_name || "")) ||
+  String(order.id || "").startsWith("d0000000-");
+
 function createAdminRouter({
   url = process.env.SUPABASE_URL,
   key = process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -19,6 +32,7 @@ function createAdminRouter({
 } = {}) {
   const router = express.Router();
   const limits = new Map();
+  const localNotificationReads = new Map();
   const configured = !!url && !!key;
   const base = (url || "").replace(/\/$/, "");
   async function remote(
@@ -255,6 +269,27 @@ function createAdminRouter({
     } });
     res.json({ ok: true });
   }));
+  router.post('/admin/notifications/read', run(async (req, res) => {
+    rate(req, 'admin-notification-read', 60);
+    const section = string(req.body?.section, 32);
+    if (section !== 'all' && section !== 'Overview' && !notificationSections.includes(section))
+      throw fail(400, 'Choose a valid notification section.');
+    const sections = section === 'all' || section === 'Overview'
+      ? notificationSections
+      : [section];
+    const readAt = new Date(now()).toISOString();
+    try {
+      await db('rpc/quicksub_mark_admin_notifications_read', {
+        method: 'POST',
+        body: { p_user: req.admin.id, p_sections: sections, p_read_at: readAt },
+      });
+    } catch (error) {
+      if (sharedSessions) throw error;
+      for (const name of sections)
+        localNotificationReads.set(`${req.admin.id}:${name}`, readAt);
+    }
+    res.json({ ok: true, sections });
+  }));
   router.get(
     "/admin/data",
     run(async (req, res) => {
@@ -262,6 +297,18 @@ function createAdminRouter({
         0,
         Math.min(1000000, Math.floor(Number(req.query.offset) || 0)),
       );
+      let legacyOrders = null;
+      const orderFields = "id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,delivery_note,created_at,updated_at";
+      const loadOrders = async () => {
+        try {
+          return await db(`quicksub_orders?is_demo=eq.false&select=${orderFields}&order=created_at.desc,id.desc&limit=50&offset=${offset}`);
+        } catch (error) {
+          if (sharedSessions) throw error;
+          legacyOrders = (await db(`quicksub_orders?select=${orderFields}&order=created_at.desc,id.desc&limit=1000`))
+            .filter((order) => !isDemoOrder(order));
+          return legacyOrders.slice(offset, offset + 50);
+        }
+      };
       const [
         products,
         packages,
@@ -273,12 +320,12 @@ function createAdminRouter({
         customers,
         subscriptions,
         paymentsForAttention,
+        notificationReads,
+        notificationSummary,
       ] = await Promise.all([
         db("quicksub_products?select=*&order=sort_order.asc,id.asc&limit=1000"),
         db("quicksub_packages?select=*&order=name.asc&limit=1000"),
-        db(
-          `quicksub_orders?select=id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,delivery_note,created_at,updated_at&order=created_at.desc,id.desc&limit=50&offset=${offset}`,
-        ),
+        loadOrders(),
         db("quicksub_content?select=*"),
         db("quicksub_requests?select=*&order=created_at.desc&limit=100"),
         req.admin.role === "owner"
@@ -289,43 +336,86 @@ function createAdminRouter({
           method: "POST",
           body: { p_offset: offset },
         }),
-        db("quicksub_subscriptions?select=id,status,ends_at&limit=1000").catch(
+        db("quicksub_subscriptions?select=id,status,ends_at,updated_at&limit=1000").catch(
           () => [],
         ),
-        db("quicksub_payments?select=id,status,refund_status&limit=1000").catch(
+        db("quicksub_payments?select=id,status,refund_status,created_at,checked_at,refund_updated_at&limit=1000").catch(
           () => [],
         ),
+        db(`quicksub_admin_notification_reads?user_id=eq.${encodeURIComponent(req.admin.id)}&select=section,read_at`).catch((error) => {
+          if (sharedSessions) throw error;
+          return notificationSections.flatMap((section) => {
+            const read_at = localNotificationReads.get(`${req.admin.id}:${section}`);
+            return read_at ? [{ section, read_at }] : [];
+          });
+        }),
+        (sharedSessions
+          ? db('rpc/quicksub_admin_notifications', { method: 'POST', body: { p_user: req.admin.id } })
+          : db('rpc/quicksub_admin_notifications', { method: 'POST', body: { p_user: req.admin.id } }).catch(() => null)),
       ]);
+      const visibleCustomers = customers.filter((customer) => !isDemoOrder({ customer_name: customer.name }));
+      const visibleOverview = legacyOrders ? {
+        orders: legacyOrders.length,
+        pending: legacyOrders.filter((order) => order.status === 'pending').length,
+        revenue: legacyOrders
+          .filter((order) => order.payment_status === 'verified')
+          .reduce((total, order) => total + Number(order.amount_bdt), 0),
+        customers: new Set(legacyOrders.map((order) => order.contact)).size,
+      } : overview;
+      const notificationOrders = legacyOrders || orders;
+      const notificationCustomers = legacyOrders
+        ? [...legacyOrders.reduce((latest, order) => {
+            const current = latest.get(order.contact);
+            if (!current || Date.parse(order.updated_at) > Date.parse(current.last_order))
+              latest.set(order.contact, { last_order: order.updated_at });
+            return latest;
+          }, new Map()).values()]
+        : visibleCustomers;
       const currentTime = now();
       const expiringBefore = currentTime + 7 * 86400000;
+      const readAt = Object.fromEntries(notificationSections.map((section) => [
+        section,
+        Date.parse(notificationReads.find((item) => item.section === section)?.read_at || '1970-01-01T00:00:00.000Z'),
+      ]));
+      const isUnread = (section, value) => {
+        const changedAt = Date.parse(value || '');
+        return Number.isFinite(changedAt) && changedAt > readAt[section];
+      };
+      const productsNeedingAttention = products.filter((product) =>
+        product.active && !product.in_stock && isUnread('Products', product.updated_at),
+      );
+      const packagesNeedingAttention = products.filter((product) => {
+        if (!product.active || !product.in_stock || packages.some((plan) => plan.product_id === product.id && plan.active)) return false;
+        const latestPackageChange = packages
+          .filter((plan) => plan.product_id === product.id)
+          .reduce((latest, plan) => Date.parse(plan.updated_at || '') > Date.parse(latest || '') ? plan.updated_at : latest, product.updated_at);
+        return isUnread('Packages', latestPackageChange);
+      });
       const notifications = {
-        Products: products.filter((p) => p.active && !p.in_stock).length,
-        Packages: products.filter(
-          (product) =>
-            product.active &&
-            product.in_stock &&
-            !packages.some(
-              (plan) => plan.product_id === product.id && plan.active,
-            ),
-        ).length,
-        Orders: Number(overview.pending || 0),
+        Products: productsNeedingAttention.length,
+        Packages: packagesNeedingAttention.length,
+        Orders: notificationOrders.filter((order) => order.status === 'pending' && isUnread('Orders', order.updated_at)).length,
+        Customers: notificationCustomers.filter((customer) => isUnread('Customers', customer.last_order)).length,
         Subscriptions: subscriptions.filter(
           (subscription) =>
             ["active", "upcoming"].includes(subscription.status) &&
-            Date.parse(subscription.ends_at) <= expiringBefore,
+            Date.parse(subscription.ends_at) <= expiringBefore &&
+            isUnread('Subscriptions', subscription.updated_at),
         ).length,
         Reports: paymentsForAttention.filter(
           (payment) =>
-            ["pending", "failed", "cancelled", "review"].includes(
-              payment.status,
-            ) || ["requested", "pending", "failed"].includes(payment.refund_status),
+            (["pending", "failed", "cancelled", "review"].includes(payment.status) ||
+              ["requested", "pending", "failed"].includes(payment.refund_status)) &&
+            isUnread('Reports', payment.refund_updated_at || payment.checked_at || payment.created_at),
         ).length,
-        Inbox: requests.filter((request) => request.status === "open").length,
+        Inbox: requests.filter((request) => request.status === "open" && isUnread('Inbox', request.created_at)).length,
       };
       notifications.Overview = Object.values(notifications).reduce(
         (total, count) => total + count,
         0,
       );
+      if (notificationSummary && typeof notificationSummary === "object")
+        Object.assign(notifications, notificationSummary);
       res.json({
         products: products.map((p) => ({
           ...p,

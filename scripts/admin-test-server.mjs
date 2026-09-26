@@ -27,6 +27,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260927000000_subscriptions.sql",
     "20260929000000_verified_reviews.sql",
     "20260930000000_admin_two_step.sql",
+    "20261001000000_admin_notifications.sql",
   ])
     await db.exec(
       await readFile(
@@ -150,7 +151,11 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
         const result = await db.query(
           `select ${name}(${args}) as result`,
           entries.map(([, v]) =>
-            v !== null && typeof v === "object" ? JSON.stringify(v) : v,
+            Array.isArray(v)
+              ? "{" + v.join(",") + "}"
+              : v !== null && typeof v === "object"
+                ? JSON.stringify(v)
+                : v,
           ),
         );
         return response(result.rows[0].result);

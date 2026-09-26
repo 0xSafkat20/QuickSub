@@ -26,6 +26,8 @@ import {
   RefreshCw,
   ShieldCheck,
   Search,
+  ChevronDown,
+  CheckCheck,
   BarChart3,
 } from "lucide-react";
 import { api } from "../utils/api";
@@ -182,6 +184,7 @@ export default function AdminApp() {
   const [store, setStore] = useState<Store | null>(null),
     [settings, setSettings] = useState<SettingsData>(emptySettings);
   const [twoStepEmail, setTwoStepEmail] = useState("");
+  const [navigationExpanded, setNavigationExpanded] = useState(false);
   useSessionExpiry('admin', () => { setSession(null); setData(null); setNotice('Session ended. Please sign in again.'); });
   useEffect(() => {
     api<Session>("/admin/session")
@@ -208,6 +211,33 @@ export default function AdminApp() {
   useEffect(() => {
     if (session) void reload();
   }, [session, reload]);
+  async function markNotificationsRead(section: string) {
+    setData((current) => {
+      if (!current) return current;
+      const clearAll = section === "all" || section === "Overview";
+      const sectionCount = current.notifications[section] || 0;
+      return {
+        ...current,
+        notifications: Object.fromEntries(
+          Object.entries(current.notifications).map(([name, count]) => [
+            name,
+            clearAll || name === section
+              ? 0
+              : name === "Overview"
+                ? Math.max(0, count - sectionCount)
+                : count,
+          ]),
+        ),
+      };
+    });
+    try {
+      await api("/admin/notifications/read", { section });
+      await reload(true);
+    } catch (e) {
+      setError((e as Error).message);
+      await reload(true);
+    }
+  }
   useEffect(() => {
     if (!session) return;
     const timer = window.setInterval(() => void reload(true), 30_000);
@@ -394,19 +424,23 @@ export default function AdminApp() {
             QuickSub<small>STORE MANAGEMENT</small>
           </span>
         </SiteLink>
-        <nav aria-label="Admin navigation">
+        <nav id="qs-admin-navigation" aria-label="Admin navigation">
           {sections
             .filter(
               (s) =>
                 owner ||
                 !["Content", "Offers", "Settings", "Activity"].includes(s.name),
             )
-            .map(({ name, icon: Icon }) => {
+            .map(({ name, icon: Icon }, index) => {
               const notificationCount = data?.notifications?.[name] || 0;
               return (
               <button
                 key={name}
-                className={tab === name ? "selected" : ""}
+                className={[
+                  tab === name ? "selected" : "",
+                  index >= 6 ? "qs-admin-nav-extra" : "",
+                  navigationExpanded ? "is-visible" : "",
+                ].filter(Boolean).join(" ")}
                 aria-label={notificationCount ? `${name}, ${notificationCount} notifications` : name}
                 onClick={() => {
                   setTab(name);
@@ -415,6 +449,7 @@ export default function AdminApp() {
                   setPlan(null);
                   setOrder(null);
                   setNotice("");
+                  if (notificationCount) void markNotificationsRead(name);
                 }}
               >
                 <Icon size={18} />
@@ -431,7 +466,30 @@ export default function AdminApp() {
               </button>
               );
             })}
+          <button
+            type="button"
+            className="qs-admin-nav-toggle"
+            aria-expanded={navigationExpanded}
+            aria-controls="qs-admin-navigation"
+            onClick={() => setNavigationExpanded(value => !value)}
+          >
+            <ChevronDown
+              className={navigationExpanded ? "is-expanded" : ""}
+              size={18}
+            />
+            {navigationExpanded ? "Show less" : "Show more"}
+          </button>
         </nav>
+        {!!data?.notifications?.Overview && (
+          <button
+            type="button"
+            className="qs-admin-mark-read"
+            onClick={() => void markNotificationsRead("all")}
+          >
+            <CheckCheck size={16} />
+            Mark all read
+          </button>
+        )}
         <div className="qs-admin-sidebar-bottom">
           <a href="/" target="_blank" rel="noreferrer">
             View customer website <ArrowUpRight size={16} />

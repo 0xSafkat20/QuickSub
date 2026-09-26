@@ -20,6 +20,7 @@ The admin dashboard is at `/admin`. It shares the existing Node API and Supabase
    - `supabase/migrations/20260927000000_subscriptions.sql`
    - `supabase/migrations/20260929000000_verified_reviews.sql`
    - `supabase/migrations/20260930000000_admin_two_step.sql`
+   - `supabase/migrations/20261001000000_admin_notifications.sql`
 3. Copy `server/.env.example` to `server/.env` if you do not have one. Privately configure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `GEMINI_API_KEY`. The existing private file has blank values. Never put these keys in a `VITE_` variable or send them in chat.
 4. Run `npm run db:seed` to import the original catalog and content. Existing records are preserved. To copy original images to Storage for newly imported products, use `npm run db:seed -- --upload-images`. Images can also be uploaded individually from the admin product editor.
 5. In Supabase Authentication → Users, create your own email/password account. Copy its user UUID. Run the following SQL with your actual UUID:
@@ -35,6 +36,8 @@ To provision staff, create another Auth account and insert its UUID with role `s
 7. For production, deploy the Node server together with `dist`, use HTTPS, set `NODE_ENV=production` and `PUBLIC_ORIGIN=https://your-exact-domain.example` (no trailing slash). Set `TRUST_PROXY_HOPS` only to the exact number of trusted reverse proxies in your deployment. A static-only host cannot provide admin login or checkout.
 
 ## Administrator two-step verification
+
+After applying `20261001000000_admin_notifications.sql`, admin badges are calculated from real unread database records. Opening a section marks that section read for the signed-in administrator; **Mark all read** clears every badge. New or changed records make the relevant badge reappear. Orders explicitly tagged as demo (including the existing `[DEMO]`/`d0000000-` fixtures) are excluded from admin order and customer totals.
 
 After applying `20260930000000_admin_two_step.sql`, configure `RESEND_API_KEY` and a verified `ADMIN_TWO_STEP_FROM` address, then set `ADMIN_TWO_STEP=true`. A successful password login sends a six-digit code to the administrator's Supabase email. No privileged session is created until that one-time code is verified. Codes expire after 10 minutes, are stored only as hashes, can be tried at most five times, and are consumed after use. If mail delivery is unavailable, login fails closed rather than bypassing verification.
 

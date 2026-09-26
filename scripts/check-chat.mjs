@@ -20,7 +20,7 @@ try {
   assert.match((await real.json()).reply, /299/);
   const invalid = await fetch(testBase + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{' });
   assert.equal(invalid.status, 400);
-  const large = await fetch(testBase + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'x'.repeat(17000) }) });
+  const large = await fetch(testBase + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'x'.repeat(40000) }) });
   assert.equal(large.status, 413);
   const redirect = await fetch(testBase + '/buy?text=' + encodeURIComponent('Help & pricing বাংলা'), { redirect: 'manual' });
   assert.equal(new URL(redirect.headers.get('location'), testBase).searchParams.get('text'), 'Help & pricing বাংলা');
@@ -55,6 +55,14 @@ try {
   await page.waitForSelector('[aria-label="Open chat"]');
   await page.waitForFunction(() => document.querySelector('#product-1')?.textContent.includes('Netflix Database Test') && document.querySelector('#product-1')?.textContent.includes('777'));
   await page.click('[aria-label="Open chat"]');
+  assert.equal(await page.$$eval('[data-quick-reply]', buttons => buttons.length), 3);
+  assert.equal(await page.$eval('[data-quick-reply]', button => button.textContent.trim()), 'Contact on WhatsApp');
+  assert.equal(await page.$eval('[aria-label="Support chat suggestions"] button[aria-expanded]', button => button.textContent.trim()), 'Show more');
+  await page.click('[aria-label="Support chat suggestions"] button[aria-expanded]');
+  assert.equal(await page.$$eval('[data-quick-reply]', buttons => buttons.length), 7);
+  assert.equal(await page.$eval('[aria-label="Support chat suggestions"] button[aria-expanded]', button => button.textContent.trim()), 'Show less');
+  await page.click('[aria-label="Support chat suggestions"] button[aria-expanded]');
+  assert.equal(await page.$$eval('[data-quick-reply]', buttons => buttons.length), 3);
   await page.locator('[aria-label="Message QuickSub support"]').fill('I need study help');
   await page.locator('[aria-label="Send message"]').click();
   try { await page.waitForFunction(() => document.querySelector('[role="log"]').textContent.includes('main study goal')); } catch(error) { console.log('Chat state:',await page.evaluate(()=>({log:document.querySelector('[role="log"]')?.textContent,input:document.querySelector('[aria-label="Message QuickSub support"]')?.value,open:!!document.querySelector('[aria-label="Close chat"]')})),requests,errors);throw error; }

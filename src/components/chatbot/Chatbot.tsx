@@ -1,11 +1,11 @@
 import SiteLink from '../ui/SiteLink';
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, ChevronRight } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronRight, ChevronDown } from 'lucide-react';
 
 const quickReplies = [
-  'Netflix Premium', 'Spotify Premium', 'PUBG UC',
-  'Freefire Diamonds', 'ChatGPT', 'Track My Order',
-  'Contact on WhatsApp',
+  'Contact on WhatsApp', 'Netflix Premium', 'Spotify Premium',
+  'PUBG UC', 'Freefire Diamonds', 'ChatGPT',
+  'Track My Order',
 ];
 
 interface Message {
@@ -18,6 +18,7 @@ interface Message {
 export default function Chatbot() {
   useEffect(() => { const openChat = () => setOpen(true); window.addEventListener('quicksub:open-chat', openChat); return () => window.removeEventListener('quicksub:open-chat', openChat); }, []);
   const [open, setOpen] = useState(false);
+  const [quickRepliesExpanded, setQuickRepliesExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: 0, text: 'Hi! I’m QuickSub’s AI assistant. What do you need, and what’s your budget? 👋 Chat messages are sent to our AI provider. Please don’t share passwords, OTPs or payment PINs.', isBot: true },
   ]);
@@ -188,17 +189,30 @@ export default function Chatbot() {
 
         {/* Quick Replies */}
         <div className="px-4 pb-2 pt-2 flex-shrink-0 border-t border-brand-50">
-          <div className="flex gap-1.5 pb-1 overflow-x-auto">
-            {quickReplies.map(reply => (
+          <div className="flex flex-wrap gap-1.5 pb-1" aria-label="Support chat suggestions">
+            {quickReplies.slice(0, quickRepliesExpanded ? quickReplies.length : 3).map(reply => (
               <button
                 key={reply}
+                data-quick-reply
                 onClick={() => handleQuickReply(reply)}
                 disabled={sending && reply !== 'Contact on WhatsApp'}
-                className="flex flex-shrink-0 items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors whitespace-nowrap font-medium"
+                className="flex items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-xs text-brand-700 hover:bg-brand-100 hover:border-brand-300 transition-colors font-medium"
               >
                 {reply} <ChevronRight size={10} />
               </button>
             ))}
+            <button
+              type="button"
+              aria-expanded={quickRepliesExpanded}
+              onClick={() => setQuickRepliesExpanded(value => !value)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-brand-200 text-xs font-semibold text-brand-700 hover:bg-brand-50"
+            >
+              {quickRepliesExpanded ? "Show less" : "Show more"}
+              <ChevronDown
+                size={12}
+                className={quickRepliesExpanded ? "rotate-180 transition-transform" : "transition-transform"}
+              />
+            </button>
           </div>
         </div>
 
