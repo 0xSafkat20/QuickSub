@@ -333,14 +333,21 @@ function createAdminRouter({
         Math.min(1000000, Math.floor(Number(req.query.offset) || 0)),
       );
       let legacyOrders = null;
-      const orderFields = "id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,delivery_note,created_at,updated_at";
+      const baseOrderFields = "id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,delivery_note,created_at,updated_at";
+      const orderFields = `${baseOrderFields},customer_deleted_at`;
       const loadOrders = async () => {
         try {
           return await db(`quicksub_orders?is_demo=eq.false&select=${orderFields}&order=created_at.desc,id.desc&limit=50&offset=${offset}`);
         } catch (error) {
-          legacyOrders = (await db(`quicksub_orders?select=${orderFields}&order=created_at.desc,id.desc&limit=1000`))
-            .filter((order) => !isDemoOrder(order));
-          return legacyOrders.slice(offset, offset + 50);
+          try {
+            return (await db(`quicksub_orders?is_demo=eq.false&select=${baseOrderFields}&order=created_at.desc,id.desc&limit=50&offset=${offset}`))
+              .map((order) => ({ ...order, customer_deleted_at: null }));
+          } catch {
+            legacyOrders = (await db(`quicksub_orders?select=${baseOrderFields}&order=created_at.desc,id.desc&limit=1000`))
+              .filter((order) => !isDemoOrder(order))
+              .map((order) => ({ ...order, customer_deleted_at: null }));
+            return legacyOrders.slice(offset, offset + 50);
+          }
         }
       };
       const [
@@ -455,7 +462,13 @@ function createAdminRouter({
       );
       if (notificationSummary && typeof notificationSummary === "object")
         Object.assign(notifications, notificationSummary);
-      res.json({
+      const customerRemovalMarkers = new Map(content
+        .filter((item) => item.data?.kind === 'customer-order-removal' && item.data?.order_id)
+        .map((item) => [item.data.order_id, item.data.removed_at || item.updated_at]));
+      const adminOrders = orders.map((order) => ({
+        ...order,
+        customer_deleted_at: order.customer_deleted_at || customerRemovalMarkers.get(order.id) || null,
+      }));      res.json({
         products: products.map((p) => ({
           ...p,
           price_bdt: Number(p.price_bdt),
@@ -464,7 +477,7 @@ function createAdminRouter({
           ...p,
           price_bdt: Number(p.price_bdt),
         })),
-        orders,
+        orders: adminOrders,
         content: content.filter((item) => ["store", "settings"].includes(item.id)),
         requests,
         audit,

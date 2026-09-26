@@ -360,6 +360,30 @@ table small {
   background: #e9f7ef;
   color: #238651;
 }
+.qs-admin-customer-deleted {
+  display: block;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.qs-admin-customer-deleted-notice {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #9f1239;
+  font-size: 12px;
+}
 .qs-admin-toolbar {
   display: flex;
   align-items: center;

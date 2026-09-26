@@ -30,7 +30,16 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   return true;
  }
  const email = value => { const v=string(value,254).toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))throw fail(400,'Enter a valid email address.');return v; };
-
+ async function optionalTableRows(table,path) {
+  try {return await db(path);}
+  catch(error) {
+   try {
+    const schema=await remote('/rest/v1/',{headers:{Accept:'application/openapi+json'}});
+    if(!schema?.definitions?.[table])return [];
+   } catch {}
+   throw error;
+  }
+ }
  router.post('/account/forgot-password',run(async(req,res)=>{
   rate(req,'password-recovery',3);
   validateBody(req.body, authSchemas.forgotPassword);
@@ -150,9 +159,40 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  router.get('/account/orders',run(async(req,res)=>{
   rate(req,'customer-orders',40);const person=await user(req);
   const offset=Number(req.query.offset||0);if(!Number.isInteger(offset)||offset<0||offset>100000)throw fail(400,'Invalid page.');
-  const orders=await db(`quicksub_orders?customer_id=eq.${person.id}&select=id,package_id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,expires_at&order=created_at.desc,id.desc&limit=21&offset=${offset}`);
-  const packages=orders.length?await db(`quicksub_packages?id=in.(${[...new Set(orders.map(o=>o.package_id))].join(',')})&select=id,product_id`):[];
-  res.json({orders:orders.slice(0,20).map(o=>({...o,product_id:packages.find(p=>p.id===o.package_id)?.product_id})),hasMore:orders.length>20});
+  const orders=await db(`quicksub_orders?customer_id=eq.${person.id}&customer_deleted_at=is.null&select=id,package_id,product_name,package_name,amount_bdt,status,payment_status,delivery_note,created_at,expires_at&order=created_at.desc,id.desc&limit=41&offset=${offset}`);
+  const markers=orders.length?await db(`quicksub_content?id=in.(${orders.map(o=>'customer-order-removed-'+o.id).join(',')})&select=id,data`):[];
+  const removed=new Set(markers.filter(marker=>marker.data?.kind==='customer-order-removal'&&marker.data?.customer_id===person.id).map(marker=>marker.data.order_id));
+  const visible=orders.filter(order=>!removed.has(order.id));
+  const packages=visible.length?await db(`quicksub_packages?id=in.(${[...new Set(visible.map(o=>o.package_id))].join(',')})&select=id,product_id`):[];
+  res.json({orders:visible.slice(0,20).map(o=>({...o,product_id:packages.find(p=>p.id===o.package_id)?.product_id})),hasMore:visible.length>20});
+ }));
+ router.delete('/account/orders/:id',run(async(req,res)=>{
+  rate(req,'customer-order-delete',12);const person=await user(req);const id=req.params.id;
+  if(!uuid.test(id))throw fail(400,'Invalid order.');
+  try {
+   await db('rpc/quicksub_delete_pending_order',{method:'POST',body:{p_user:person.id,p_id:id}});
+  } catch (rpcError) {
+   // Compatibility path for deployments where the newest database migration has
+   // not been applied yet. Every authorization and state check remains server-side.
+   let order;
+   try {[order]=await db(`quicksub_orders?id=eq.${id}&customer_id=eq.${person.id}&select=id,status,payment_status,customer_deleted_at`);}
+   catch {throw fail(503,'Order history removal is temporarily unavailable. Please try again later.');}
+   if(!order||order.customer_deleted_at)throw fail(404,'Order not found in your account.');
+   if(order.status!=='pending'||order.payment_status!=='unpaid')throw fail(409,'Only pending, unpaid orders can be removed from your history.');
+   const payments=await optionalTableRows('quicksub_payments',`quicksub_payments?order_id=eq.${id}&select=id&limit=1`);
+   if(payments.length)throw fail(409,'This order has payment activity and cannot be removed.');
+   const subscriptions=await optionalTableRows('quicksub_subscriptions',`quicksub_subscriptions?order_id=eq.${id}&select=id&limit=1`);   if(subscriptions.length)throw fail(409,'This order has subscription activity and cannot be removed.');
+   const deletedAt=new Date(now()).toISOString();let compatibilityMarker=false;
+   try {await db(`quicksub_orders?id=eq.${id}&customer_id=eq.${person.id}&status=eq.pending&payment_status=eq.unpaid&customer_deleted_at=is.null`,{method:'PATCH',body:{customer_deleted_at:deletedAt,updated_at:deletedAt}});}
+   catch {
+    const markerId='customer-order-removed-'+id;const marker={kind:'customer-order-removal',order_id:id,customer_id:person.id,removed_at:deletedAt};
+    try {await db('quicksub_content',{method:'POST',body:{id:markerId,data:marker,updated_at:deletedAt}});}
+    catch {await db(`quicksub_content?id=eq.${markerId}`,{method:'PATCH',body:{data:marker,updated_at:deletedAt}});}
+    compatibilityMarker=true;
+   }
+   if(!compatibilityMarker){const remaining=await db(`quicksub_orders?id=eq.${id}&customer_id=eq.${person.id}&customer_deleted_at=is.null&select=id&limit=1`);if(remaining.length)throw fail(409,'Order changed. Refresh and try again.');}
+  }
+  res.json({ok:true});
  }));
  router.post('/account/claim',run(async(req,res)=>{
   rate(req,'customer-claim',6);const person=await user(req);const b=req.body||{};

@@ -43,6 +43,10 @@ try {
   await page.type('[name=password]', 'test-password');
   await page.click('button.qs-admin-primary');
   await page.waitForSelector('.qs-admin-notification-count');
+  assert.equal(
+    await page.$eval('.qs-admin-success', element => element.textContent.trim()),
+    'Signed in successfully. Welcome to your QuickSub dashboard.',
+  );
 
   const adminData = await page.evaluate(() => fetch('/api/admin/data').then(response => response.json()));
   assert.equal(adminData.orders.some(order => order.customer_name.startsWith('[DEMO]')), false);
@@ -111,6 +115,9 @@ try {
   await page.$eval('.qs-admin-sidebar', element => element.scrollIntoView());
   const sidebar = await page.$('.qs-admin-sidebar');
   await sidebar.screenshot({ path: 'deliverables/admin-preview/notification-badges.png' });
+  await page.click('.qs-admin-sidebar-bottom button');
+  await page.waitForSelector('.qs-admin-login');
+  assert.equal(await page.$('.qs-admin-error'), null);
   console.log('PASS live notification counts, read lifecycle, new unread detection, demo filtering, and mobile navigation');
 } finally {
   await browser?.close();

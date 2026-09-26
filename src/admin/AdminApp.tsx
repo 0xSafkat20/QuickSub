@@ -64,6 +64,7 @@ type Order = {
   payment_reference: string;
   delivery_note: string;
   created_at: string;
+  customer_deleted_at: string | null;
 };
 type Store = {
   faq: { id: string; question: string; answer: string }[];
@@ -185,7 +186,7 @@ export default function AdminApp() {
     [settings, setSettings] = useState<SettingsData>(emptySettings);
   const [twoStepEmail, setTwoStepEmail] = useState("");
   const [navigationExpanded, setNavigationExpanded] = useState(false);
-  useSessionExpiry('admin', () => { setSession(null); setData(null); setNotice('Session ended. Please sign in again.'); });
+  useSessionExpiry('admin', () => { setSession(null); setData(null); setNotice(''); setError('Session ended. Please sign in again.'); });
   useEffect(() => {
     api<Session>("/admin/session")
       .then(setSession)
@@ -264,6 +265,7 @@ export default function AdminApp() {
     const fields = new FormData(e.currentTarget);
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       const result = await api<
         Session | TwoStep
@@ -272,7 +274,10 @@ export default function AdminApp() {
         password: fields.get("password"),
       });
       if ("requiresTwoStep" in result) setTwoStepEmail(result.email);
-      else setSession(result);
+      else {
+        setSession(result);
+        setNotice("Signed in successfully. Welcome to your QuickSub dashboard.");
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -284,12 +289,14 @@ export default function AdminApp() {
     const fields = new FormData(e.currentTarget);
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       const result = await api<Session>("/admin/verify", {
         code: fields.get("code"),
       });
       setTwoStepEmail("");
       setSession(result);
+      setNotice("Verification successful. Welcome to your QuickSub dashboard.");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -302,6 +309,21 @@ export default function AdminApp() {
     try {
       await api("/admin/two-step/cancel", {});
       setTwoStepEmail("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function logout() {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      await api("/admin/logout", {});
+      setSession(null);
+      setData(null);
+      setError("");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -498,15 +520,7 @@ export default function AdminApp() {
             <strong>{session.email}</strong>
             <span>{session.role} account</span>
           </div>
-          <button
-            onClick={() =>
-              void action(async () => {
-                await api("/admin/logout", {});
-                setSession(null);
-                setData(null);
-              }, "Signed out")
-            }
-          >
+          <button disabled={busy} onClick={() => void logout()}>
             <LogOut size={16} />
             Sign out
           </button>
@@ -618,6 +632,7 @@ export default function AdminApp() {
                             <span>
                               <strong>{money(o.amount_bdt)}</strong>
                               <Badge>{o.status}</Badge>
+                              {o.customer_deleted_at && <span className="qs-admin-customer-deleted">Removed by customer</span>}
                             </span>
                           </button>
                         ))
@@ -873,6 +888,7 @@ export default function AdminApp() {
                               </td>
                               <td>
                                 <Badge>{o.status}</Badge>
+                              {o.customer_deleted_at && <span className="qs-admin-customer-deleted">Removed by customer</span>}
                               </td>
                               <td>
                                 <button
@@ -1673,6 +1689,7 @@ export default function AdminApp() {
               </button>
             </div>
             <p className="qs-admin-muted">{order.id}</p>
+            {order.customer_deleted_at && <div className="qs-admin-customer-deleted-notice" role="status"><strong>Removed by customer</strong><span>The customer removed this order from their account history on {date(order.customer_deleted_at)}. The record is preserved for administrators.</span></div>}
             <h3>
               {order.product_name} · {order.package_name}
             </h3>

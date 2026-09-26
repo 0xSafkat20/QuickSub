@@ -28,6 +28,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260929000000_verified_reviews.sql",
     "20260930000000_admin_two_step.sql",
     "20261001000000_admin_notifications.sql",
+    "20261002000000_customer_delete_pending_order.sql",
   ].filter((name) => notificationMigration || name !== "20261001000000_admin_notifications.sql"))
     await db.exec(
       await readFile(
@@ -138,6 +139,10 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     if (u.pathname.startsWith("/storage/")) return response({});
     try {
       const path = u.pathname.replace("/rest/v1/", "");
+      if (!path) {
+        const tables = (await db.query("select table_name from information_schema.tables where table_schema='public' and table_name like 'quicksub_%'")).rows;
+        return response({ definitions: Object.fromEntries(tables.map(({ table_name }) => [table_name, {}])) });
+      }
       if (path.startsWith("rpc/")) {
         const name = path.slice(4);
         if (!/^quicksub_[a-z_]+$/.test(name)) throw Error("function");
