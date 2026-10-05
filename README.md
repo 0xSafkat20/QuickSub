@@ -1,5 +1,7 @@
 Payment gateway integration and activation: see [PAYMENT-SETUP.md](PAYMENT-SETUP.md).
 
+Continuous integration and Vercel deployment: see [CI-CD.md](CI-CD.md).
+
 # QuickSub
 
 The current release includes a working `/admin` dashboard, Supabase-backed product/package management, customer checkout, manual payment verification, private order tracking, support inbox, offers and Gemini support. Start with [ADMIN-SETUP.md](ADMIN-SETUP.md) for installation and activation. The overview below describes the original storefront.

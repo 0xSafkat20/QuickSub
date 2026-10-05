@@ -1,0 +1,184 @@
+name: QuickSub CI/CD
+
+on:
+  push:
+    branches: [main, test]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quicksub-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22.18.0
+
+jobs:
+  verify:
+    name: Verify application
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+
+      - name: Install frontend and test dependencies
+        run: npm ci --include=dev
+
+      - name: Install API dependencies
+        run: npm ci --prefix server
+
+      - name: Audit production dependencies
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm audit --prefix server --omit=dev --audit-level=high
+
+      - name: Run type, lint, coverage, and build verification
+        run: npm run verify
+
+      - name: Check generated catalog is committed
+        run: git diff --exit-code -- server/catalog.json server/knowledge.json
+
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: quicksub-dist-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quicksub-verification-${{ github.sha }}
+          path: deliverables/test-report
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser:
+    name: Browser regression suite
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+
+      - name: Install frontend and test dependencies
+        run: npm ci --include=dev
+
+      - name: Install API dependencies
+        run: npm ci --prefix server
+
+      - name: Download verified production build
+        uses: actions/download-artifact@v4
+        with:
+          name: quicksub-dist-${{ github.sha }}
+          path: dist
+
+      - name: Run browser checks
+        run: |
+          node scripts/check-account-confirmation.mjs
+          node scripts/check-admin-notifications.mjs
+          node scripts/check-cart.mjs
+          node scripts/check-session-expiry.mjs
+          node scripts/check-reporting.mjs
+          node scripts/check-password-recovery.mjs
+          node scripts/check-navigation.mjs
+          node scripts/check-new-features.mjs
+          node scripts/check-receipts.mjs
+          node scripts/check-responsive.mjs
+          node scripts/check-accounts.mjs
+          node scripts/check-checkout.mjs
+          node scripts/check-payments.mjs
+          node scripts/check-admin.mjs
+          node scripts/check-chat.mjs
+          node scripts/check-privacy.mjs
+          node scripts/check-storefront.mjs
+          node scripts/check-subscriptions.mjs
+          node scripts/check-support.mjs
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quicksub-browser-evidence-${{ github.sha }}
+          path: |
+            deliverables/*-preview/
+            deliverables/test-report/
+          if-no-files-found: warn
+          retention-days: 7
+
+  deploy-production:
+    name: Deploy production to Vercel
+    needs: [verify, browser]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_VERCEL_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Validate deployment credentials
+        run: |
+          test -n "$VERCEL_TOKEN"
+          test -n "$VERCEL_ORG_ID"
+          test -n "$VERCEL_PROJECT_ID"
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel production configuration
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build with the Vercel production environment
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy verified build
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify deployed API
+        run: |
+          status=$(curl --silent --output /tmp/quicksub-session.json --write-out "%{http_code}" "${{ steps.deploy.outputs.url }}/api/admin/session")
+          test "$status" = "401"
+          grep -q 'error' /tmp/quicksub-session.json

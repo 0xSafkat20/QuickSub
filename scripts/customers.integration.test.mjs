@@ -45,11 +45,12 @@ test('customer profiles, ownership, sessions and subscription reminders use real
  const adminData=await request('/admin/data',undefined,admin.cookie);
  const adminRemoved=adminData.body.orders.find(order=>order.id===disposable.id);
  assert.ok(adminRemoved?.customer_deleted_at);assert.equal(adminRemoved.status,'pending');
- assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:'2026-10-01T00:00:00Z'},admin.cookie)).status,409);
+ const futureExpiry=new Date(Date.now()+30*24*60*60*1000).toISOString();
+ assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:futureExpiry},admin.cookie)).status,409);
  await env.db.query("update quicksub_orders set payment_status='verified',status='delivered' where id=$1",[payload.id]);
  assert.equal((await request('/account/orders/'+payload.id,undefined,a,'DELETE')).status,409);
  assert.equal((await env.db.query('select count(*) as n from quicksub_orders where id=$1',[payload.id])).rows[0].n,1);
- assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:'2026-10-01T00:00:00Z'},admin.cookie)).status,200);
+ assert.equal((await request('/admin/orders/'+payload.id+'/subscription',{expires_at:futureExpiry},admin.cookie)).status,200);
  assert.ok((await request('/account/orders',undefined,a)).body.orders[0].expires_at);
  assert.equal((await env.db.query("select count(*) as n from quicksub_audit where actor=$1 and action='subscription-expiry'",[ownerId])).rows[0].n,1);
  const publicRows=await env.db.query("select has_table_privilege('authenticated','quicksub_customers','select') as allowed");assert.equal(publicRows.rows[0].allowed,false);
