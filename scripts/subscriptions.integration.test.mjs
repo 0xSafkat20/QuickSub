@@ -54,7 +54,10 @@ test('subscription lifecycle, renewal, reminders, ownership and admin controls',
   const cancelled=await request('/admin/subscriptions/'+renewed.id,{method:'PUT',cookie:admin.cookie,body:{status:'cancelled',ends_at:extended,device_limit:3,account_reference:'Account ending 42',delivery_instructions:'Cancelled by the store owner.'}});assert.equal(cancelled.status,200);assert.equal(cancelled.body.subscription.status,'cancelled');
   list=await request('/account/subscriptions',{cookie:alice.cookie});assert.equal(list.body.subscriptions.find(s=>s.id===renewed.id).status,'cancelled');
   await env.db.query("update quicksub_orders set status='cancelled' where id=$1",[order.id]);
-  list=await request('/account/subscriptions',{cookie:alice.cookie});assert.equal(list.body.subscriptions.find(s=>s.id===original.id).status,'cancelled');
+  list=await request('/account/subscriptions',{cookie:alice.cookie});assert.equal(list.body.subscriptions.find(s=>s.id===original.id).status,'expired');
+  await env.db.query("update quicksub_subscriptions set status='active',ends_at=now()+interval '1 month' where id=$1",[original.id]);
+  const expiredDetail=await request('/account/subscriptions/'+original.id,{cookie:alice.cookie});assert.equal(expiredDetail.body.subscription.status,'expired');
+  assert.equal((await env.db.query('select status from quicksub_subscriptions where id=$1',[original.id])).rows[0].status,'expired');
   await env.db.query("update quicksub_subscriptions set starts_at=now()-interval '1 month',ends_at=now()-interval '1 minute',status='active' where id=$1",[original.id]);
   const processed=await request('/admin/subscriptions/process',{body:{},cookie:admin.cookie});assert.equal(processed.status,200);assert.equal(processed.body.expired,1);
   assert.equal((await env.db.query('select status from quicksub_subscriptions where id=$1',[original.id])).rows[0].status,'expired');

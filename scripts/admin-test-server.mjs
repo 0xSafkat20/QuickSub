@@ -32,6 +32,7 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20261003000000_loyalty_referrals_locale.sql",
     "20261007000000_manual_payments.sql",
     "20261007010000_rewards_and_subscription_cancellation.sql",
+    "20261007020000_expire_cancelled_order_subscriptions.sql",
   ].filter((name) => notificationMigration || !["20261001000000_admin_notifications.sql","20261003000000_loyalty_referrals_locale.sql","20261007010000_rewards_and_subscription_cancellation.sql"].includes(name)))
     await db.exec(
       await readFile(

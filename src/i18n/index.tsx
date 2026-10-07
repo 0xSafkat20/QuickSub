@@ -4,6 +4,8 @@ export type Locale = 'en-BD' | 'bn-BD';
 type Variables = Record<string, string | number>;
 const STORAGE_KEY = 'quicksub-locale';
 export const REFERRAL_KEY = 'quicksub-referral';
+const readStorage = (key:string) => { try { return window.localStorage.getItem(key); } catch { return null; } };
+const writeStorage = (key:string,value:string) => { try { window.localStorage.setItem(key,value); } catch { /* Preferences remain available for this page session. */ } };
 
 const bn: Record<string,string> = {
   'language.english':'English','language.bangla':'বাংলা','language.choose':'ভাষা নির্বাচন করুন',
@@ -39,7 +41,7 @@ const bn: Record<string,string> = {
   'rewards.startRule':'আপনার রিওয়ার্ড ০ পয়েন্ট থেকে শুরু হয়। পেমেন্ট যাচাই হয়ে অর্ডার ডেলিভারি সম্পন্ন হলে এটি স্বয়ংক্রিয়ভাবে বাড়বে।',
   'referral.applied':'রেফারেল কোড সংরক্ষিত হয়েছে। যোগ্য প্রথম অর্ডারের পর রিওয়ার্ড পাবেন।','referral.invalid':'রেফারেল কোডটি ব্যবহার করা যায়নি।',
   'seo.home.title':'বাংলাদেশে ডিজিটাল সাবস্ক্রিপশন ও গেম টপ-আপ | QuickSub',
-  'seo.home.description':'BDT মূল্যে নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি ও যাচাইকৃত রিভিউসহ ডিজিটাল সাবস্ক্রিপশন, AI টুল ও গেম টপ-আপ কিনুন।',
+  'seo.home.description':'বাংলাদেশে BDT মূল্যে নিরাপদ পেমেন্ট, দ্রুত ডেলিভারি ও যাচাইকৃত রিভিউসহ ডিজিটাল সাবস্ক্রিপশন, AI টুল ও গেম টপ-আপ কিনুন।',
   'seo.checkout.title':'নিরাপদ ডিজিটাল পণ্য চেকআউট | QuickSub','seo.account.title':'আমার অ্যাকাউন্ট ও কেনাকাটা | QuickSub',
   'seo.track.title':'আপনার ডিজিটাল অর্ডার ট্র্যাক করুন | QuickSub','seo.cart.title':'আপনার শপিং কার্ট | QuickSub',
   'footer.about':'QuickSub হলো সাবস্ক্রিপশন, গেমিং টপ-আপ ও AI অ্যাক্সেসের ডিজিটাল পণ্য স্টোর—সহজ অর্ডার ও দ্রুত সহায়তার জন্য তৈরি।',
@@ -72,7 +74,7 @@ const english: Record<string,string> = {
   'rewards.success':'Successful referrals','rewards.whatsapp':'Share on WhatsApp','rewards.explain':'Earn points only on verified, delivered orders. Cancelled or refunded purchases are removed from rewards.',
   'rewards.startRule':'Your rewards start at 0 points and increase automatically after payment is verified and the order is delivered.',
   'referral.applied':'Referral code saved. Rewards unlock after the first eligible order.','referral.invalid':'The referral code could not be applied.',
-  'seo.home.title':'Digital Subscriptions & Game Top-Ups in Bangladesh | QuickSub','seo.home.description':'Buy digital subscriptions, AI tools and game top-ups in BDT with secure payment, fast delivery and verified reviews.',
+  'seo.home.title':'Digital Subscriptions & Game Top-Ups in Bangladesh | QuickSub','seo.home.description':'Buy digital subscriptions, AI tools and game top-ups in Bangladesh with BDT pricing, secure payment, fast delivery and verified reviews.',
   'seo.checkout.title':'Secure Digital Product Checkout | QuickSub','seo.account.title':'My Account & Purchases | QuickSub','seo.track.title':'Track Your Digital Order | QuickSub','seo.cart.title':'Your Shopping Cart | QuickSub',
   'footer.about':'QuickSub is a digital product store for subscriptions, gaming top-ups, and AI access—built for simple ordering and responsive support.',
   'footer.products':'Products','footer.support':'Support','footer.legal':'Legal','footer.offers':'Get Offer Updates','footer.subscribe':'Subscribe',
@@ -83,15 +85,15 @@ const I18nContext = createContext<I18nValue | null>(null);
 function initialLocale(): Locale {
   const query = new URLSearchParams(window.location.search).get('lang');
   if (query === 'bn' || query === 'bn-BD') return 'bn-BD';
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = readStorage(STORAGE_KEY);
   if (saved === 'bn-BD' || saved === 'en-BD') return saved;
   return navigator.language.toLowerCase().startsWith('bn') ? 'bn-BD' : 'en-BD';
 }
 export function I18nProvider({children}:{children:ReactNode}) {
   const [locale,setLocaleState] = useState<Locale>(initialLocale);
-  const setLocale = (value:Locale) => {localStorage.setItem(STORAGE_KEY,value);setLocaleState(value);};
+  const setLocale = (value:Locale) => {writeStorage(STORAGE_KEY,value);setLocaleState(value);};
   useEffect(()=>{document.documentElement.lang=locale;document.documentElement.dir='ltr';},[locale]);
-  useEffect(()=>{const ref=new URLSearchParams(window.location.search).get('ref');if(ref&&/^[a-z0-9-]{4,32}$/i.test(ref))localStorage.setItem(REFERRAL_KEY,ref.toUpperCase());},[]);
+  useEffect(()=>{const ref=new URLSearchParams(window.location.search).get('ref');if(ref&&/^[a-z0-9-]{4,32}$/i.test(ref))writeStorage(REFERRAL_KEY,ref.toUpperCase());},[]);
   const value=useMemo<I18nValue>(()=>{
     const dictionary=locale==='bn-BD'?bn:english;
     const t=(key:string,variables:Variables={})=>Object.entries(variables).reduce((text,[name,value])=>text.split(`{${name}}`).join(String(value)),dictionary[key]||english[key]||key);

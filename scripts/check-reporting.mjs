@@ -3,15 +3,19 @@ import puppeteer from "puppeteer";
 import { randomUUID } from "node:crypto";
 import { startTestServer, packageId } from "./admin-test-server.mjs";
 
-const env=await startTestServer({now:()=>Date.parse("2026-09-21T12:00:00Z")});let browser;
+const testNow=Date.now(),day=86400000;
+const env=await startTestServer({now:()=>testNow});let browser;
 try {
  const order=randomUUID();
- await env.db.query("insert into quicksub_orders(id,tracking_hash,package_id,product_name,package_name,amount_bdt,customer_name,contact,status,payment_status,created_at,updated_at,expires_at,paid_at) values($1,'report',$2,'Netflix','Premium',299,'Report Customer','report@example.test','delivered','verified','2026-09-10','2026-09-10','2026-09-30','2026-09-10')",[order,packageId]);
+ const createdAt=new Date(testNow-11*day).toISOString(),expiresAt=new Date(testNow+9*day).toISOString();
+ await env.db.query("insert into quicksub_orders(id,tracking_hash,package_id,product_name,package_name,amount_bdt,customer_name,contact,status,payment_status,created_at,updated_at,expires_at,paid_at) values($1,'report',$2,'Netflix','Premium',299,'Report Customer','report@example.test','delivered','verified',$3,$3,$4,$3)",[order,packageId,createdAt,expiresAt]);
  browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH||"C:/Program Files/Google/Chrome/Application/chrome.exe",headless:true});
  const page=await browser.newPage(),errors=[];let failNext=false;page.on("pageerror",e=>errors.push(e.message));
  await page.setRequestInterception(true);page.on("request",r=>{if(failNext&&r.url().includes("/api/admin/reports?")){failNext=false;return r.respond({status:503,contentType:"application/json",body:JSON.stringify({error:"Reporting is temporarily unavailable."})});}return r.url().startsWith(env.base)||r.url().startsWith("data:")?r.continue():r.abort();});
  await page.setViewport({width:320,height:740});await page.goto(env.base+"/admin",{waitUntil:"networkidle0"});
- await page.type("[name=email]","owner@example.test");await page.type("[name=password]","test-password");await page.click("button.qs-admin-primary");await page.waitForSelector(".qs-admin-metrics");
+ await page.type("[name=email]","owner@example.test");await page.type("[name=password]","test-password");await page.click("button.qs-admin-primary");
+ try { await page.waitForSelector(".qs-admin-metrics"); }
+ catch (error) { const state=await page.evaluate(()=>({url:location.href,text:document.body.innerText.slice(0,2000)}));throw new Error(`Admin dashboard did not load. URL: ${state.url}\nPage: ${state.text}`,{cause:error}); }
  await page.evaluate(()=>[...document.querySelectorAll("nav button")].find(e=>e.textContent.trim()==="Reports").click());
  await page.waitForSelector(".qs-report-metrics");
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

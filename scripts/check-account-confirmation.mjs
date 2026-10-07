@@ -33,9 +33,15 @@ try {
  const rows=await env.db.query('select id from auth.users where id not in ($1,$2)',[ownerId,staffId]);
  const token=rows.rows[0].id;
  await page.goto(env.base+'/account#access_token='+token+'&refresh_token='+token+'&type=signup',{waitUntil:'networkidle0'});
- await page.waitForFunction(()=>document.body.innerText.includes('Signed in as'));
+ await page.reload({waitUntil:'networkidle0'});
+ try {
+  await page.waitForFunction(()=>document.body.innerText.includes('Signed in as'));
+ } catch (error) {
+  const state=await page.evaluate(()=>({url:location.href,text:document.body.innerText.slice(0,2000)}));
+  throw new Error(`Confirmation callback did not establish a session. URL: ${state.url}\nPage: ${state.text}`,{cause:error});
+ }
  assert.equal(page.url(),env.base+'/account');
- assert.match(await page.locator('body').innerText(),/Email confirmed\. You are now signed in\./);
+ assert.match(await page.$eval('body',element=>element.innerText),/Email confirmed\. You are now signed in\./);
  assert.deepEqual(errors,[]);
  console.log('PASS: pending-confirmation login guidance, safe resend, callback sign-in, URL cleanup and two-hour session.');
 } finally {await browser?.close();await env.close();}

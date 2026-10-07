@@ -8,12 +8,27 @@ const publicFields = 'id,order_id,package_id,product_id,renewed_from,product_nam
 function createSubscriptions({ db, customers, rate, now = Date.now, cronSecret = process.env.CRON_SECRET }) {
   const router = express.Router();
   const process = () => db('rpc/quicksub_process_subscriptions', { method: 'POST', body: { p_now: new Date(now()).toISOString() } });
+  const expireSubscriptionsForEndedOrders = async rows => {
+    const orderIds = [...new Set(rows.map(row => row.order_id).filter(id => uuid.test(id)))];
+    if (!orderIds.length) return rows;
+    const orders = await db(`quicksub_orders?id=in.(${orderIds.join(',')})&select=id,status,payment_status`);
+    const endedOrderIds = new Set(orders.filter(order => order.status === 'cancelled' || order.payment_status === 'refunded').map(order => order.id));
+    const stale = rows.filter(row => endedOrderIds.has(row.order_id) && row.status !== 'expired');
+    if (!stale.length) return rows;
+    const updatedAt = new Date(now()).toISOString();
+    await Promise.all(stale.flatMap(row => [
+      db(`quicksub_subscriptions?id=eq.${row.id}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { status: 'expired', updated_at: updatedAt } }),
+      db(`quicksub_subscription_reminders?subscription_id=eq.${row.id}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } }),
+    ]));
+    return rows.map(row => endedOrderIds.has(row.order_id) ? { ...row, status: 'expired', updated_at: updatedAt } : row);
+  };
   const customer = path => run(async (req, res, next) => { req.customer = await customers.user(req); rate(req, 'subscriptions', 60); next(); });
   router.use('/account/subscriptions', customer());
 
   router.get('/account/subscriptions', run(async (req, res) => {
     await process();
-    const rows = await db(`quicksub_subscriptions?customer_id=eq.${req.customer.id}&select=${publicFields}&order=ends_at.desc,id.desc&limit=100`);
+    const storedRows = await db(`quicksub_subscriptions?customer_id=eq.${req.customer.id}&select=${publicFields}&order=ends_at.desc,id.desc&limit=100`);
+    const rows = await expireSubscriptionsForEndedOrders(storedRows);
     const [profile] = await db(`quicksub_customers?user_id=eq.${req.customer.id}&select=renewal_reminders`);
     const reminderRows = profile?.renewal_reminders === false ? [] : await db(`quicksub_subscription_reminders?customer_id=eq.${req.customer.id}&read_at=is.null&select=id,subscription_id,kind,due_at,message&order=due_at.desc&limit=100`);
     const current = now();
@@ -23,7 +38,8 @@ function createSubscriptions({ db, customers, rate, now = Date.now, cronSecret =
   router.get('/account/subscriptions/:id', run(async (req, res) => {
     if (!uuid.test(req.params.id)) throw fail(400, 'Invalid subscription.');
     await process();
-    const rows = await db(`quicksub_subscriptions?id=eq.${req.params.id}&customer_id=eq.${req.customer.id}&select=${publicFields}`);
+    const storedRows = await db(`quicksub_subscriptions?id=eq.${req.params.id}&customer_id=eq.${req.customer.id}&select=${publicFields}`);
+    const rows = await expireSubscriptionsForEndedOrders(storedRows);
     if (!rows[0]) throw fail(404, 'Subscription not found.');
     res.json({ subscription: { ...rows[0], amount_bdt: Number(rows[0].amount_bdt) } });
   }));
