@@ -54,8 +54,10 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .qs-admin-brand {
   display: flex;
@@ -79,7 +81,18 @@
 }
 .qs-admin-sidebar nav {
   display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: start;
   gap: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-right: 4px;
+}
+.qs-admin-sidebar nav::-webkit-scrollbar {
+  display: none;
 }
 .qs-admin-sidebar nav button,
 .qs-admin-sidebar-bottom button {
@@ -137,6 +150,7 @@
   background: #f7faff;
   font-size: 12px;
   font-weight: 700;
+  flex: 0 0 auto;
 }
 .qs-admin-mark-read:hover {
   background: #edf3ff;
@@ -145,6 +159,8 @@
 .qs-admin-sidebar-bottom {
   margin-top: auto;
   padding-top: 24px;
+  flex: 0 0 auto;
+  background: white;
 }
 .qs-admin-sidebar-bottom > a {
   display: flex;
@@ -542,6 +558,32 @@ table small {
   padding: 30px;
   box-shadow: -10px 0 50px #172b4d22;
 }
+.qs-admin-order-editor {
+  width: min(900px, calc(100vw - 32px));
+  height: auto;
+  max-height: calc(100dvh - 32px);
+  margin: 16px 16px 16px 0;
+  border-radius: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.qs-admin-order-editor::-webkit-scrollbar {
+  display: none;
+}
+.qs-admin-order-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.qs-admin-order-editor .qs-payment-box {
+  margin-bottom: 0;
+}
+.qs-admin-order-editor .qs-admin-field {
+  margin: 12px 0;
+}
+.qs-admin-order-editor .qs-admin-field textarea {
+  min-height: 82px;
+}
 .qs-admin-error,
 .qs-admin-success {
   padding: 13px 16px;
@@ -577,6 +619,23 @@ table small {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin: 12px 0;
+}
+.qs-admin-customer-note {
+  display: grid;
+  gap: 5px;
+  border: 1px solid #f2b84b;
+  border-left: 5px solid #f59e0b;
+  background: #fff8e8;
+  color: #5f3b00;
+  padding: 14px 16px;
+}
+.qs-admin-customer-note strong {
+  color: #8a4b08;
+  font-size: 13px;
+}
+.qs-admin-customer-note span {
+  font-size: 13px;
+  line-height: 1.55;
 }
 .qs-admin-narrow {
   max-width: 780px;
@@ -719,6 +778,7 @@ table small {
     width: 100%;
     height: auto;
     padding: 18px;
+    overflow: visible;
   }
   .qs-admin-brand {
     margin-bottom: 18px;
@@ -727,6 +787,8 @@ table small {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 8px;
+    flex: none;
+    min-height: auto;
     overflow: visible;
     padding-bottom: 8px;
   }
@@ -837,6 +899,19 @@ table small {
 .qs-payment-box button:disabled { opacity: .5; cursor: not-allowed; }
 .qs-payment-box [role="alert"] { color: #b42318; }
 .qs-payment-box .qs-payment-box { margin-top: 16px; margin-bottom: 0; }
+.qs-payment-record-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.qs-payment-record-heading h3 { margin: 0 0 4px; }
+.qs-payment-record-heading p { margin: 0; color: #71809a; }
+.qs-payment-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0 4px; }
+.qs-payment-summary > div { min-width: 0; border: 1px solid #dce6f8; border-radius: 10px; background: #fff; padding: 10px 12px; }
+.qs-payment-summary dt { color: #71809a; font-size: 11px; margin-bottom: 4px; }
+.qs-payment-summary dd { color: #172b4d; font-size: 13px; font-weight: 700; margin: 0; overflow-wrap: anywhere; text-transform: none; }
+.qs-payment-empty { display: grid; gap: 4px; margin-top: 14px; border: 1px dashed #c9d5e8; border-radius: 10px; background: #fff; padding: 13px; }
+.qs-payment-empty span { color: #71809a; }
+.qs-manual-payment-record { border: 1px solid #cbdcfb; border-radius: 12px; background: #fff; padding: 14px; margin: 12px 0; }
+.qs-manual-payment-record h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+.qs-admin-payment-warning { color: #8a4b08; background: #fff7e6; border-radius: 8px; padding: 9px 10px; }
+@media (max-width: 520px) { .qs-payment-summary { grid-template-columns: 1fr; } }
 
 /* Keep data tables scrollable within their panel and forms usable on small screens. */
 .admin-shell .qs-admin-card, .qs-admin-form-grid > *, .qs-admin-metrics > * { min-width: 0; }
@@ -848,12 +923,14 @@ table small {
 .qs-admin-note button { min-height: 44px; padding: 8px 12px; }
 @media (max-width: 900px) {
   .qs-admin-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .qs-admin-order-editor { width: min(680px, calc(100vw - 24px)); margin: 12px; max-height: calc(100dvh - 24px); }
 }
 @media (max-width: 700px) {
   .admin-shell button, .admin-shell input, .admin-shell select { min-height: 44px; }
   .qs-admin-page-heading > button { width: 100%; }
   .qs-admin-topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 12px 16px; }
   .qs-admin-editor { padding: 18px; max-height: calc(100dvh - 24px); }
+  .qs-admin-order-status-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .qs-admin-pagination { gap: 12px; font-size: 12px; }
 }
 @media (max-width: 360px) {

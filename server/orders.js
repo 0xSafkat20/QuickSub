@@ -33,17 +33,17 @@ function createOrders({ db, rate, customers, now }) {
         throw fail(400, "Refresh packages and confirm the current price.");
       if (b.fromCart !== undefined && typeof b.fromCart !== 'boolean') throw fail(400, 'Invalid checkout source.');
       if (b.renewalOf !== undefined && !uuid.test(b.renewalOf)) throw fail(400, 'Invalid renewal subscription.');
+      if (b.points !== undefined && (!Number.isInteger(b.points) || b.points < 0 || b.points > 1000000)) throw fail(400, 'Choose a valid number of reward points.');
       const customer = await customers.user(req, b.fromCart === true || !!b.renewalOf);
       const receiptEmail = b.email === undefined ? (String(b.contact).includes('@') ? contact(b.contact) : '') : contact(b.email);
       if (receiptEmail && !receiptEmail.includes('@')) throw fail(400, 'Enter a valid receipt email.');
-      const order = await db("rpc/quicksub_place_order", {
-        method: "POST",
-        body: {
+      const rpcBody = {
           p_user: customer?.id || null,
           p_cart: b.fromCart === true,
           p_email: receiptEmail,
           p_game: b.gameAccount === undefined ? '' : string(b.gameAccount, 160, 0),
           p_renewal: b.renewalOf || null,
+          p_points: b.points || 0,
           p_id: b.id,
           p_hash: hash(b.accessCode),
           p_package: b.packageId,
@@ -51,8 +51,18 @@ function createOrders({ db, rate, customers, now }) {
           p_contact: contact(b.contact),
           p_note: string(b.note, 1000, 0),
           p_expected: b.expectedPrice,
-        },
-      });
+      };
+      let order;
+      try { order = await db("rpc/quicksub_place_order", {
+        method: "POST",
+        body: rpcBody,
+      }); } catch (error) {
+        // Zero-point orders remain available during a rolling deployment before
+        // the loyalty migration is applied. Redemption always fails closed.
+        if (rpcBody.p_points) throw error;
+        const { p_points: _points, ...legacyBody } = rpcBody;
+        order = await db("rpc/quicksub_place_order", { method: "POST", body: legacyBody });
+      }
       res.status(201).json({ order });
     }),
   );
@@ -63,27 +73,45 @@ function createOrders({ db, rate, customers, now }) {
   router.post(
     "/orders/payment",
     run(async (req, res) => {
-      await findOrder(req);
-      const reference = string(req.body.reference, 160, 4);
-      const rows = await db(
-        `quicksub_orders?id=eq.${req.body.id}&tracking_hash=eq.${hash(req.body.accessCode)}&payment_status=in.(unpaid,rejected)&status=eq.pending`,
-        {
-          method: "PATCH",
-          headers: { Prefer: "return=representation" },
+      const order = await findOrder(req);
+      const method = string(req.body.method, 20).toLowerCase();
+      if (!['bkash','nagad','rocket','bank_transfer'].includes(method))
+        throw fail(400, 'Choose a supported payment method. Cards must use secure online checkout.');
+      const reference = string(req.body.reference, 80, 4).toUpperCase();
+      if (!/^[A-Z0-9][A-Z0-9._/-]{3,79}$/.test(reference))
+        throw fail(400, 'Enter a valid transaction reference using letters and numbers.');
+      let phone = null;
+      if (['bkash','nagad','rocket'].includes(method)) {
+        const digits = String(req.body.phone || '').replace(/\D/g, '');
+        phone = digits.startsWith('880') ? '+' + digits : digits.startsWith('0') ? '+88' + digits : '';
+        if (!/^\+8801[3-9]\d{8}$/.test(phone))
+          throw fail(400, 'Enter a valid Bangladesh mobile number.');
+      }
+      const payerName = method === 'bank_transfer' ? string(req.body.payerName, 120, 2) : '';
+      const senderBank = method === 'bank_transfer' ? string(req.body.senderBank, 120, 2) : '';
+      const accountLast4 = req.body.accountLast4 ? string(req.body.accountLast4, 4, 4) : '';
+      if (accountLast4 && !/^\d{4}$/.test(accountLast4))
+        throw fail(400, 'Enter only the last four account digits.');
+      try {
+        const manualPayment = await db('rpc/quicksub_submit_manual_payment', {
+          method: 'POST',
           body: {
-            payment_reference: reference,
-            payment_method: req.body.method === undefined ? 'Manual payment' : string(req.body.method, 60),
-            payment_status: "submitted",
-            updated_at: new Date(now()).toISOString(),
+            p_order: order.id,
+            p_hash: hash(req.body.accessCode),
+            p_method: method,
+            p_reference: reference,
+            p_phone: phone,
+            p_name: payerName,
+            p_bank: senderBank,
+            p_last_four: accountLast4,
           },
-        },
-      );
-      if (!rows.length)
-        throw fail(
-          409,
-          "Payment has already been submitted or this order is no longer pending.",
-        );
-      res.json({ ok: true });
+        });
+        res.json({ ok: true, manualPayment, order: await findOrder(req) });
+      } catch (error) {
+        if (String(error.message || '').toLowerCase().includes('unique'))
+          throw fail(409, 'This transaction reference has already been submitted.');
+        throw error;
+      }
     }),
   );
   return { router, findOrder };

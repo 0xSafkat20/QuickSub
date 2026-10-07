@@ -40,6 +40,26 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
    throw error;
   }
  }
+ async function saveCustomer({userId,name,customerContact,reminders,locale}) {
+  const modern={p_user:userId,p_name:name,p_contact:customerContact,p_reminders:reminders,p_locale:locale||null};
+  try {return await db('rpc/quicksub_save_customer',{method:'POST',body:modern});}
+  catch(error) {
+   const provider=String(error.providerCode||'')+' '+String(error.providerMessage||'');
+   if(!/PGRST202|quicksub_save_customer|p_locale|schema cache/i.test(provider))throw error;
+   return db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:userId,p_name:name,p_contact:customerContact,p_reminders:reminders}});
+  }
+ }
+ async function customerProfile(userId) {
+  try {
+   const [profile]=await db(`quicksub_customers?user_id=eq.${userId}&select=name,contact,renewal_reminders,preferred_locale,referral_code`);
+   return profile||null;
+  } catch(error) {
+   const provider=String(error.providerCode||'')+' '+String(error.providerMessage||'');
+   if(!/PGRST204|preferred_locale|referral_code|schema cache/i.test(provider))throw error;
+   const [profile]=await db(`quicksub_customers?user_id=eq.${userId}&select=name,contact,renewal_reminders`);
+   return profile?{...profile,preferred_locale:'en-BD',referral_code:null}:null;
+  }
+ }
  router.post('/account/forgot-password',run(async(req,res)=>{
   rate(req,'password-recovery',3);
   validateBody(req.body, authSchemas.forgotPassword);
@@ -102,12 +122,13 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   validateBody(req.body, authSchemas.signup);
   // Check the schema before creating an Auth user.
   await db('quicksub_customers?select=user_id&limit=1');
-  const b=req.body||{};const name=string(b.name,120);
+  const b=req.body||{};const name=string(b.name,120);const locale=['en-BD','bn-BD'].includes(b.locale)?b.locale:'en-BD';
+  if(b.referralCode){const referralCode=String(b.referralCode).trim().toUpperCase();const matches=await db(`quicksub_customers?referral_code=eq.${encodeURIComponent(referralCode)}&select=user_id&limit=1`);if(!matches.length)throw fail(400,'Referral code not found. Check the code or continue without it.');b.referralCode=referralCode;}
   const origin=process.env.PUBLIC_ORIGIN || req.get('origin');
   const redirect=origin+'/account';
-  const auth=await remote('/auth/v1/signup?redirect_to='+encodeURIComponent(redirect),{method:'POST',body:{email:email(b.email),password:string(b.password,128,10,false),data:{name}}});
+  const auth=await remote('/auth/v1/signup?redirect_to='+encodeURIComponent(redirect),{method:'POST',body:{email:email(b.email),password:string(b.password,128,10,false),data:{name,locale,referralCode:b.referralCode||''}}});
   const signedIn=await session(req,res,auth);
-  if(signedIn)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:name,p_contact:auth.user.email,p_reminders:true}});
+  if(signedIn){await saveCustomer({userId:auth.user.id,name,customerContact:auth.user.email,reminders:true,locale});if(b.referralCode)await db('rpc/quicksub_attach_referral',{method:'POST',body:{p_user:auth.user.id,p_code:b.referralCode}});}
   res.json({signedIn,message:signedIn?'Account created.':'Check your email for a confirmation link, then sign in. If you already have an account, sign in instead.'});
  }));
  router.post('/account/confirm',run(async(req,res)=>{
@@ -120,7 +141,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
   if(!uuid.test(confirmed?.id)||!confirmed.email)throw fail(400,'This confirmation link is invalid. Request a new confirmation email.');
   const auth={user:confirmed,access_token:b.accessToken,refresh_token:b.refreshToken,expires_in:3600};
   const [profile]=await db('quicksub_customers?user_id=eq.'+confirmed.id+'&select=user_id');
-  if(!profile)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:confirmed.id,p_name:String(confirmed.user_metadata?.name||'').slice(0,120),p_contact:confirmed.email,p_reminders:true}});
+  if(!profile){await saveCustomer({userId:confirmed.id,name:String(confirmed.user_metadata?.name||'').slice(0,120),customerContact:confirmed.email,reminders:true,locale:['en-BD','bn-BD'].includes(confirmed.user_metadata?.locale)?confirmed.user_metadata.locale:null});if(confirmed.user_metadata?.referralCode)await db('rpc/quicksub_attach_referral',{method:'POST',body:{p_user:confirmed.id,p_code:String(confirmed.user_metadata.referralCode).slice(0,32)}});}
   if(!await session(req,res,auth))throw fail(401,'Confirmation succeeded, but sign-in could not be completed.');
   res.json({message:'Email confirmed. You are now signed in.'});
  }));
@@ -135,7 +156,7 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
    throw err;
   }
   const [profile]=await db(`quicksub_customers?user_id=eq.${auth.user.id}&select=user_id`);
-  if(!profile)await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:auth.user.id,p_name:String(auth.user.user_metadata?.name||'').slice(0,120),p_contact:auth.user.email,p_reminders:true}});
+  if(!profile)await saveCustomer({userId:auth.user.id,name:String(auth.user.user_metadata?.name||'').slice(0,120),customerContact:auth.user.email,reminders:true,locale:null});
   if(!await session(req,res,auth))throw fail(401,'Sign-in failed.');
   res.json({ok:true});
  }));
@@ -147,13 +168,14 @@ function installCustomers({router,run,db,remote,rate,string,contact,now}) {
  router.get('/account/session',run(async(req,res)=>{
   const person=await user(req,false);
   if(!person)return res.json({user:null,profile:null});
-  const [profile]=await db(`quicksub_customers?user_id=eq.${person.id}&select=name,contact,renewal_reminders`);
+  const profile=await customerProfile(person.id);
   res.json({user:{id:person.id,email:person.email},profile:profile||null});
  }));
  router.post('/account/profile',run(async(req,res)=>{
   rate(req,'customer-profile',20);const person=await user(req);const b=req.body||{};
   if(typeof b.renewal_reminders!=='boolean')throw fail(400,'Choose your reminder preference.');
-  const profile=await db('rpc/quicksub_save_customer',{method:'POST',body:{p_user:person.id,p_name:string(b.name,120),p_contact:contact(b.contact),p_reminders:b.renewal_reminders}});
+  if(b.preferred_locale!==undefined&&!['en-BD','bn-BD'].includes(b.preferred_locale))throw fail(400,'Choose a supported language.');
+  const profile=await saveCustomer({userId:person.id,name:string(b.name,120),customerContact:contact(b.contact),reminders:b.renewal_reminders,locale:b.preferred_locale||null});
   res.json({profile});
  }));
  router.get('/account/orders',run(async(req,res)=>{

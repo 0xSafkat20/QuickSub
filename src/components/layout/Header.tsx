@@ -3,18 +3,10 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Search, ShoppingCart, Heart } from 'lucide-react';
 import OrderTracking from '../sections/OrderTracking';
 import { useWishlist } from '../../context/WishlistContext';
-
-const navLinks = [
-  { label: 'Home',        href: '#home' },
-  { label: 'Products',    href: '#products' },
-  { label: 'Deals',       href: '#deals' },
-  { label: 'How It Works',href: '#how-it-works' },
-  { label: 'Reviews',     href: '#reviews' },
-  { label: 'FAQ',         href: '#faq' },
-  { label: 'Contact',     href: '#contact' },
-];
+import { LanguageSwitcher, useI18n } from '../../i18n';
 
 const LOGO_SRC = '/Logo.png';
+const SECTION_IDS = ['home','products','deals','how-it-works','reviews','faq','contact'];
 
 interface HeaderProps {
   onSearchOpen: () => void;
@@ -22,6 +14,12 @@ interface HeaderProps {
 }
 
 export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
+  const {t}=useI18n();
+  const navLinks = [
+    { label: t('nav.home'), href: '#home' }, { label: t('nav.products'), href: '#products' },
+    { label: t('nav.deals'), href: '#deals' }, { label: t('nav.how'), href: '#how-it-works' },
+    { label: t('nav.reviews'), href: '#reviews' }, { label: t('nav.faq'), href: '#faq' }, { label: t('nav.contact'), href: '#contact' },
+  ];
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -30,11 +28,10 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 20);
-      const sections = navLinks.map(l => l.href.slice(1));
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sections[i]);
+      for (let i = SECTION_IDS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(SECTION_IDS[i]);
         if (el && el.getBoundingClientRect().top <= 120) {
-          setActiveSection(sections[i]);
+          setActiveSection(SECTION_IDS[i]);
           break;
         }
       }
@@ -61,7 +58,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
         document.querySelector<HTMLButtonElement>('[aria-controls="mobile-navigation"]')?.focus();
       }
     };
-    const desktop = window.matchMedia('(min-width: 1280px)');
+    const desktop = window.matchMedia('(min-width: 1700px)');
     const closeOnDesktop = () => { if (desktop.matches) setMobileOpen(false); };
     window.addEventListener('keydown', closeOnEscape);
     desktop.addEventListener('change', closeOnDesktop);
@@ -79,16 +76,16 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
       {/* Top Announcement Bar */}
       <div className="bg-brand-600 hidden sm:block">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-center gap-6 text-xs text-white/90 font-medium">
-          <span>Fast Digital Delivery</span>
+          <span>{t('header.fast')}</span>
           <span className="text-white/30">|</span>
-          <span>Secure Payment</span>
+          <span>{t('header.secure')}</span>
           <span className="text-white/30">|</span>
-          <span>Friendly Support Available</span>
+          <span>{t('header.support')}</span>
         </div>
       </div>
 
       {/* Main Nav */}
-      <nav className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <nav className="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         {/* Logo */}
         <a href="#home" className="flex shrink-0 items-center gap-2.5 group">
           <img
@@ -106,14 +103,14 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
           </span>
         </a>
 
-        <SiteLink href="/account" className={`hidden xl:inline-flex shrink-0 text-sm font-semibold px-2 py-2 ${scrolled ? "text-brand-700" : "text-white"}`}>My account</SiteLink>
+        <SiteLink href="/account" className={`hidden min-[1700px]:inline-flex shrink-0 whitespace-nowrap text-sm font-semibold px-2 py-2 ${scrolled ? "text-brand-700" : "text-white"}`}>{t('nav.account')}</SiteLink>
         {/* Desktop Nav Links */}
-        <div className="hidden xl:flex items-center gap-0.5">
+        <div className="hidden min-[1700px]:flex flex-1 items-center justify-center gap-0.5">
           {navLinks.map(link => (
             <a
               key={link.href}
               href={link.href}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+              className={`whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 activeSection === link.href.slice(1)
                   ? scrolled
                     ? 'text-brand-600 bg-brand-50'
@@ -129,7 +126,8 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden xl:flex items-center gap-2">
+        <div className="hidden min-[1700px]:flex shrink-0 items-center gap-1.5">
+          <LanguageSwitcher />
           <SiteLink href="/cart" aria-label="My cart" className={`p-2 rounded-lg ${scrolled ? 'text-brand-600' : 'text-white'}`}><ShoppingCart size={18}/></SiteLink>
           <button
             onClick={onSearchOpen}
@@ -158,14 +156,14 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
           <OrderTracking />
           <a
             href="#products"
-            className="ml-2 px-5 py-2.5 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all duration-200 animate-pulse-blue"
+            className="ml-1 whitespace-nowrap px-4 py-2.5 gradient-primary text-white text-sm font-semibold rounded-xl hover:shadow-blue-md transition-all duration-200 animate-pulse-blue"
           >
-            Order Now
+            {t('nav.order')}
           </a>
         </div>
 
         {/* Mobile Actions */}
-        <div className="flex xl:hidden items-center gap-1">
+        <div className="flex min-[1700px]:hidden items-center gap-1">
           <SiteLink href="/cart" aria-label="My cart" className={`p-2 ${scrolled ? 'text-brand-600' : 'text-white'}`}><ShoppingCart size={18}/></SiteLink>
           <button
             onClick={onSearchOpen}
@@ -200,9 +198,10 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div id="mobile-navigation" className="xl:hidden bg-white border-t border-brand-100 shadow-lg max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain">
+        <div id="mobile-navigation" className="min-[1700px]:hidden bg-white border-t border-brand-100 shadow-lg max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain">
           <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-            <SiteLink href="/account" onClick={() => setMobileOpen(false)} className="px-4 py-3 text-sm font-semibold text-brand-600 rounded-xl bg-brand-50">My account</SiteLink>
+            <div className="px-4 py-2"><LanguageSwitcher /></div>
+            <SiteLink href="/account" onClick={() => setMobileOpen(false)} className="px-4 py-3 text-sm font-semibold text-brand-600 rounded-xl bg-brand-50">{t('nav.account')}</SiteLink>
             {navLinks.map(link => (
               <a
                 key={link.href}
@@ -226,7 +225,7 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
                 onClick={() => setMobileOpen(false)}
                 className="flex-1 px-4 py-3 gradient-primary text-white text-sm font-semibold rounded-xl text-center"
               >
-                Order Now
+                {t('nav.order')}
               </a>
             </div>
           </div>

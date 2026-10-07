@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Zap, Shield, ListChecks, Headset } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 const features = [
   {
@@ -33,6 +34,9 @@ const features = [
 ];
 
 export default function TrustFeatures() {
+  const {locale}=useI18n();
+  const bangla=locale==='bn-BD';
+  const localized=bangla?features.map((item,index)=>({...item,headline:['দ্রুত ডিজিটাল ডেলিভারি','নিরাপদ ও স্বচ্ছ পেমেন্ট','সঠিক প্ল্যান বেছে নিন','প্রয়োজনে সহায়তা'][index],copy:['পেমেন্ট নিশ্চিত হওয়ার পর অর্ডার দ্রুত প্রক্রিয়া করা হয় এবং প্রতিটি ধাপে পরিষ্কার স্ট্যাটাস দেওয়া হয়।','স্বচ্ছ BDT মূল্য ও নিরাপদ স্থানীয় পেমেন্ট নির্দেশনা—কোনো লুকানো খরচ নেই।','কোন সাবস্ক্রিপশন বা টপ-আপ কিনবেন বুঝতে না পারলে চেকআউটের আগে সহায়তা নিন।','অর্ডার, নবায়ন ও ডেলিভারি প্রশ্নে লাইভ চ্যাট বা FAQ সহায়তা পাওয়া যায়।'][index]})):features;
   return (
     <section className="py-20 bg-page relative">
       <div className="max-w-7xl mx-auto px-4">
@@ -44,18 +48,18 @@ export default function TrustFeatures() {
           className="text-center mb-12"
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-600 text-xs font-bold uppercase tracking-wider mb-4">
-            Why QuickSub?
+            {bangla?'কেন QuickSub?':'Why QuickSub?'}
           </span>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 mb-4">
-            Built for Safe and Simple Digital Orders
+            {bangla?'নিরাপদ ও সহজ ডিজিটাল অর্ডারের জন্য তৈরি':'Built for Safe and Simple Digital Orders'}
           </h2>
           <p className="text-ink-400 max-w-2xl mx-auto">
-            Every section reduces confusion, explains requirements clearly, and helps you complete orders without friction.
+            {bangla?'প্রতিটি অংশ প্রয়োজনীয় তথ্য পরিষ্কারভাবে বোঝায় এবং সহজে অর্ডার সম্পন্ন করতে সাহায্য করে।':'Every section reduces confusion, explains requirements clearly, and helps you complete orders without friction.'}
           </p>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, i) => {
+          {localized.map((feature, i) => {
             const Icon = feature.icon;
             return (
               <motion.div

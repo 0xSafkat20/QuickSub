@@ -169,9 +169,11 @@ test("Admin/customer integration with real local SQL and simulated Supabase Auth
       );
       assert.equal(
         (
-          await call("/orders/payment", {
-            ...credentials,
-            reference: "TEST-BKASH-123",
+           await call("/orders/payment", {
+             ...credentials,
+             method: "bkash",
+             phone: "01712345678",
+             reference: "TEST-BKASH-123",
           })
         ).status,
         200,
@@ -182,9 +184,11 @@ test("Admin/customer integration with real local SQL and simulated Supabase Auth
       );
       assert.equal(
         (
-          await call("/orders/payment", {
-            ...credentials,
-            reference: "OTHER-REF",
+           await call("/orders/payment", {
+             ...credentials,
+             method: "bkash",
+             phone: "01712345678",
+             reference: "OTHER-REF",
           })
         ).status,
         409,

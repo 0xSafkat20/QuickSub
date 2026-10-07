@@ -34,7 +34,8 @@
     "check:sessions": "node scripts/check-session-expiry.mjs",
     "demo:cart": "node scripts/demo-cart.mjs",
     "test:subscriptions": "node --test scripts/subscriptions.integration.test.mjs",
-    "check:subscriptions": "node scripts/check-subscriptions.mjs"
+    "check:subscriptions": "node scripts/check-subscriptions.mjs",
+    "check:loyalty-language": "node scripts/check-loyalty-language.mjs"
   },
   "engines": {
     "node": ">=22.18.0"

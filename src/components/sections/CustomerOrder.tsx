@@ -12,6 +12,8 @@ import { api } from "../../utils/api";
 import { useStore } from "../../data/store";
 import { useProducts } from '../../data/catalog';
 import { downloadReceipt, receiptDate } from '../../utils/receiptPdf';
+import { useI18n } from '../../i18n';
+import type { RewardSummary } from './RewardsPanel';
 type Plan = { id: string; name: string; details: string; price_bdt: number; demo?: boolean };
 export type TrackedOrder = {
   id: string;
@@ -26,6 +28,7 @@ export type TrackedOrder = {
   package_details?: string; product_category?: string; subscription_period?: string;
   subscription_started_at?: string | null; expires_at?: string | null; created_at?: string;
   payment_method?: string; payment_reference?: string;
+  subtotal_bdt?:number;loyalty_discount_bdt?:number;loyalty_points_redeemed?:number;
 };
 
 const receipts = new Map<
@@ -75,21 +78,33 @@ export function OrderReceipt({
   onUpdate: (order: TrackedOrder) => void;
 }) {
   const { settings } = useStore();
+  const {t,money}=useI18n();
   useEffect(()=>rememberReceipt({id:order.id,accessCode}),[order.id,accessCode]);
   const [gatewayBlocked, setGatewayBlocked] = useState(true);
-  const [method,setMethod]=useState('bKash');
+  const [method,setMethod]=useState<'bkash'|'nagad'|'rocket'|'visa'|'mastercard'|'bank_transfer'>('bkash');
   const [downloading,setDownloading]=useState(false);
-  const [reference, setReference] = useState(""),
+  const [reference, setReference] = useState(""), [payerPhone,setPayerPhone]=useState(''),
+    [payerName,setPayerName]=useState(''), [senderBank,setSenderBank]=useState(''),
+    [accountLast4,setAccountLast4]=useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const receiptUnlocked = ['submitted','verified','refunded'].includes(order.payment_status);
+  const paymentVerified = ['verified','refunded'].includes(order.payment_status);
   return (
     <div className="space-y-4 text-sm text-ink-700">
-      <div className="rounded-xl bg-brand-50 p-4 space-y-2">
+      {receiptUnlocked && <>
+      <div role="status" className={`rounded-xl border p-4 ${paymentVerified?'border-green-300 bg-green-50 text-green-800':'border-blue-300 bg-blue-50 text-blue-800'}`}>
+        <strong className="block text-base">{paymentVerified?'Payment verified — purchase complete':'Payment information submitted successfully'}</strong>
+        <span>{paymentVerified?'Your complete receipt is ready below.':'Your receipt is now available below. The admin will verify the transaction before delivery.'}</span>
+      </div>
+      <section className="rounded-xl bg-brand-50 p-4 space-y-2" aria-label="Order receipt">
+        <h3 className="font-bold text-base">Order receipt</h3>
         <strong>
           {order.product_name} · {order.package_name}
         </strong>
+        {Number(order.loyalty_discount_bdt||0)>0&&<><p className="flex justify-between gap-3"><span>{t('cart.subtotal')}</span><span>{money(Number(order.subtotal_bdt||order.amount_bdt))}</span></p><p className="flex justify-between gap-3 text-green-700"><span>{t('checkout.discount')} ({order.loyalty_points_redeemed} pts)</span><span>−{money(Number(order.loyalty_discount_bdt))}</span></p></>}
         <p>
-          ৳{order.amount_bdt} · Order: {order.status} · Payment:{" "}
+          {money(Number(order.amount_bdt))} · Order: {order.status} · Payment:{" "}
           {order.payment_status}
         </p>
         <p className="break-all">
@@ -112,14 +127,29 @@ export function OrderReceipt({
         >
           {downloading?'Preparing PDF…':'Download order receipt (PDF)'}
         </button>
-      </div>
-      <OnlinePayment order={order} accessCode={accessCode} onUpdate={onUpdate} onBlockingChange={setGatewayBlocked} />
-      {order.delivery_note && (
+      </section>
+      </>}
+      {order.status === 'pending' && ['unpaid','rejected'].includes(order.payment_status) && <section className="space-y-3" aria-labelledby="payment-method-heading">
+        <div>
+          <h3 id="payment-method-heading" className="font-bold text-base">Choose a trusted payment method</h3>
+          <p className="text-xs text-ink-400">The payable amount is fixed from your order. Never send a card PIN, CVV or password.</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
+          {([
+            ['bkash','bKash'],['nagad','Nagad'],['rocket','Rocket'],
+            ['visa','Visa'],['mastercard','Mastercard'],['bank_transfer','Bank transfer'],
+          ] as const).map(([value,label]) => <button key={value} type="button" role="radio" aria-checked={method===value}
+            className={`rounded-xl border-2 px-3 py-3 text-sm font-semibold transition ${method===value?'border-brand-600 bg-brand-50 text-brand-700':'border-brand-100 bg-white text-ink-700'}`}
+            onClick={()=>{setMethod(value);setError('');}}>{label}</button>)}
+        </div>
+      </section>}
+      <OnlinePayment order={order} accessCode={accessCode} onUpdate={onUpdate} onBlockingChange={setGatewayBlocked} showCheckout={method==='visa'||method==='mastercard'} />
+      {receiptUnlocked && order.delivery_note && (
         <p className="whitespace-pre-wrap rounded-xl bg-green-50 p-4">
           {order.delivery_note}
         </p>
       )}
-      {!gatewayBlocked && order.status === "pending" &&
+      {!gatewayBlocked && !['visa','mastercard'].includes(method) && order.status === "pending" &&
         ["unpaid", "rejected"].includes(order.payment_status) && (
           <form
             className="space-y-3"
@@ -128,16 +158,16 @@ export function OrderReceipt({
               setBusy(true);
               setError("");
               try {
-                await api("/orders/payment", {
+                const result=await api<{order:TrackedOrder}>("/orders/payment", {
                   id: order.id,
                   accessCode,
                   reference,
                   method,
+                  phone: payerPhone,
+                  payerName,
+                  senderBank,
+                  accountLast4,
                 });
-                const result = await api<{ order: TrackedOrder }>(
-                  "/orders/track",
-                  { id: order.id, accessCode },
-                );
                 onUpdate(result.order);
               } catch (err) {
                 setError((err as Error).message);
@@ -150,16 +180,28 @@ export function OrderReceipt({
               {settings.paymentInstructions ||
                 "Contact support with your order ID to confirm payment instructions before paying."}
             </p>
-            <label className="block">Payment method<select className={input+' mt-2'} value={method} onChange={e=>setMethod(e.target.value)}><option>bKash</option><option>Nagad</option><option>Rocket</option><option>Bank transfer</option><option>Other manual payment</option></select></label>
+            <div className="rounded-xl bg-brand-50 p-3">
+              <span className="text-xs text-ink-400">Amount to send</span>
+              <strong className="block text-lg">{money(Number(order.amount_bdt))}</strong>
+            </div>
+            {method!=='bank_transfer' ? <label className="block">
+              Mobile number used for payment
+              <input className={input+' mt-2'} value={payerPhone} type="tel" inputMode="tel" autoComplete="tel" required maxLength={18} placeholder="01XXXXXXXXX" onChange={e=>setPayerPhone(e.target.value)} />
+            </label> : <>
+              <label className="block">Account holder / sender name<input className={input+' mt-2'} value={payerName} required minLength={2} maxLength={120} autoComplete="name" onChange={e=>setPayerName(e.target.value)} /></label>
+              <label className="block">Sender bank name<input className={input+' mt-2'} value={senderBank} required minLength={2} maxLength={120} onChange={e=>setSenderBank(e.target.value)} /></label>
+              <label className="block">Account number — last 4 digits only (optional)<input className={input+' mt-2'} value={accountLast4} inputMode="numeric" pattern="[0-9]{4}" maxLength={4} placeholder="1234" onChange={e=>setAccountLast4(e.target.value.replace(/\D/g,'').slice(0,4))} /></label>
+            </>}
             <label className="block">
-              Payment method and transaction reference
+              {method==='bank_transfer'?'Bank transfer reference':'Transaction ID (TrxID)'}
               <input
                 className={input + " mt-2"}
                 value={reference}
                 maxLength={160}
                 minLength={4}
                 required
-                placeholder="e.g. bKash — transaction reference"
+                pattern="[A-Za-z0-9][A-Za-z0-9._/-]{3,79}"
+                placeholder={method==='bank_transfer'?'Bank reference number':'Enter the TrxID from your receipt'}
                 onChange={(e) => setReference(e.target.value)}
               />
             </label>
@@ -167,7 +209,7 @@ export function OrderReceipt({
               {busy ? "Submitting…" : "Submit payment reference"}
             </button>
             <p className="text-xs text-ink-400">
-              Your payment will be reviewed by the store team.
+              Your details will be sent to the admin for verification. The admin will update payment and order status after checking the merchant or bank account.
             </p>
           </form>
         )}
@@ -186,6 +228,7 @@ export default function CustomerOrder({
   productId: string;
   productName: string;
 }) {
+  const {t,money}=useI18n();
   const query = new URLSearchParams(window.location.search);
   const products=useProducts();
   const isGame=products.find(p=>p.id===productId)?.category==='gaming';
@@ -207,10 +250,11 @@ export default function CustomerOrder({
       () => receiptFor(receiptKey).order,
     );
   const [savedProfile, setSavedProfile] = useState<{name:string;contact:string}|null>(null);
+  const [rewards,setRewards]=useState<RewardSummary|null>(null),[points,setPoints]=useState(0);
   const [accountError, setAccountError] = useState('');
   const [cartMessage,setCartMessage] = useState('');
   useSessionExpiry('customer', () => { setSavedProfile(null); setAccountError('Session ended. Your checkout draft is saved. Sign in again to link your purchase to your account.'); });
-  useEffect(() => { let active=true; api<{user:unknown;profile:{name:string;contact:string}|null}>('/account/session').then(data=>{if(active)setSavedProfile(data.user?data.profile:null);}).catch(()=>{if(active)setAccountError('Account details could not be loaded. Sign in again to save this order to your account.');}); return()=>{active=false;}; }, []);
+  useEffect(() => { let active=true; api<{user:unknown;profile:{name:string;contact:string}|null}>('/account/session').then(async data=>{if(!active)return;setSavedProfile(data.user?data.profile:null);if(data.user){try{const result=await api<RewardSummary>('/account/rewards');if(active)setRewards(result);}catch{/* Checkout remains available without rewards. */}}}).catch(()=>{if(active)setAccountError('Account details could not be loaded. Sign in again to save this order to your account.');}); return()=>{active=false;}; }, []);
   const [credentials, setCredentials] = useState(() => receiptFor(receiptKey));
   useEffect(() => {
     let cancelled = false;
@@ -287,6 +331,10 @@ export default function CustomerOrder({
       <button type="button" className={button} onClick={() => setAttempt(n => n + 1)}>Retry loading packages</button>
     </div>;
   const plan = plans.find((p) => p.id === selected);
+  const pointValue=Number(rewards?.settings.bdt_per_point||0);
+  const maximumPoints=plan&&rewards?Math.max(0,Math.min(rewards.balance,Math.floor((Number(plan.price_bdt)*rewards.settings.maximum_discount_percent/100)/pointValue))):0;
+  const validPoints=rewards&&points>=rewards.settings.minimum_redemption&&points<=maximumPoints?points:0;
+  const pointsDiscount=Math.min(Number(plan?.price_bdt||0)-1,validPoints*pointValue);
   return (
     <form
       className="space-y-3 text-sm"
@@ -309,6 +357,7 @@ export default function CustomerOrder({
             email: values.get('receiptEmail') || (String(values.get('contact')).includes('@') ? values.get('contact') : ''),
             gameAccount: values.get('gameAccount') || '',
             renewalOf: renewalOf || undefined,
+            points: validPoints,
           });
           credentials.order = result.order;
           setOrder(result.order);
@@ -321,11 +370,11 @@ export default function CustomerOrder({
     >
       {plan?.demo && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900"><strong>Demo packages</strong> — sample prices for testing. No money will be collected.</p>}
       {renewalOf&&<p className="rounded-xl bg-brand-50 p-3 text-brand-800"><strong>Subscription renewal</strong> — your new period starts after the current term when it is still active.</p>}
-      <h2 className="text-xl font-bold">Package &amp; delivery details</h2>
-      {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>Use my saved details</button> : <p className="text-xs"><SiteLink href={accountUrl(fromCart ? '/checkout'+window.location.search : checkoutUrl(productId))} className="text-brand-600 underline">Sign in or create an account</SiteLink> to save real purchases to your order history.</p>}
+      <h2 className="text-xl font-bold">{t('checkout.details')}</h2>
+      {savedProfile ? <button type="button" className="text-brand-600 underline" onClick={e=>{const form=e.currentTarget.form; if(form){(form.elements.namedItem("name") as HTMLInputElement).value=savedProfile.name;(form.elements.namedItem("contact") as HTMLInputElement).value=savedProfile.contact;drafts.set(productId,{name:savedProfile.name,contact:savedProfile.contact,note:(form.elements.namedItem("note") as HTMLTextAreaElement).value,packageId:selected});}}}>{t('checkout.savedDetails')}</button> : <p className="text-xs"><SiteLink href={accountUrl(fromCart ? '/checkout'+window.location.search : checkoutUrl(productId))} className="text-brand-600 underline">{t('checkout.signin')}</SiteLink> to save real purchases to your order history.</p>}
       {accountError && <p className="text-xs text-amber-700">{accountError}</p>}
       <label className="block font-semibold">
-        Choose your package
+        {t('checkout.choosePackage')}
         <select
           className={input + " mt-2"}
           name="packageId"
@@ -344,7 +393,7 @@ export default function CustomerOrder({
         <p className="text-ink-400 whitespace-pre-wrap">{plan.details}</p>
       )}
       <label className="block">
-        Your name
+        {t('checkout.name')}
         <input
           className={input + " mt-1"}
           name="name"
@@ -356,7 +405,7 @@ export default function CustomerOrder({
         />
       </label>
       <label className="block">
-        Email or phone number
+        {t('checkout.contact')}
         <input
           className={input + " mt-1"}
           name="contact"
@@ -368,10 +417,10 @@ export default function CustomerOrder({
           autoComplete="email"
         />
       </label>
-      <label className="block">Receipt email<input className={input+' mt-1'} name="receiptEmail" type="email" required maxLength={160} autoComplete="email" defaultValue={draft?.contact?.includes('@')?draft.contact:''} placeholder="you@example.com" /></label>
+      <label className="block">{t('checkout.receiptEmail')}<input className={input+' mt-1'} name="receiptEmail" type="email" required maxLength={160} autoComplete="email" defaultValue={draft?.contact?.includes('@')?draft.contact:''} placeholder="you@example.com" /></label>
       {isGame&&<label className="block">Game account name / player ID<input className={input+' mt-1'} name="gameAccount" required maxLength={160} placeholder="Player ID, account name and server / zone if required" /></label>}
       <label className="block">
-        Delivery details (optional)
+        {t('checkout.note')}
         <textarea
           className={input + " mt-1"}
           name="note"
@@ -380,6 +429,7 @@ export default function CustomerOrder({
           placeholder="Do not share passwords, OTPs or payment PINs."
         />
       </label>
+      {rewards?.settings.enabled&&maximumPoints>=rewards.settings.minimum_redemption&&<div className="rounded-xl border border-brand-100 bg-brand-50 p-4 space-y-2"><label className="block font-semibold">{t('checkout.points')}<input className={input+' mt-2'} type="number" min="0" max={maximumPoints} step="1" value={points} onChange={event=>setPoints(Math.max(0,Math.min(maximumPoints,Number(event.target.value)||0)))}/></label><p className="text-xs text-ink-500">{t('checkout.pointsHelp',{minimum:rewards.settings.minimum_redemption,maximum:maximumPoints})}</p>{validPoints>0&&<div className="text-sm space-y-1"><p className="flex justify-between"><span>{t('checkout.discount')}</span><strong>-{money(pointsDiscount)}</strong></p><p className="flex justify-between"><span>{t('checkout.total')}</span><strong>{money(Number(plan?.price_bdt||0)-pointsDiscount)}</strong></p></div>}</div>}
       <p className="text-xs text-ink-400">
         {plan?.demo ? "Demo details stay in this preview and are not submitted." : "Your contact and order details are saved to fulfill this order. Continue to choose an available payment method."}
       </p>
@@ -393,7 +443,7 @@ export default function CustomerOrder({
         setBusy(true);setError('');setCartMessage('');
         try {await api('/cart/items/'+selected,details,'PUT');setCartMessage(fromCart?'Cart details updated.':'Package saved to your account cart.');}
         catch(err){setError((err as Error).message);}finally{setBusy(false);}
-      }}>{busy?'Please wait…':fromCart?'Save cart changes':'Add to cart'}</button>}
+      }}>{busy?t('common.loading'):fromCart?'Save cart changes':t('checkout.addCart')}</button>}
       {fromCart && <SiteLink href="/cart" className="inline-block text-brand-600 underline">Back to my cart</SiteLink>}
       {error && (
         <p role="alert" className="text-red-600">
@@ -401,7 +451,7 @@ export default function CustomerOrder({
         </p>
       )}
       <button className={button + " w-full"} disabled={busy}>
-        {busy ? "Creating order…" : plan?.demo ? `Continue to demo payment · ৳${plan.price_bdt}` : `Continue to payment · ৳${plan?.price_bdt}`}
+        {busy ? t('checkout.creating') : plan?.demo ? `Continue to demo payment · ${money(plan.price_bdt)}` : t('checkout.payment',{amount:money(Number(plan?.price_bdt||0)-pointsDiscount)})}
       </button>
     </form>
   );

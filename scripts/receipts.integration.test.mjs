@@ -12,7 +12,7 @@ test('receipt snapshots, ownership, payment dates, repeat confirmation and game 
  assert.equal((await call('/orders/track',{...credentials,accessCode:'0'.repeat(64)})).status,404);
  await env.db.query("update quicksub_packages set details='changed',name='1 year' where id=$1",[packageId]);
  const retry=await call('/orders',{...body,email:'changed@example.test'});assert.equal(retry.order.receipt_email,'receipt@example.test');assert.equal(retry.order.subscription_period,'1 month');
- assert.equal((await call('/orders/payment',{...credentials,method:'Nagad',reference:'TX-RECEIPT-1'})).status,200);
+ assert.equal((await call('/orders/payment',{...credentials,method:'nagad',reference:'TX-RECEIPT-1',phone:'01712345678'})).status,200);
  await env.db.query("update quicksub_orders set payment_status='verified' where id=$1",[credentials.id]);
  const paid=(await call('/orders/track',credentials)).order;assert.equal(paid.payment_method,'Nagad');assert.ok(paid.subscription_started_at);assert.ok(paid.expires_at);assert.equal(paid.tracking_hash,undefined);
  const diff=(Date.parse(paid.expires_at)-Date.parse(paid.subscription_started_at))/86400000;assert.ok(diff>=28&&diff<=31);

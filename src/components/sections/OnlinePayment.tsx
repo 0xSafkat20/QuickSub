@@ -4,7 +4,7 @@ import type { TrackedOrder } from './CustomerOrder';
 export type Payment = { id: string; status: string; amount_bdt: number; bank_reference: string | null; created_at: string; refund_status: string; refund_reference: string; refund_note: string };
 const field = 'w-full border border-brand-200 rounded-xl p-3 mt-1';
 const button = 'px-4 py-2 rounded-xl bg-brand-600 text-white disabled:opacity-50';
-export default function OnlinePayment({ order, accessCode, onUpdate, onBlockingChange }: { order: TrackedOrder; accessCode: string; onUpdate: (order: TrackedOrder) => void; onBlockingChange: (blocked: boolean) => void }) {
+export default function OnlinePayment({ order, accessCode, onUpdate, onBlockingChange, showCheckout = true }: { order: TrackedOrder; accessCode: string; onUpdate: (order: TrackedOrder) => void; onBlockingChange: (blocked: boolean) => void; showCheckout?: boolean }) {
   const [enabled, setEnabled] = useState(false), [payments, setPayments] = useState<Payment[]>([]), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [simulation,setSimulation]=useState(false);
@@ -13,14 +13,15 @@ export default function OnlinePayment({ order, accessCode, onUpdate, onBlockingC
     let active = true;
     Promise.all([api<{ enabled: boolean; simulation?: boolean }>('/payments/config'), api<{ payments: Payment[] }>('/orders/payments', { id: order.id, accessCode })])
       .then(([config, data]) => { if (active) { setEnabled(config.enabled); setSimulation(!!config.simulation); setPayments(data.payments); onBlockingChange(data.payments.some(p => p.status === "pending" || (p.status === "review" && p.refund_status !== "completed"))); } })
-      .catch(() => { if (active) setError('Online payment history is unavailable. Refresh before paying again.'); });
+      .catch(() => { if (active) { setError('Online payment history is unavailable. Refresh before paying again.'); onBlockingChange(false); } });
     return () => { active = false; };
   }, [order.id, accessCode, order.payment_status, onBlockingChange]);
   const payable = order.status === 'pending' && ['unpaid', 'rejected'].includes(order.payment_status) && !payments.some(p => p.status === 'review' && p.refund_status !== 'completed');
+  if (!showCheckout && !payments.length) return null;
   return <section className="rounded-xl border border-brand-200 p-4 space-y-3" aria-label="Online payment">
     <h3 className="font-bold">Online payment</h3>
-    {!enabled && <p>Online checkout is currently unavailable. Contact support if you have an unresolved payment.</p>}
-    {enabled && payable && <form className="space-y-3" onSubmit={async e => {
+    {showCheckout && !enabled && <p>Secure card checkout is currently unavailable. Choose a mobile wallet or bank transfer instead.</p>}
+    {showCheckout && enabled && payable && <form className="space-y-3" onSubmit={async e => {
       e.preventDefault(); setBusy(true); setError('');
       const data = new FormData(e.currentTarget);
       try {

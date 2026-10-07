@@ -122,6 +122,7 @@ jobs:
           node scripts/check-storefront.mjs
           node scripts/check-subscriptions.mjs
           node scripts/check-support.mjs
+          node scripts/check-loyalty-language.mjs
 
       - name: Upload browser evidence
         if: always()

@@ -29,7 +29,10 @@ export async function startTestServer({ port = 0, now = Date.now, password = "te
     "20260930000000_admin_two_step.sql",
     "20261001000000_admin_notifications.sql",
     "20261002000000_customer_delete_pending_order.sql",
-  ].filter((name) => notificationMigration || name !== "20261001000000_admin_notifications.sql"))
+    "20261003000000_loyalty_referrals_locale.sql",
+    "20261007000000_manual_payments.sql",
+    "20261007010000_rewards_and_subscription_cancellation.sql",
+  ].filter((name) => notificationMigration || !["20261001000000_admin_notifications.sql","20261003000000_loyalty_referrals_locale.sql","20261007010000_rewards_and_subscription_cancellation.sql"].includes(name)))
     await db.exec(
       await readFile(
         new URL("../supabase/migrations/" + name, import.meta.url),

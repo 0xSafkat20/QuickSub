@@ -16,7 +16,8 @@ export default function OrderTracking({ inline = false }: { inline?: boolean }) 
     <>
       {!inline && <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border-2 border-brand-200 text-brand-700 text-sm font-semibold hover:bg-brand-50"
+        aria-label="Open order tracking"
+        className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl bg-white border-2 border-brand-200 text-brand-700 text-sm font-semibold hover:bg-brand-50"
       >
         <Package size={16} />
         Track Order

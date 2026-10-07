@@ -12,6 +12,7 @@ import {
   Sword, Box, Image, FileText, CheckCircle, Layers,
   ArrowRight, Clock, Tag, ImageOff, Search, X, SlidersHorizontal, Bell, PackageX, Heart, HeartOff, ChevronDown, GitCompare,
 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 const iconMap: Record<string, LucideIcon> = {
   tv: Tv,
@@ -67,6 +68,8 @@ function ProductCard({
   onRequestNotify: (product: Product) => void;
   onOpenDetail: (product: Product) => void;
 }) {
+  const {locale}=useI18n();
+  const bangla=locale==='bn-BD';
   const Icon = iconMap[product.icon] || Tv;
   const [imgError, setImgError] = useState(false);
   const { isFavorite, toggleFavorite } = useWishlist();
@@ -114,7 +117,7 @@ function ProductCard({
           <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
               <PackageX size={32} className="text-white/90" />
-              <span className="text-white font-bold text-sm tracking-wide">Out of Stock</span>
+              <span className="text-white font-bold text-sm tracking-wide">{bangla?'স্টক শেষ':'Out of Stock'}</span>
             </div>
           </div>
         )}
@@ -259,7 +262,7 @@ function ProductCard({
               disabled
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed select-none"
             >
-              <PackageX size={14} /> Out of Stock
+              <PackageX size={14} /> {bangla?'স্টক শেষ':'Out of Stock'}
             </button>
             <button
               onClick={e => {
@@ -317,6 +320,8 @@ export default function ProductGrid({
   activeFilter, onFilterChange, highlightProductId,
   searchQuery, onSearchQueryChange, inStockOnly, onInStockOnlyChange,
 }: ProductGridProps) {
+  const {locale}=useI18n();
+  const bangla=locale==='bn-BD';
   const products = useProducts();
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
@@ -378,10 +383,10 @@ export default function ProductGrid({
           className="text-center mb-10"
         >
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 mb-4">
-            Choose Your QuickSub Product
+            {bangla?'আপনার QuickSub পণ্য বেছে নিন':'Choose Your QuickSub Product'}
           </h2>
           <p className="text-ink-400 max-w-2xl mx-auto mb-8">
-            Find premium subscriptions, game top-ups, and AI access options in one organized product section.
+            {bangla?'এক জায়গায় প্রিমিয়াম সাবস্ক্রিপশন, গেম টপ-আপ ও AI অ্যাক্সেস খুঁজুন।':'Find premium subscriptions, game top-ups, and AI access options in one organized product section.'}
           </p>
 
           <div className="max-w-md mx-auto relative">
@@ -392,7 +397,7 @@ export default function ProductGrid({
               onChange={e => onSearchQueryChange(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
-              placeholder="Search products (e.g. Netflix, PUBG, AI…)"
+              placeholder={bangla?'পণ্য খুঁজুন (যেমন Netflix, PUBG, AI…)':'Search products (e.g. Netflix, PUBG, AI…)'}
               role="combobox"
               aria-autocomplete="list"
               aria-expanded={searchFocused && !!searchQuery.trim()}
@@ -412,7 +417,7 @@ export default function ProductGrid({
               {searchFocused && searchQuery.trim() && <motion.div id="product-search-suggestions" role="listbox" initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} className="absolute z-30 left-0 right-0 mt-2 overflow-hidden rounded-2xl border border-brand-100 bg-white p-2 text-left shadow-2xl">
                 {suggestions.length ? suggestions.map(product => <button key={product.id} role="option" aria-selected="false" type="button" onMouseDown={event => event.preventDefault()} onClick={() => { onSearchQueryChange(product.name); onFilterChange('all'); setDetailProduct(product); setSearchFocused(false); }} className="flex w-full items-center gap-3 rounded-xl p-3 hover:bg-brand-50 focus:bg-brand-50">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white" style={{backgroundColor:product.accentColor}}>{product.name.slice(0,2)}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-ink-800">{product.name}</span><span className="block truncate text-xs capitalize text-ink-400">{product.category} · {product.startingPrice}</span></span><ArrowRight size={14} className="text-brand-500"/>
-                </button>) : <p className="p-4 text-center text-sm text-ink-400">No matching products. Try a brand, category, or product type.</p>}
+                </button>) : <p className="p-4 text-center text-sm text-ink-400">{bangla?'মিলেছে এমন পণ্য নেই। ব্র্যান্ড, বিভাগ বা পণ্যের ধরন লিখুন।':'No matching products. Try a brand, category, or product type.'}</p>}
               </motion.div>}
             </AnimatePresence>
           </div>
@@ -447,7 +452,7 @@ export default function ProductGrid({
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border-2 border-brand-200 bg-white text-ink-500 hover:border-brand-400 hover:text-brand-700 transition-all duration-200"
               >
                 <SlidersHorizontal size={13} />
-                Sort: {{ 'default': 'Default', 'price-asc': 'Price: Low', 'price-desc': 'Price: High', 'name-asc': 'A-Z', 'newest': 'Newest' }[sortBy]}
+                {bangla?'সাজান':'Sort'}: {{ 'default': bangla?'ডিফল্ট':'Default', 'price-asc': bangla?'কম দাম':'Price: Low', 'price-desc': bangla?'বেশি দাম':'Price: High', 'name-asc': 'A-Z', 'newest': bangla?'নতুন':'Newest' }[sortBy]}
                 <ChevronDown size={12} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
@@ -522,7 +527,7 @@ export default function ProductGrid({
             className="text-center py-20"
           >
             <Search size={40} className="text-brand-200 mx-auto mb-4" />
-            <p className="text-ink-400 font-medium mb-1">No products found</p>
+            <p className="text-ink-400 font-medium mb-1">{bangla?'কোনো পণ্য পাওয়া যায়নি':'No products found'}</p>
             <p className="text-sm text-ink-300">
               Try a different search or{' '}
               <button

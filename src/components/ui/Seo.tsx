@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useI18n } from '../../i18n';
 
 const SITE = 'https://quicksub.com';
 const defaultDescription = 'Buy digital subscriptions, AI tools, streaming plans and game top-ups in Bangladesh with BDT pricing, secure payment, fast delivery and verified customer reviews.';
@@ -19,26 +20,35 @@ function setMeta(selector: string, attribute: string, value: string) {
 }
 
 export default function Seo({ path }: { path: string }) {
+  const {locale,t}=useI18n();
   useEffect(() => {
     const meta = routeMeta[path] || { title: 'QuickSub | Secure Digital Services', description: defaultDescription, index: false };
+    const localizedTitle=path==='/'?t('seo.home.title'):path==='/checkout'||path==='/buy'?t('seo.checkout.title'):path==='/account'?t('seo.account.title'):path==='/track'?t('seo.track.title'):path==='/cart'?t('seo.cart.title'):meta.title;
+    const localizedDescription=path==='/'?t('seo.home.description'):meta.description;
     const canonicalPath = meta.index ? '/' : path;
-    document.title = meta.title;
-    setMeta('meta[name="description"]', 'content', meta.description);
+    const localizedUrl=SITE+canonicalPath+(locale==='bn-BD'?'?lang=bn':'');
+    document.title = localizedTitle;
+    setMeta('meta[name="description"]', 'content', localizedDescription);
     setMeta('meta[name="keywords"]', 'content', keywords);
     setMeta('meta[name="robots"]', 'content', meta.index ? 'index, follow, max-image-preview:large' : 'noindex, follow');
-    setMeta('meta[property="og:title"]', 'content', meta.title);
-    setMeta('meta[property="og:description"]', 'content', meta.description);
-    setMeta('meta[property="og:url"]', 'content', SITE + canonicalPath);
-    setMeta('meta[name="twitter:title"]', 'content', meta.title);
-    setMeta('meta[name="twitter:description"]', 'content', meta.description);
-    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', SITE + canonicalPath);
+    setMeta('meta[property="og:title"]', 'content', localizedTitle);
+    setMeta('meta[property="og:description"]', 'content', localizedDescription);
+    setMeta('meta[property="og:url"]', 'content', localizedUrl);
+    setMeta('meta[name="twitter:title"]', 'content', localizedTitle);
+    setMeta('meta[name="twitter:description"]', 'content', localizedDescription);
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', localizedUrl);
+    for(const code of ['en-BD','bn-BD','x-default']){
+      let link=document.head.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${code}"]`);
+      if(!link){link=document.createElement('link');link.rel='alternate';link.hreflang=code;document.head.appendChild(link);}
+      link.href=SITE+canonicalPath+(code==='bn-BD'?'?lang=bn':'');
+    }
     const existing = document.getElementById('quicksub-page-schema');
     existing?.remove();
     const schema = document.createElement('script');
     schema.id = 'quicksub-page-schema'; schema.type = 'application/ld+json';
-    schema.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': meta.index ? 'OnlineStore' : 'WebPage', name: meta.title, description: meta.description, url: SITE + canonicalPath, inLanguage: 'en-BD', isPartOf: { '@type': 'WebSite', name: 'QuickSub', url: SITE } });
+    schema.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': meta.index ? 'OnlineStore' : 'WebPage', name: localizedTitle, description: localizedDescription, url: localizedUrl, inLanguage: locale, isPartOf: { '@type': 'WebSite', name: 'QuickSub', url: SITE } });
     document.head.appendChild(schema);
     return () => schema.remove();
-  }, [path]);
+  }, [path,locale,t]);
   return null;
 }

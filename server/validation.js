@@ -30,7 +30,10 @@ const authSchemas = {
     return result;
   } },
   login: { email, password: text(128, 1, false) },
-  signup: { email, password: text(128, 10, false), name: text(120) },
+  signup: { email, password: text(128, 10, false), name: text(120), referralCode: optional(text(32, 4)), locale: optional(value => {
+    if (!['en-BD','bn-BD'].includes(value)) throw fail(400, 'Choose a supported language.');
+    return value;
+  }) },
   forgotPassword: { email },
   confirmSignup: {
     accessToken: text(4096, 20, false),

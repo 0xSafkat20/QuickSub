@@ -5,6 +5,7 @@ import AdminPaymentSearch from "./AdminPaymentSearch";
 import AdminPayments from "./AdminPayments";
 import AdminReports from "./AdminReports";
 import AdminSubscriptions from './AdminSubscriptions';
+import AdminLoyalty from './AdminLoyalty';
 import {
   useCallback,
   useEffect,
@@ -29,6 +30,7 @@ import {
   ChevronDown,
   CheckCheck,
   BarChart3,
+  Gift,
 } from "lucide-react";
 import { api } from "../utils/api";
 import type { Product } from "../data/products";
@@ -62,6 +64,7 @@ type Order = {
   status: string;
   payment_status: string;
   payment_reference: string;
+  payment_method: string;
   delivery_note: string;
   created_at: string;
   customer_deleted_at: string | null;
@@ -128,6 +131,7 @@ const sections = [
   { name: "Orders", icon: ShoppingBag },
   { name: "Customers", icon: Users },
   { name: "Subscriptions", icon: RefreshCw },
+  { name: "Rewards", icon: Gift },
   { name: "Reports", icon: BarChart3 },
   { name: "Inbox", icon: MessageSquare },
   { name: "Content", icon: FileText },
@@ -451,7 +455,7 @@ export default function AdminApp() {
             .filter(
               (s) =>
                 owner ||
-                !["Content", "Offers", "Settings", "Activity"].includes(s.name),
+                !["Rewards", "Content", "Offers", "Settings", "Activity"].includes(s.name),
             )
             .map(({ name, icon: Icon }, index) => {
               const notificationCount = data?.notifications?.[name] || 0;
@@ -662,6 +666,7 @@ export default function AdminApp() {
               )}
               {tab === "Reports" && <AdminReports role={session.role} />}
               {tab === "Subscriptions" && <AdminSubscriptions />}
+              {tab === "Rewards" && owner && <AdminLoyalty />}
               {[
                 "Products",
                 "Packages",
@@ -1669,9 +1674,9 @@ export default function AdminApp() {
         </div>
       )}
       {order && (
-        <div className="qs-admin-overlay">
+        <div className="qs-admin-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOrder(null); }}>
           <form
-            className="qs-admin-editor"
+            className="qs-admin-editor qs-admin-order-editor"
             onSubmit={async (e) => {
               e.preventDefault();
               if (await save("order", order.id, order)) setOrder(null);
@@ -1697,19 +1702,13 @@ export default function AdminApp() {
               {money(order.amount_bdt)} · {order.customer_name} ·{" "}
               {order.contact}
             </p>
-            <p className="qs-admin-note">
-              Customer note: {order.customer_note || "None"}
+            <p className="qs-admin-note qs-admin-customer-note">
+              <strong>Customer note</strong>
+              <span>{order.customer_note || "None"}</span>
             </p>
-            <p className="qs-admin-note">
-              Payment reference:{" "}
-              <strong>{order.payment_reference || "Not submitted"}</strong>
-            </p>
-            <p className="qs-admin-muted">
-              Verify the transaction in your merchant account before marking it
-              paid. Changing a status here does not transfer or refund money.
-            </p>
-            <AdminPayments key={order.id} orderId={order.id} onChange={() => { setOrder(null); void reload(); }} />
-            <AdminSubscription key={order.id} orderId={order.id} />
+            <AdminPayments key={`payments-${order.id}`} orderId={order.id} orderPayment={{ method: order.payment_method, reference: order.payment_reference, amount: order.amount_bdt, status: order.payment_status }} onChange={() => { setOrder(null); void reload(); }} />
+            <AdminSubscription key={`subscription-${order.id}`} orderId={order.id} />
+            <div className="qs-admin-order-status-grid">
             <Field label="Payment status">
               <select
                 value={order.payment_status}
@@ -1740,6 +1739,7 @@ export default function AdminApp() {
                 )}
               </select>
             </Field>
+            </div>
             <Field label="Customer-facing delivery / status note (no passwords)">
               <textarea
                 maxLength={2000}

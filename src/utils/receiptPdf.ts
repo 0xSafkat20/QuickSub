@@ -7,6 +7,8 @@ export const receiptDate = (value?: string | null) => value
 // Render browser fonts to retain multilingual customer names in the PDF.
 // Only explicitly allowlisted receipt fields are included, never tracking secrets.
 export async function downloadReceipt(order: TrackedOrder) {
+  if (!['submitted','verified','refunded'].includes(order.payment_status))
+    throw new Error('Submit payment information before downloading the receipt.');
   const [{ jsPDF }, { default: html2canvas }] = await Promise.all([import('jspdf'), import('html2canvas')]);
   const root = document.createElement('div');
   root.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;padding:48px;background:#fff;color:#14213d;font:16px Arial,sans-serif;box-sizing:border-box;line-height:1.55';

@@ -80,6 +80,9 @@ function createAdminRouter({
       const providerMessage = provider && typeof provider === "object"
         ? String(provider.message || provider.details || "")
         : "";
+      const providerCode = provider && typeof provider === "object"
+        ? String(provider.code || provider.error_code || "")
+        : "";
       const knownConflict = [
         [/Verify payment before fulfillment/i, "Set Payment status to verified before changing the order to processing or delivered."],
         [/Payment reference required/i, "A payment reference is required before payment can be submitted or verified. Ask the customer to submit the transaction reference, then refresh."],
@@ -92,12 +95,15 @@ function createAdminRouter({
         [/Product unavailable/i, "That product is unavailable or out of stock. Refresh the dashboard before trying again."],
         [/Price changed/i, "The package price changed. Refresh the dashboard and try again with the current price."],
       ].find(([pattern]) => pattern.test(providerMessage));
-      throw fail(
+      const schemaOutdated = /PGRST20[234]|schema cache/i.test(providerCode + " " + providerMessage);
+      throw Object.assign(fail(
         response.status === 400 || response.status === 409 ? 409 : 503,
         response.status === 400 || response.status === 409
-          ? knownConflict?.[1] || "The update conflicts with the current record. Check availability, payment reference and order status, then refresh."
+          ? knownConflict?.[1] || (schemaOutdated
+            ? "Database setup is out of date. Apply the latest Supabase migrations, then try again."
+            : "The database rejected this request. Refresh and try again.")
           : "Database unavailable. Check configuration and migrations.",
-      );
+      ), { providerStatus: response.status, providerCode, providerMessage });
     }
     if (response.status === 204) return null;
     const text = await response.text();
@@ -201,6 +207,7 @@ function createAdminRouter({
   router.use(require('./reviews').createReviews({ db, customers, rate }));
   router.use(require("./cart").createCartRouter({ db, customers, rate }));
   router.use(require("./subscriptions").createSubscriptions({ db, customers, rate, now }));
+  router.use(require("./loyalty").createLoyalty({ db, customers, rate, now, cronSecret: paymentEnv.CRON_SECRET || process.env.CRON_SECRET }));
   router.get("/admin/session", (req, res) => res.json(req.admin));
   function reportPeriod(query) {
     const iso = /^\d{4}-\d{2}-\d{2}$/;
@@ -291,6 +298,13 @@ function createAdminRouter({
     if (!uuid.test(req.params.id)) throw fail(400, 'Invalid order ID.');
     res.json({ payments: await payments.history(req.params.id, true) });
   }));
+  router.get('/admin/manual-payments/:id', run(async (req,res) => {
+    if (!uuid.test(req.params.id)) throw fail(400, 'Invalid order ID.');
+    const rows = await db(
+      `quicksub_manual_payments?order_id=eq.${req.params.id}&select=id,order_id,method,amount_bdt,transaction_reference,payer_phone,payer_name,sender_bank,account_last_four,status,submitted_at,reviewed_at&order=submitted_at.desc&limit=20`,
+    );
+    res.json({ payments: rows });
+  }));
   router.post('/admin/payments/:id/refund', run(async (req,res) => {
     const payment = await payments.get(req.params.id);
     if (!['requested','pending','completed','failed'].includes(req.body?.status)) throw fail(400, 'Invalid refund status.');
@@ -333,7 +347,7 @@ function createAdminRouter({
         Math.min(1000000, Math.floor(Number(req.query.offset) || 0)),
       );
       let legacyOrders = null;
-      const baseOrderFields = "id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,delivery_note,created_at,updated_at";
+      const baseOrderFields = "id,package_id,product_name,package_name,amount_bdt,customer_name,contact,customer_note,status,payment_status,payment_reference,payment_method,delivery_note,created_at,updated_at";
       const orderFields = `${baseOrderFields},customer_deleted_at`;
       const loadOrders = async () => {
         try {

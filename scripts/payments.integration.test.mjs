@@ -39,7 +39,7 @@ test('Gateway lifecycle with real PostgreSQL, authenticated routes and simulated
   const id = checkout.body.url.split('/').pop();
   assert.equal((await call('/orders/checkout', { ...c, email: 'buyer@example.test', phone: '01712345678' })).body.url, checkout.body.url);
   assert.equal(initiated, 1);
-  assert.equal((await call('/orders/payment', { ...c, reference: 'bKash-1234' })).status, 409);
+  assert.equal((await call('/orders/payment', { ...c, method: 'bkash', phone: '01712345678', reference: 'BKASH-1234' })).status, 409);
   assert.equal((await call('/payments/return', { tran_id: id, status: 'VALID' })).status, 303);
   assert.equal((await call('/orders/track', c)).body.order.payment_status, 'unpaid');
   provider.get(id).status = 'VALID';

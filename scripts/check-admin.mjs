@@ -126,9 +126,6 @@ try {
   const createdResponse = await created;
   assert.equal(createdResponse.status(), 201);
   const order = (await createdResponse.json()).order;
-  await customer.waitForFunction(() =>
-    document.body.textContent.includes("Download order receipt"),
-  );
   console.log("PASS order created");
   const code = await customer.evaluate(
     (id) =>
@@ -137,13 +134,13 @@ try {
     order.id,
   );
   assert.match(code, /^[a-f0-9]{64}$/);
-  await customer.type(
-    'input[placeholder="e.g. bKash — transaction reference"]',
-    "TEST-REFERENCE-999",
-  );
+  await customer.waitForSelector('input[placeholder="01XXXXXXXXX"]');
+  await customer.type('input[placeholder="01XXXXXXXXX"]', "01700000000");
+  await customer.type('input[placeholder="Enter the TrxID from your receipt"]', "TEST-REFERENCE-999");
   await clickText(customer, "button", "Submit payment reference");
   await customer.waitForFunction(() =>
-    document.body.textContent.includes("Payment: submitted"),
+    document.body.textContent.includes("Payment: submitted") &&
+    document.body.textContent.includes("Download order receipt"),
   );
   await admin.bringToFront();
   await clickText(admin, "nav button", "Orders");
@@ -152,12 +149,35 @@ try {
     document.querySelector("table")?.textContent.includes("Browser Customer"),
   );
   await clickText(admin, "td button", "Review");
+  const orderEditorLayout = await admin.$eval('.qs-admin-order-editor', element => ({
+    width: element.getBoundingClientRect().width,
+    scrollbar: getComputedStyle(element).scrollbarWidth,
+    statusColumns: getComputedStyle(element.querySelector('.qs-admin-order-status-grid')).gridTemplateColumns.split(' ').length,
+  }));
+  assert.ok(orderEditorLayout.width > 600);
+  assert.equal(orderEditorLayout.scrollbar, 'none');
+  assert.equal(orderEditorLayout.statusColumns, 2);
+  const paymentRecordText = await admin.$eval(".qs-admin-editor > .qs-payment-box", element => element.textContent);
+  assert.match(paymentRecordText, /Method\s*bKash/);
+  assert.match(paymentRecordText, /Reference \/ TrxID\s*TEST-REFERENCE-999/);
+  assert.match(paymentRecordText, /Payment status\s*submitted/);
+  const paymentPanelCount = () => admin.$$eval(".qs-admin-editor > .qs-payment-box", elements => elements.map(element => ({
+    text: element.querySelector('h3')?.textContent,
+    parent: element.parentElement?.className,
+    connected: element.isConnected,
+  })));
+  assert.deepEqual(await paymentPanelCount(), [{ text: 'Payment record', parent: 'qs-admin-editor qs-admin-order-editor', connected: true }]);
   await admin.select(".qs-admin-editor select:nth-of-type(1)", "verified");
+  assert.deepEqual(await paymentPanelCount(), [{ text: 'Payment record', parent: 'qs-admin-editor qs-admin-order-editor', connected: true }]);
   const selects = await admin.$$(".qs-admin-editor select");
   await selects[1].select("delivered");
   await admin.type(".qs-admin-editor textarea", "Your subscription is activated.");
+  assert.deepEqual(await paymentPanelCount(), [{ text: 'Payment record', parent: 'qs-admin-editor qs-admin-order-editor', connected: true }]);
   await clickText(admin, ".qs-admin-editor button", "Save order update");
   await admin.waitForFunction(() => !document.querySelector(".qs-admin-editor"));
+  await clickText(admin, "td button", "Review");
+  await admin.$eval('.qs-admin-overlay', element => element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })));
+  await admin.waitForFunction(() => !document.querySelector('.qs-admin-editor'));
   await customer.bringToFront();
   await clickText(customer, "a", "Back to store");
   await clickText(customer, "button", "Track Order");

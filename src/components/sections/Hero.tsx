@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useProducts } from '../../data/catalog';
 import { motion } from 'framer-motion';
 import { Shield, MessageCircle, Clock, Tv, Music, Crosshair, Bot, CheckCircle2, ArrowRight, Zap, Star } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 const floatingProducts = [
   {
@@ -60,6 +61,8 @@ const progressSteps = [
 ];
 
 export default function Hero() {
+  const {locale,t}=useI18n();
+  const bangla=locale==='bn-BD';
   const products = useProducts();
   const cards = floatingProducts.flatMap((card, index) => {
     const product = products.find(p => p.id === ['1','2','3','7'][index]);
@@ -95,7 +98,7 @@ export default function Hero() {
               transition={{ duration: 0.55 }}
             >
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 border border-white/25 text-white text-xs font-semibold mb-6">
-                <Zap size={12} className="text-yellow-300" /> Digital Subscriptions & Gaming Top-Ups
+                <Zap size={12} className="text-yellow-300" /> {bangla?'ডিজিটাল সাবস্ক্রিপশন ও গেমিং টপ-আপ':'Digital Subscriptions & Gaming Top-Ups'}
               </span>
             </motion.div>
 
@@ -105,9 +108,9 @@ export default function Hero() {
               transition={{ duration: 0.55, delay: 0.1 }}
               className="font-heading text-[2rem] min-[380px]:text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.15] text-white mb-6"
             >
-              Premium Digital Access,{' '}
+              {bangla?'প্রিমিয়াম ডিজিটাল অ্যাক্সেস, ':'Premium Digital Access, '}
               <span className="relative inline-block">
-                <span className="text-yellow-300">Delivered the Quick Way.</span>
+                <span className="text-yellow-300">{bangla?'দ্রুততম উপায়ে ডেলিভারি।':'Delivered the Quick Way.'}</span>
                 <svg
                   className="absolute -bottom-2 left-0 w-full"
                   height="6"
@@ -131,7 +134,7 @@ export default function Hero() {
               transition={{ duration: 0.55, delay: 0.2 }}
               className="text-lg text-blue-100 leading-relaxed mb-9 max-w-xl"
             >
-              QuickSub brings your favorite streaming subscriptions, gaming currencies, and AI tools into one simple digital store. Browse, choose, pay securely, and get support when you need it.
+              {bangla?'QuickSub আপনার পছন্দের স্ট্রিমিং সাবস্ক্রিপশন, গেমিং কারেন্সি ও AI টুল একটি সহজ ডিজিটাল স্টোরে নিয়ে এসেছে। দেখুন, বেছে নিন, নিরাপদে পেমেন্ট করুন এবং প্রয়োজনে সহায়তা নিন।':'QuickSub brings your favorite streaming subscriptions, gaming currencies, and AI tools into one simple digital store. Browse, choose, pay securely, and get support when you need it.'}
             </motion.p>
 
             <motion.div
@@ -144,13 +147,13 @@ export default function Hero() {
                 href="#products"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-brand-700 font-bold rounded-xl hover:bg-blue-50 hover:shadow-blue-lg transition-all duration-200 text-sm shadow-lg shadow-black/20"
               >
-                Browse Products <ArrowRight size={16} />
+                {t('nav.browse')} <ArrowRight size={16} />
               </a>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('quicksub:open-chat'))}
                 className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/40 text-white font-semibold rounded-xl hover:bg-white/10 hover:border-white/60 transition-all duration-200 text-sm"
               >
-                <MessageCircle size={16} /> Chat Support
+                <MessageCircle size={16} /> {bangla?'চ্যাট সহায়তা':'Chat Support'}
               </button>
             </motion.div>
 
@@ -162,10 +165,10 @@ export default function Hero() {
               className="flex flex-wrap gap-3 text-xs text-white/70"
             >
               {[
-                { icon: Clock,   label: 'Fast Processing'  },
-                { icon: Shield,  label: 'BDT Pricing'      },
-                { icon: Zap,     label: 'Secure Order Flow' },
-                { icon: Star,    label: 'Support Available' },
+                { icon: Clock,   label: bangla?'দ্রুত প্রক্রিয়াকরণ':'Fast Processing'  },
+                { icon: Shield,  label: bangla?'BDT মূল্য':'BDT Pricing'      },
+                { icon: Zap,     label: bangla?'নিরাপদ অর্ডার':'Secure Order Flow' },
+                { icon: Star,    label: bangla?'সহায়তা পাওয়া যাচ্ছে':'Support Available' },
               ].map(({ icon: Icon, label }) => (
                 <span key={label} className="flex items-center gap-1.5">
                   <Icon size={12} className="text-yellow-300/80" /> {label}
@@ -180,10 +183,10 @@ export default function Hero() {
               transition={{ duration: 0.55, delay: 0.6 }}
               className="flex flex-wrap gap-5 sm:gap-6 mt-9 pt-9 border-t border-white/15"
             >
-              {stats.map(s => (
+              {stats.map((s,index) => (
                 <div key={s.label}>
                   <p className="font-heading text-2xl font-extrabold text-white">{s.label === 'Products Available' ? String(products.length) : s.value}</p>
-                  <p className="text-xs text-blue-200 mt-0.5">{s.label}</p>
+                  <p className="text-xs text-blue-200 mt-0.5">{bangla?['সন্তুষ্ট গ্রাহক','উপলভ্য পণ্য','গড় ডেলিভারি'][index]:s.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -226,7 +229,7 @@ export default function Hero() {
                         <p className="text-xs font-semibold mt-1" style={{ color: p.color }}>{p.price}</p>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="w-2 h-2 rounded-full bg-accent-green" />
-                          <span className="text-[10px] text-ink-300">{p.available ? 'Available' : 'Out of stock'}</span>
+                          <span className="text-[10px] text-ink-300">{p.available ? (bangla?'উপলভ্য':'Available') : (bangla?'স্টক শেষ':'Out of stock')}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -265,7 +268,7 @@ export default function Hero() {
                 transition={{ duration: 0.55, delay: 0.9 }}
                 className="mt-4 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5"
               >
-                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">Live Order Status</p>
+                <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-3">{bangla?'লাইভ অর্ডার স্ট্যাটাস':'Live Order Status'}</p>
                 <div className="flex items-start gap-2 sm:gap-3">
                   {progressSteps.map((step, i) => {
                     const isComplete = currentStep === progressSteps.length;

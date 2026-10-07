@@ -7,7 +7,9 @@ import { refreshStore } from '../../data/store';
 import { checkoutUrl } from '../../utils/navigation';
 import CustomerOrder from './CustomerOrder';
 import SiteLink from '../ui/SiteLink';
+import { useI18n } from '../../i18n';
 export default function CheckoutPage() {
+  const {t}=useI18n();
   const products = useProducts();
   const [loading, setLoading] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
@@ -24,14 +26,14 @@ export default function CheckoutPage() {
   return <div className="min-h-screen bg-page text-ink-800">
     <PageNavigation current="checkout" accountHref={accountUrl('/checkout'+window.location.search)}/>
     <main className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
-      <SiteLink href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 mb-7"><ArrowLeft size={16} /> Back to store</SiteLink>
-      <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-3">Complete your order</h1>
-      <p className="text-sm text-ink-500 mb-8">Choose a package, enter your delivery details, then continue to payment.</p>
+      <SiteLink href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 mb-7"><ArrowLeft size={16} /> {t('common.backStore')}</SiteLink>
+      <h1 className="text-3xl sm:text-4xl font-heading font-bold mb-3">{t('checkout.title')}</h1>
+      <p className="text-sm text-ink-500 mb-8">{t('checkout.subtitle')}</p>
       {loading ? <p role="status" className="rounded-2xl bg-white border border-brand-100 p-8">Loading checkout…</p> : product ? <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6 items-start">
         <aside className="rounded-2xl bg-white border border-brand-100 overflow-hidden">
           {imageFailed ? <div className="h-40 bg-gradient-to-br from-brand-600 to-blue-900 text-white flex flex-col items-center justify-center gap-3"><Package size={36} aria-hidden="true" /><span className="font-heading font-bold text-lg">{product.name}</span></div> : <img src={product.bannerImage} alt="" onError={() => setImageFailed(true)} className="w-full h-40 object-cover" />}
           <div className="p-6 space-y-4">
-            <p className="text-xs uppercase font-bold text-brand-600">Order summary</p>
+            <p className="text-xs uppercase font-bold text-brand-600">{t('checkout.summary')}</p>
             <h2 className="text-xl font-bold">{product.name}</h2>
             <p className="text-sm text-ink-500">{product.cardCopy}</p>
             <p className="text-sm flex gap-2"><Package size={17} className="shrink-0 text-brand-600" />{product.deliveryEstimate}</p>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { MousePointerClick, ClipboardList, CreditCard, Bell } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 const steps = [
   {
@@ -37,6 +38,9 @@ const steps = [
 ];
 
 export default function HowItWorks() {
+  const {locale}=useI18n();
+  const bangla=locale==='bn-BD';
+  const localizedSteps=bangla?steps.map((item,index)=>({...item,headline:['পণ্য বেছে নিন','প্রয়োজনীয় তথ্য দিন','পেমেন্ট সম্পন্ন করুন','ডেলিভারি আপডেট পান'][index],copy:['QuickSub পণ্য তালিকা থেকে আপনার পছন্দের সাবস্ক্রিপশন বা গেম কারেন্সি প্যাকেজ বেছে নিন।','অর্ডার সঠিকভাবে সম্পন্ন করতে অ্যাকাউন্ট, প্লেয়ার বা যোগাযোগের তথ্য সতর্কভাবে লিখুন।','উপলভ্য পদ্ধতিতে পেমেন্ট করুন এবং প্রয়োজন হলে পেমেন্ট নিশ্চিতকরণ জমা দিন।','আপনার নির্বাচিত যোগাযোগ মাধ্যমে অর্ডার আপডেট পান এবং সহায়তা নিন।'][index]})):steps;
   return (
     <section id="how-it-works" className="py-20 bg-page">
       <div className="max-w-7xl mx-auto px-4">
@@ -48,13 +52,13 @@ export default function HowItWorks() {
           className="text-center mb-16"
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-brand-600 text-xs font-bold uppercase tracking-wider mb-4">
-            Simple Process
+            {bangla?'সহজ প্রক্রিয়া':'Simple Process'}
           </span>
           <h2 className="font-heading text-3xl sm:text-4xl font-bold text-ink-900 mb-4">
-            How QuickSub Works
+            {bangla?'QuickSub যেভাবে কাজ করে':'How QuickSub Works'}
           </h2>
           <p className="text-ink-400 max-w-2xl mx-auto">
-            A simple ordering process designed for speed, clarity, and support.
+            {bangla?'দ্রুততা, স্বচ্ছতা ও সহায়তার জন্য তৈরি সহজ অর্ডার প্রক্রিয়া।':'A simple ordering process designed for speed, clarity, and support.'}
           </p>
         </motion.div>
 
@@ -63,7 +67,7 @@ export default function HowItWorks() {
           {/* Connector Line */}
           <div className="absolute top-10 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-brand-200 via-brand-300 to-brand-200" />
 
-          {steps.map((step, i) => {
+          {localizedSteps.map((step, i) => {
             const Icon = step.icon;
             return (
               <motion.div
@@ -98,7 +102,7 @@ export default function HowItWorks() {
 
         {/* Mobile: Vertical Steps */}
         <div className="flex md:hidden flex-col gap-0">
-          {steps.map((step, i) => {
+          {localizedSteps.map((step, i) => {
             const Icon = step.icon;
             return (
               <motion.div
@@ -122,7 +126,7 @@ export default function HowItWorks() {
                       {step.step}
                     </span>
                   </div>
-                  {i < steps.length - 1 && (
+                  {i < localizedSteps.length - 1 && (
                     <div className="w-0.5 flex-1 my-2" style={{ backgroundColor: `${step.color}30` }} />
                   )}
                 </div>

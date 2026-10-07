@@ -5,6 +5,7 @@ import { api } from '../../utils/api';
 import { useState } from 'react';
 import { Facebook, Instagram, MessageCircle, Send, Mail, CheckCircle } from 'lucide-react';
 import { openLegalDoc } from '../ui/LegalModal';
+import { useI18n } from '../../i18n';
 
 const LOGO_SRC = '/Logo.png';
 
@@ -25,6 +26,7 @@ const supportLinks: { label: string; href?: string; action?: () => void }[] = [
 const legalLinks = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
 
 export default function Footer() {
+  const {t,locale}=useI18n();
   const products=useProducts();
   const [email, setEmail] = useState('');
   const [subState, setSubState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -67,7 +69,7 @@ export default function Footer() {
               </div>
             </a>
             <p className="text-sm text-brand-200 leading-relaxed mb-6">
-              QuickSub is a digital product store for subscriptions, gaming top-ups, and AI access — built for simple ordering and responsive support.
+              {t('footer.about')}
             </p>
             <div className="flex gap-2.5">
               {[Facebook, Instagram, MessageCircle, Send].map((Icon, i) => (
@@ -84,7 +86,7 @@ export default function Footer() {
 
           {/* Products */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white mb-5">Products</h4>
+            <h4 className="font-heading font-bold text-sm text-white mb-5">{t('footer.products')}</h4>
             <ul className="space-y-2.5">
               {productLinks.map(link => (
                 <li key={link}>
@@ -98,7 +100,7 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white mb-5">Support</h4>
+            <h4 className="font-heading font-bold text-sm text-white mb-5">{t('footer.support')}</h4>
             <ul className="space-y-2.5">
               {supportLinks.map(link => (
                 <li key={link.label}>
@@ -121,7 +123,7 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white mb-5">Legal</h4>
+            <h4 className="font-heading font-bold text-sm text-white mb-5">{t('footer.legal')}</h4>
             <ul className="space-y-2.5">
               {legalLinks.map(link => (
                 <li key={link}>
@@ -138,8 +140,8 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white mb-5">Get Offer Updates</h4>
-            <p className="text-sm text-brand-300 mb-4">Subscribe for deals and new product alerts.</p>
+            <h4 className="font-heading font-bold text-sm text-white mb-5">{t('footer.offers')}</h4>
+            <p className="text-sm text-brand-300 mb-4">{locale==='bn-BD'?'অফার ও নতুন পণ্যের খবর পেতে সাবস্ক্রাইব করুন।':'Subscribe for deals and new product alerts.'}</p>
             <form onSubmit={handleSubscribe} className="space-y-2.5">
               <div className="relative">
                 <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400" />
@@ -159,7 +161,7 @@ export default function Footer() {
               >
                 {subState === 'loading' && 'Subscribing...'}
                 {subState === 'success' && <><CheckCircle size={14} /> Subscribed!</>}
-                {subState === 'idle' && 'Subscribe'}
+                {subState === 'idle' && t('footer.subscribe')}
                 {subState === 'error' && 'Try Again'}
               </button>
               {subState === 'success' && (
