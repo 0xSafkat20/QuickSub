@@ -22,10 +22,10 @@ try {
   await inputs[0].type(id); await inputs[1].type(accessCode);
   await page.click('form button');
   await page.waitForFunction(() => document.body.innerText.includes('Verification pending'));
-  assert.equal(await page.$eval('button[type="submit"], form button', e => !!e), true);
-  assert.ok(await page.$('input[type="email"]'));
-  assert.ok(await page.$('input[type="tel"]'));
-  assert.ok(await page.$('input[type="checkbox"]'));
+  assert.equal(await page.evaluate(()=>[...document.querySelectorAll('button')].some(button=>button.textContent==='Check payment status')),true);
+  assert.equal(await page.$('input[type="email"]'),null);
+  assert.equal(await page.$('input[type="tel"]'),null);
+  assert.equal(await page.$('input[type="checkbox"]'),null);
   await env.db.query('select quicksub_settle_payment($1,$2,$3)', ['qs_' + 'a'.repeat(24),'verified','bank-browser']);
   await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent === 'Check payment status').click());
   await page.waitForFunction(() => document.body.innerText.includes('Payment confirmed'));
@@ -39,11 +39,11 @@ try {
   await page.click('form button');
   await page.waitForFunction(() => document.body.innerText.includes('Your store at a glance'));
   await page.setViewport({ width: 1440, height: 1000 });
-  await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Orders').click());
+  await page.click('button[aria-label^="Orders"]');
   await page.waitForFunction(() => document.body.innerText.includes('Find a gateway transaction'));
   await page.type('input[minlength="3"]','bank-browser');
   await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent === 'Find payment').click());
-  await page.waitForFunction(() => document.body.innerText.includes('bank-browser') && document.body.innerText.includes('Gateway payment history'));
+  await page.waitForFunction(() => document.body.innerText.includes('bank-browser') && document.body.innerText.includes('Payment record'));
   await page.screenshot({ path: 'deliverables/payment-preview/admin.png', fullPage: true });
   await page.select('.qs-payment-box select', 'completed');
   await page.type('.qs-payment-box .qs-payment-box input', 'refund-browser');

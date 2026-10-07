@@ -17,11 +17,12 @@ try{
  for(const [product,label] of [['1','subscription'],['3','game']]){
   console.log('Checking '+label+' receipt...');
   await page.goto(env.base+'/checkout?product='+product,{waitUntil:'networkidle0'});
-  await page.waitForSelector('[name="name"]');await page.type('[name="name"]','Demo Customer');await page.type('[name="contact"]','demo@example.test');
+  await page.waitForSelector('[name="name"]');await page.type('[name="name"]','Demo Customer');await page.type('[name="contact"]','demo@example.test');await page.type('[name="receiptEmail"]','demo@example.test');
   if(product==='3')await page.type('[name="gameAccount"]','Player98765 / Asia');
   await click('Continue to payment');await page.waitForFunction(()=>document.body.innerText.includes('Payment & receipt'));
   assert.ok(!(await page.$eval('main',e=>e.innerText)).includes('Private access code:'));
-  if(product==='1')assert.ok((await page.$eval('main',e=>e.innerText)).includes('Pending payment confirmation'));
+  if(product==='1')assert.equal((await page.$eval('main',e=>e.innerText)).includes('Download order receipt'),false);
+  await click('Visa');
   await page.waitForSelector('[name="phone"]');await page.type('[name="phone"]','01712345678');await page.click('input[type="checkbox"]');await click('Simulate online payment');
   await page.waitForFunction(()=>document.body.innerText.includes('Payment: verified'));
   console.log(label+' payment confirmed');

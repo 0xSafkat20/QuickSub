@@ -20,16 +20,18 @@ try{
  await page.waitForSelector('[role="status"]');
  await page.goto(env.base+'/reset-password#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired',{waitUntil:'networkidle0'});
  assert.equal(page.url(),env.base+'/reset-password');
- assert.match(await page.locator('[role="alert"]').innerText(),/invalid or has expired/i);
+ assert.match(await page.$eval('[role="alert"]',element=>element.innerText),/invalid or has expired/i);
  await page.goto(env.base+'/reset-password#access_token='+session.user.id+'&type=recovery',{waitUntil:'networkidle0'});
+ await page.reload({waitUntil:'networkidle0'});
  assert.equal(page.url(),env.base+'/reset-password');
  await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('[name="confirmPassword"]').fill('mismatch-password');await page.locator('form button').click();
  await page.waitForSelector('[role="alert"]');
  await page.locator('[name="confirmPassword"]').fill('replacement-password-123');await page.locator('form button').click();
- await page.waitForSelector('[role="status"]');
+ await page.waitForFunction(()=>document.body.innerText.includes('Your password has been changed.'));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await page.click('section a[href="/account"]');await page.waitForSelector('[name="email"]');
- await page.locator('[name="email"]').fill(email);await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('form button').click();
- await page.waitForFunction(()=>document.body.innerText.includes('Signed in as'));
+ await page.locator('[name="email"]').fill(email);await page.locator('[name="password"]').fill('replacement-password-123');await page.locator('form button:not([type="button"])').click();
+ try { await page.waitForFunction(()=>document.body.innerText.includes('Signed in as')); }
+ catch (error) { const state=await page.evaluate(()=>({url:location.href,text:document.body.innerText.slice(0,1500)}));throw new Error(`Sign-in with the replacement password failed. URL: ${state.url}\nPage: ${state.text}`,{cause:error}); }
  assert.deepEqual(errors,[]);console.log('PASS: forgot-password navigation, email confirmation, URL cleanup, password confirmation, reset, sign-in and 320px layout.');
 }finally{await browser?.close();await env.close();}

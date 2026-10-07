@@ -59,10 +59,16 @@ try {
   assert.equal(await page.$eval('[data-quick-reply]', button => button.textContent.trim()), 'Contact on WhatsApp');
   assert.equal(await page.$eval('[aria-label="Support chat suggestions"] button[aria-expanded]', button => button.textContent.trim()), 'Show more');
   await page.click('[aria-label="Support chat suggestions"] button[aria-expanded]');
-  assert.equal(await page.$$eval('[data-quick-reply]', buttons => buttons.length), 7);
+  await page.waitForFunction(() =>
+    document.querySelectorAll('[data-quick-reply]').length === 7 &&
+    document.querySelector('[aria-label="Support chat suggestions"] button[aria-expanded]')?.getAttribute('aria-expanded') === 'true'
+  );
   assert.equal(await page.$eval('[aria-label="Support chat suggestions"] button[aria-expanded]', button => button.textContent.trim()), 'Show less');
   await page.click('[aria-label="Support chat suggestions"] button[aria-expanded]');
-  assert.equal(await page.$$eval('[data-quick-reply]', buttons => buttons.length), 3);
+  await page.waitForFunction(() =>
+    document.querySelectorAll('[data-quick-reply]').length === 3 &&
+    document.querySelector('[aria-label="Support chat suggestions"] button[aria-expanded]')?.getAttribute('aria-expanded') === 'false'
+  );
   await page.locator('[aria-label="Message QuickSub support"]').fill('I need study help');
   await page.locator('[aria-label="Send message"]').click();
   try { await page.waitForFunction(() => document.querySelector('[role="log"]').textContent.includes('main study goal')); } catch(error) { console.log('Chat state:',await page.evaluate(()=>({log:document.querySelector('[role="log"]')?.textContent,input:document.querySelector('[aria-label="Message QuickSub support"]')?.value,open:!!document.querySelector('[aria-label="Close chat"]')})),requests,errors);throw error; }

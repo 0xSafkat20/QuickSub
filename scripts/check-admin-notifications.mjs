@@ -103,10 +103,15 @@ try {
     '#qs-admin-navigation button:not(.qs-admin-nav-toggle)',
     buttons => buttons.filter(button => button.getClientRects().length > 0).length,
   );
+  const totalSections = await page.$$eval(
+    '#qs-admin-navigation button:not(.qs-admin-nav-toggle)',
+    buttons => buttons.length,
+  );
+  assert.ok(totalSections > 6);
   assert.equal(await visibleSections(), 6);
   assert.equal(await page.$eval('.qs-admin-nav-toggle', button => button.textContent.trim()), 'Show more');
   await page.click('.qs-admin-nav-toggle');
-  assert.equal(await visibleSections(), 12);
+  assert.equal(await visibleSections(), totalSections);
   assert.equal(await page.$eval('.qs-admin-nav-toggle', button => button.getAttribute('aria-expanded')), 'true');
   await page.click('.qs-admin-nav-toggle');
   assert.equal(await visibleSections(), 6);
