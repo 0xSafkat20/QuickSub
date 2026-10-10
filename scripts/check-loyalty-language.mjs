@@ -17,13 +17,14 @@ try{
  const customer=(await env.db.query("select user_id from quicksub_customers where contact='language-rewards@example.test'")).rows[0];
  await env.db.query("insert into quicksub_loyalty_transactions(customer_id,kind,points,description,event_key) values($1,'admin-adjustment',150,'Browser reward credit','browser-credit')",[customer.user_id]);
  await page.reload({waitUntil:'networkidle0'});await page.waitForFunction(()=>document.body.innerText.includes('150'));
- await page.select('select[aria-label="Choose language"]','bn-BD');await page.waitForFunction(()=>document.documentElement.lang==='bn-BD'&&document.body.innerText.includes('আমার অ্যাকাউন্ট'));
- assert.equal(await page.$eval('#quicksub-page-schema',element=>JSON.parse(element.textContent).inLanguage),'bn-BD');
- assert.ok(await page.$('link[rel="alternate"][hreflang="bn-BD"]'));
- await page.screenshot({path:'deliverables/loyalty-language-preview/account-bangla-rewards.png',fullPage:true});
- await page.goto(env.base+'/checkout?product=1',{waitUntil:'networkidle0'});await page.waitForFunction(()=>document.body.innerText.includes('আপনার অর্ডার সম্পূর্ণ করুন'));
- await page.waitForSelector('input[type="number"][max="150"]');await page.locator('input[type="number"]').fill('100');await page.waitForFunction(()=>document.body.innerText.includes('৳২৫')||document.body.innerText.includes('২৫.০০'));
- await page.screenshot({path:'deliverables/loyalty-language-preview/checkout-bangla-points.png',fullPage:true});
- assert.equal(await page.evaluate(()=>localStorage.getItem('quicksub-locale')),'bn-BD');assert.deepEqual(errors,[]);
- console.log('PASS bilingual preference, localized SEO, rewards balance/referral UI, and checkout point discount render correctly.');
+ assert.equal(await page.$('select[aria-label="Choose language"]'),null);
+ assert.equal(await page.evaluate(()=>document.documentElement.lang),'en-BD');
+ assert.equal(await page.$eval('#quicksub-page-schema',element=>JSON.parse(element.textContent).inLanguage),'en-BD');
+ assert.equal(await page.$('link[rel="alternate"][hreflang="bn-BD"]'),null);
+ await page.screenshot({path:'deliverables/loyalty-language-preview/account-english-rewards.png',fullPage:true});
+ await page.goto(env.base+'/checkout?product=1',{waitUntil:'networkidle0'});await page.waitForFunction(()=>document.body.innerText.includes('Complete your order'));
+ await page.waitForSelector('input[type="number"][max="150"]');await page.locator('input[type="number"]').fill('100');await page.waitForFunction(()=>document.body.innerText.includes('Points discount')&&[...document.querySelectorAll('strong')].some(element=>element.textContent?.replace(/\s+/g,' ').includes('BDT 25')));
+ await page.screenshot({path:'deliverables/loyalty-language-preview/checkout-english-points.png',fullPage:true});
+ assert.notEqual(await page.evaluate(()=>localStorage.getItem('quicksub-locale')),'bn-BD');assert.deepEqual(errors,[]);
+ console.log('PASS English-only storefront, SEO, rewards balance/referral UI, and checkout point discount render correctly.');
 }finally{await browser?.close();await env.close();}

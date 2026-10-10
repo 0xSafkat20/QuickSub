@@ -15,7 +15,7 @@ const field='w-full border border-brand-200 rounded-xl p-3 mt-2 bg-white outline
 const button='rounded-xl bg-brand-600 text-white px-5 py-3 font-semibold disabled:opacity-50';
 const panel='rounded-2xl border border-brand-100 bg-white p-5 sm:p-7 space-y-4';
 export default function AccountPage() {
- const {t,locale,setLocale,date,money}=useI18n();
+ const {t,locale,date,money}=useI18n();
  const returnTo = checkoutReturn();
  const [showPassword,setShowPassword]=useState(false);
  const [confirmation]=useState(()=>{
@@ -36,7 +36,7 @@ export default function AccountPage() {
   setProfile({name:'',contact:'',renewal_reminders:true,preferred_locale:locale});
   setMessage('');setError('');setSignup(false);
  });
- async function loadSession() {const result=await api<Session>('/account/session');setSession(result);if(result.profile){setProfile(result.profile);setLocale(result.profile.preferred_locale);}return result;}
+ async function loadSession() {const result=await api<Session>('/account/session');setSession(result);if(result.profile)setProfile({...result.profile,preferred_locale:'en-BD'});return result;}
  async function loadOrders(page:number) {setOrdersLoading(true);try {const result=await api<{orders:Order[];hasMore:boolean}>('/account/orders?offset='+page);setOrders(result.orders);setHasMore(result.hasMore);setOffset(page);}finally{setOrdersLoading(false);}}
  function deleteOrder(order:Order) {
   if(!window.confirm(`Delete pending order ${order.id}? This cannot be undone.`))return;
@@ -99,10 +99,9 @@ export default function AccountPage() {
  <div className="flex flex-wrap items-center justify-between gap-3"><p className="break-all">Signed in as <strong>{session.user.email}</strong></p><button disabled={busy} className="text-brand-600 underline" onClick={()=>void action(async()=>{await api('/account/logout',{});setSession({user:null,profile:null});setOrders([]);setProfile({name:'',contact:'',renewal_reminders:true,preferred_locale:locale});setMessage('Signed out.');})}>{t('account.signout')}</button></div>
  <RewardsPanel />
  <CustomerSubscriptions />
- <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6 items-start"><div className="space-y-6"><section className={panel}><h2 className="font-bold text-xl">{t('account.saved')}</h2><form className="space-y-4" onSubmit={e=>{e.preventDefault();void action(async()=>{await api('/account/profile',profile);setLocale(profile.preferred_locale);setMessage('Your profile has been saved.');});}}>
+ <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6 items-start"><div className="space-y-6"><section className={panel}><h2 className="font-bold text-xl">{t('account.saved')}</h2><form className="space-y-4" onSubmit={e=>{e.preventDefault();void action(async()=>{await api('/account/profile',{...profile,preferred_locale:'en-BD'});setMessage('Your profile has been saved.');});}}>
  <label className="block">{t('account.name')}<input className={field} value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} placeholder={t('account.name')} autoComplete="name" required maxLength={120}/></label>
  <label className="block">{t('account.contact')}<input className={field} value={profile.contact} onChange={e=>setProfile({...profile,contact:e.target.value})} placeholder="yourname@gmail.com" required minLength={5} maxLength={160}/></label>
- <label className="block">{t('language.choose')}<select className={field} value={profile.preferred_locale} onChange={e=>setProfile({...profile,preferred_locale:e.target.value as Profile['preferred_locale']})}><option value="en-BD">English</option><option value="bn-BD">বাংলা</option></select></label>
  <label className="flex gap-2 items-start"><input type="checkbox" checked={profile.renewal_reminders} onChange={e=>setProfile({...profile,renewal_reminders:e.target.checked})}/>{t('account.reminders')}</label><p className="text-xs text-ink-500">Reminders appear seven days before the expiry date confirmed by staff. No automatic renewal or charge.</p>
  <button className={button} disabled={busy}>{t('account.saveProfile')}</button></form></section>
  </div>

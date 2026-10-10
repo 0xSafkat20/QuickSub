@@ -1,330 +1,86 @@
-Payment gateway integration and activation: see [PAYMENT-SETUP.md](PAYMENT-SETUP.md).
-
-Continuous integration and Vercel deployment: see [CI-CD.md](CI-CD.md).
-
-Customer loyalty, referrals, and Bangla/English setup: see [LOYALTY-I18N.md](LOYALTY-I18N.md).
-
 # QuickSub
 
-The current release includes a working `/admin` dashboard, Supabase-backed product/package management, customer checkout, manual payment verification, private order tracking, support inbox, offers and Gemini support. Start with [ADMIN-SETUP.md](ADMIN-SETUP.md) for installation and activation. The overview below describes the original storefront.
+QuickSub is a full-stack digital subscription storefront for streaming, gaming, music, productivity, and AI services. It combines a responsive React storefront with customer accounts, cart and checkout flows, order tracking, subscriptions, loyalty rewards, payment handling, and an operations dashboard.
 
-## Short Description
+The application uses a React frontend, a Node API, and Supabase-backed persistent data, with a disposable simulation available for development and automated testing.
 
-**QuickSub** is a modern web-based platform for displaying and managing digital subscription services, gaming top-ups, music plans, streaming services, and productivity tools. The project is built as a professional landing page where users can explore available products, view prices, check delivery information, and contact support easily.
+## Features
 
-The main goal of QuickSub is to create a clean, fast, and trustworthy digital service website that can be used for online subscription-based products.
+### Storefront and customers
 
----
+- Searchable, filterable product catalog with package comparison and wishlists
+- English and Bangla interface
+- Customer signup, email confirmation, login, password recovery, and two-hour sessions
+- Account-based cart plus browser-local guest checkout drafts
+- Checkout, private order tracking, saved receipts, and PDF receipt export
+- Subscription status and cancellation requests
+- Loyalty points, referral codes, rewards, verified reviews, and support requests
+- Responsive layouts, accessibility support, SEO metadata, and legal/cookie controls
 
-## Abstract
+### Payments
 
-QuickSub is designed to solve the problem of scattered and unclear digital subscription services by presenting all available products in one simple and organized platform. The website focuses on user experience, fast navigation, responsive design, and clear product presentation.
+- Manual payment submission and administrator verification
+- SSLCommerz online checkout with sandbox and production modes
+- Idempotent order creation and verified payment callbacks
+- Optional receipt emails through Resend
+- Safe simulated checkout for local development and browser tests
 
-The project uses a component-based frontend architecture, making it easy to update products, categories, reviews, FAQ content, and promotional sections. It is suitable for future expansion with payment systems, order management, customer login, admin dashboard, and database integration.
+### Administration
 
-This project is mainly focused on frontend development, but it also includes the structure needed for future backend and database support.
+- Protected `/admin` dashboard with optional email-based two-step verification
+- Product and package management backed by Supabase
+- Order, payment, customer, and subscription operations
+- Reporting, CSV exports, notifications, offers, reviews, and support inbox
+- Configurable loyalty and referral policy
 
----
+### Support assistant
 
-## Languages and Tools Used
+- Gemini-powered chat when an API key is configured
+- Catalog and help fallback when Gemini is unavailable
+- Generated knowledge files kept in sync by the build process
 
-### Programming Languages
+## Tech stack
 
-- **TypeScript**
-- **JavaScript**
-- **HTML**
-- **CSS**
+- React 18, TypeScript, Vite, and Tailwind CSS
+- Framer Motion and Lucide React
+- Node.js and Express
+- Supabase/PostgreSQL
+- PGlite for disposable local and integration-test databases
+- Node test runner and Puppeteer
+- Vercel and GitHub Actions
 
-### Frameworks and Libraries
+## Application routes
 
-- **React.js** — For building the user interface
-- **Vite** — For fast development and production build
-- **Tailwind CSS** — For modern responsive styling
-- **Framer Motion** — For smooth animations
-- **Lucide React** — For clean and professional icons
-- **Supabase Client** — For possible future backend/database integration
+| Route | Purpose |
+| --- | --- |
+| `/` | Storefront and product catalog |
+| `/account` | Customer authentication, profile, orders, rewards, and subscriptions |
+| `/cart` | Saved account cart |
+| `/checkout` | Package checkout |
+| `/track` | Private order tracking |
+| `/subscriptions/:id` | Subscription details |
+| `/forgot-password` and `/reset-password` | Account recovery |
+| `/admin` | Administration dashboard |
 
-### Development Tools
+## Project structure
 
-- **Node.js**
-- **npm**
-- **ESLint**
-- **Git**
-- **GitHub**
-
----
-
-## Main Features
-
-- Responsive landing page design
-- Modern hero section
-- Product category section
-- Product grid with digital service cards
-- Streaming, gaming, music, and AI tool categories
-- Customer review section
-- FAQ section
-- Trust and feature section
-- Promotional banner
-- Final call-to-action section
-- Header and footer layout
-- Chatbot/support component
-- Clean and reusable component structure
-- Ready for future backend integration
-
----
-
-## Project Structure
-
-```txt
+```text
 QuickSub/
-├── public/
+├── api/                 # Vercel serverless API entry point
+├── public/              # Static assets
+├── scripts/             # Local runtime, seeding, verification, and browser checks
+├── server/              # Express API and domain modules
 ├── src/
-│   ├── components/
-│   │   ├── chatbot/
-│   │   ├── layout/
-│   │   └── sections/
-│   ├── data/
-│   │   ├── categories.ts
-│   │   ├── faq.ts
-│   │   ├── products.ts
-│   │   └── reviews.ts
-│   ├── App.tsx
-│   ├── index.css
-│   └── main.tsx
-├── index.html
-├── package.json
-├── tailwind.config.js
-├── vite.config.ts
-└── tsconfig.json
+│   ├── admin/           # Administration dashboard
+│   ├── components/      # Storefront, account, checkout, and shared UI
+│   ├── context/         # Client-side React state
+│   ├── data/            # Catalog fallbacks and static content
+│   ├── i18n/            # English and Bangla translations
+│   └── utils/           # API, session, navigation, cart, and receipt helpers
+├── supabase/
+│   ├── functions/       # Supabase Edge Functions
+│   ├── migrations/      # Ordered database migrations
+│   └── templates/       # Authentication email templates
+├── vercel.json          # Rewrites, serverless function, and scheduled jobs
+└── package.json
 ```
-
----
-
-## Important Project Files
-
-### `src/App.tsx`
-
-This is the main application file. It connects all the major page sections together.
-
-### `src/components/sections/`
-
-This folder contains the main landing page sections such as:
-
-- Hero
-- Product Grid
-- Category Section
-- Reviews
-- FAQ
-- Final CTA
-- Promo Banner
-- Trust Features
-
-### `src/components/layout/`
-
-This folder contains common layout components:
-
-- Header
-- Footer
-
-### `src/components/chatbot/`
-
-This folder contains the chatbot or support widget component.
-
-### `src/data/`
-
-This folder stores website data such as:
-
-- Product information
-- Category information
-- FAQ content
-- Customer reviews
-
-This makes the website easier to update without changing the main UI code.
-
----
-
-## Installation and Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/0xSafkat20/QuickSub.git
-```
-
-### 2. Go to the Project Folder
-
-```bash
-cd QuickSub
-```
-
-### 3. Install Dependencies
-
-```bash
-npm install
-```
-
-### 4. Run the Project
-
-```bash
-npm run dev
-```
-
-After running the command, open the local server link shown in the terminal.
-
-Usually it will be:
-
-```txt
-http://localhost:5173
-```
-
----
-
-## Available Commands
-
-```bash
-npm run dev
-```
-
-Starts both the backend on port 4000 and Vite. Keep this terminal open. When `server/.env` has Supabase credentials, development uses the live backend. Without those credentials, it starts a disposable local database and simulated authentication so accounts, carts, checkout, and subscriptions still work. Local simulation data is discarded when the process stops. If the QuickSub backend is already running, it is reused. Use `npm run dev:client` only when you intentionally manage the backend separately.
-
-```bash
-npm run build
-```
-
-Creates the final production build.
-
-```bash
-npm run preview
-```
-
-Previews the production build locally.
-
-```bash
-npm run lint
-```
-
-Checks the code using ESLint.
-
-```bash
-npm run typecheck
-```
-
-Checks TypeScript errors without generating output files.
-
----
-
-## Product Data Management
-
-All products are stored inside:
-
-```txt
-src/data/products.ts
-```
-
-To add or edit products, update this file.
-
-Each product can include:
-
-- Product name
-- Category
-- Short description
-- Price
-- Delivery time
-- CTA button text
-- Badges
-- Banner image
-- Availability status
-
----
-
-## Customization Guide
-
-### Change Website Text
-
-Update the related section file inside:
-
-```txt
-src/components/sections/
-```
-
-### Change Products
-
-Update:
-
-```txt
-src/data/products.ts
-```
-
-### Change FAQ
-
-Update:
-
-```txt
-src/data/faq.ts
-```
-
-### Change Reviews
-
-Update:
-
-```txt
-src/data/reviews.ts
-```
-
-### Change Styling
-
-Most styling is handled using Tailwind CSS classes inside the React components.
-
-Global styles can be updated from:
-
-```txt
-src/index.css
-```
-
----
-
-## Future Development Ideas
-
-This project can be improved by adding:
-
-- Online payment system
-- Order tracking system
-- Admin dashboard
-- Customer login system
-- Product search and filtering
-- Backend database
-- Supabase authentication
-- Live chat support
-- Order history
-- SEO optimization
-- Product detail pages
-- Blog or announcement section
-
----
-
-## Deployment
-
-The project can be deployed on platforms like:
-
-- Vercel
-- Netlify
-- Firebase Hosting
-- GitHub Pages
-
-Before deployment, run:
-
-```bash
-npm run build
-```
-
-The final production files will be generated inside:
-
-```txt
-dist/
-```
-
----
-
-## Conclusion
-
-QuickSub is a clean, responsive, and scalable frontend project for a digital subscription service website. It is easy to customize, simple to maintain, and ready for future improvements such as payments, database integration, and order management.

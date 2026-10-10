@@ -21,3 +21,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Local owner documentation; never commit.
+PRIVATE-SETUP.md
