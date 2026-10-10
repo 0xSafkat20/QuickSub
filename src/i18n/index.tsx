@@ -1,10 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 
 export type Locale = 'en-BD' | 'bn-BD';
 type Variables = Record<string, string | number>;
-const STORAGE_KEY = 'quicksub-locale';
 export const REFERRAL_KEY = 'quicksub-referral';
-const readStorage = (key:string) => { try { return window.localStorage.getItem(key); } catch { return null; } };
 const writeStorage = (key:string,value:string) => { try { window.localStorage.setItem(key,value); } catch { /* Preferences remain available for this page session. */ } };
 
 const bn: Record<string,string> = {
@@ -47,6 +45,8 @@ const bn: Record<string,string> = {
   'footer.about':'QuickSub হলো সাবস্ক্রিপশন, গেমিং টপ-আপ ও AI অ্যাক্সেসের ডিজিটাল পণ্য স্টোর—সহজ অর্ডার ও দ্রুত সহায়তার জন্য তৈরি।',
   'footer.products':'পণ্য','footer.support':'সহায়তা','footer.legal':'আইনি তথ্য','footer.offers':'অফার আপডেট পান','footer.subscribe':'সাবস্ক্রাইব করুন',
 };
+// Kept as data-only compatibility while stored customer locale values are migrated.
+void bn;
 
 const english: Record<string,string> = {
   'language.english':'English','language.bangla':'বাংলা','language.choose':'Choose language',
@@ -80,29 +80,16 @@ const english: Record<string,string> = {
   'footer.products':'Products','footer.support':'Support','footer.legal':'Legal','footer.offers':'Get Offer Updates','footer.subscribe':'Subscribe',
 };
 
-type I18nValue = { locale: Locale; setLocale: (locale: Locale) => void; t: (key:string, variables?:Variables) => string; money:(value:number)=>string; date:(value:string|Date)=>string; number:(value:number)=>string };
+type I18nValue = { locale: Locale; t: (key:string, variables?:Variables) => string; money:(value:number)=>string; date:(value:string|Date)=>string; number:(value:number)=>string };
 const I18nContext = createContext<I18nValue | null>(null);
-function initialLocale(): Locale {
-  const query = new URLSearchParams(window.location.search).get('lang');
-  if (query === 'bn' || query === 'bn-BD') return 'bn-BD';
-  const saved = readStorage(STORAGE_KEY);
-  if (saved === 'bn-BD' || saved === 'en-BD') return saved;
-  return navigator.language.toLowerCase().startsWith('bn') ? 'bn-BD' : 'en-BD';
-}
 export function I18nProvider({children}:{children:ReactNode}) {
-  const [locale,setLocaleState] = useState<Locale>(initialLocale);
-  const setLocale = (value:Locale) => {writeStorage(STORAGE_KEY,value);setLocaleState(value);};
-  useEffect(()=>{document.documentElement.lang=locale;document.documentElement.dir='ltr';},[locale]);
+  const locale: Locale = 'en-BD';
+  useEffect(()=>{document.documentElement.lang='en-BD';document.documentElement.dir='ltr';},[]);
   useEffect(()=>{const ref=new URLSearchParams(window.location.search).get('ref');if(ref&&/^[a-z0-9-]{4,32}$/i.test(ref))writeStorage(REFERRAL_KEY,ref.toUpperCase());},[]);
   const value=useMemo<I18nValue>(()=>{
-    const dictionary=locale==='bn-BD'?bn:english;
-    const t=(key:string,variables:Variables={})=>Object.entries(variables).reduce((text,[name,value])=>text.split(`{${name}}`).join(String(value)),dictionary[key]||english[key]||key);
-    return {locale,setLocale,t,money:value=>new Intl.NumberFormat(locale,{style:'currency',currency:'BDT',maximumFractionDigits:2}).format(value),date:value=>new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(value)),number:value=>new Intl.NumberFormat(locale).format(value)};
-  },[locale]);
+    const t=(key:string,variables:Variables={})=>Object.entries(variables).reduce((text,[name,value])=>text.split(`{${name}}`).join(String(value)),english[key]||key);
+    return {locale,t,money:value=>new Intl.NumberFormat(locale,{style:'currency',currency:'BDT',maximumFractionDigits:2}).format(value),date:value=>new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(value)),number:value=>new Intl.NumberFormat(locale).format(value)};
+  },[]);
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 export function useI18n(){const value=useContext(I18nContext);if(!value)throw new Error('I18nProvider is missing');return value;}
-export function LanguageSwitcher({className=''}:{className?:string}){
-  const {locale,setLocale,t}=useI18n();
-  return <label className={`inline-flex items-center gap-2 ${className}`}><span className="sr-only">{t('language.choose')}</span><select aria-label={t('language.choose')} value={locale} onChange={event=>setLocale(event.target.value as Locale)} className="rounded-lg border border-brand-200 bg-white px-2 py-1.5 text-sm font-semibold text-brand-800"><option value="en-BD">English</option><option value="bn-BD">বাংলা</option></select></label>;
-}

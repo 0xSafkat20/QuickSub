@@ -26,7 +26,7 @@ const supportLinks: { label: string; href?: string; action?: () => void }[] = [
 const legalLinks = ['Terms and Conditions', 'Privacy Policy', 'Disclaimer', 'Cookie Policy'];
 
 export default function Footer() {
-  const {t,locale}=useI18n();
+  const {t}=useI18n();
   const products=useProducts();
   const [email, setEmail] = useState('');
   const [subState, setSubState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -141,7 +141,7 @@ export default function Footer() {
           {/* Newsletter */}
           <div>
             <h4 className="font-heading font-bold text-sm text-white mb-5">{t('footer.offers')}</h4>
-            <p className="text-sm text-brand-300 mb-4">{locale==='bn-BD'?'অফার ও নতুন পণ্যের খবর পেতে সাবস্ক্রাইব করুন।':'Subscribe for deals and new product alerts.'}</p>
+            <p className="text-sm text-brand-300 mb-4">Subscribe for deals and new product alerts.</p>
             <form onSubmit={handleSubscribe} className="space-y-2.5">
               <div className="relative">
                 <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400" />

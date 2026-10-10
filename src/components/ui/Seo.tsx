@@ -26,7 +26,7 @@ export default function Seo({ path }: { path: string }) {
     const localizedTitle=path==='/'?t('seo.home.title'):path==='/checkout'||path==='/buy'?t('seo.checkout.title'):path==='/account'?t('seo.account.title'):path==='/track'?t('seo.track.title'):path==='/cart'?t('seo.cart.title'):meta.title;
     const localizedDescription=path==='/'?t('seo.home.description'):meta.description;
     const canonicalPath = meta.index ? '/' : path;
-    const localizedUrl=SITE+canonicalPath+(locale==='bn-BD'?'?lang=bn':'');
+    const localizedUrl=SITE+canonicalPath;
     document.title = localizedTitle;
     setMeta('meta[name="description"]', 'content', localizedDescription);
     setMeta('meta[name="keywords"]', 'content', keywords);
@@ -37,10 +37,11 @@ export default function Seo({ path }: { path: string }) {
     setMeta('meta[name="twitter:title"]', 'content', localizedTitle);
     setMeta('meta[name="twitter:description"]', 'content', localizedDescription);
     document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', localizedUrl);
-    for(const code of ['en-BD','bn-BD','x-default']){
+    document.head.querySelector('link[rel="alternate"][hreflang="bn-BD"]')?.remove();
+    for(const code of ['en-BD','x-default']){
       let link=document.head.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${code}"]`);
       if(!link){link=document.createElement('link');link.rel='alternate';link.hreflang=code;document.head.appendChild(link);}
-      link.href=SITE+canonicalPath+(code==='bn-BD'?'?lang=bn':'');
+      link.href=SITE+canonicalPath;
     }
     const existing = document.getElementById('quicksub-page-schema');
     existing?.remove();

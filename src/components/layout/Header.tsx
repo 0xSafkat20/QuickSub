@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Search, ShoppingCart, Heart } from 'lucide-react';
 import OrderTracking from '../sections/OrderTracking';
 import { useWishlist } from '../../context/WishlistContext';
-import { LanguageSwitcher, useI18n } from '../../i18n';
+import { useI18n } from '../../i18n';
 
 const LOGO_SRC = '/Logo.png';
 const SECTION_IDS = ['home','products','deals','how-it-works','reviews','faq','contact'];
@@ -127,7 +127,6 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
 
         {/* Desktop Actions */}
         <div className="hidden min-[1700px]:flex shrink-0 items-center gap-1.5">
-          <LanguageSwitcher />
           <SiteLink href="/cart" aria-label="My cart" className={`p-2 rounded-lg ${scrolled ? 'text-brand-600' : 'text-white'}`}><ShoppingCart size={18}/></SiteLink>
           <button
             onClick={onSearchOpen}
@@ -200,7 +199,6 @@ export default function Header({ onSearchOpen, onWishlistOpen }: HeaderProps) {
       {mobileOpen && (
         <div id="mobile-navigation" className="min-[1700px]:hidden bg-white border-t border-brand-100 shadow-lg max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain">
           <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-            <div className="px-4 py-2"><LanguageSwitcher /></div>
             <SiteLink href="/account" onClick={() => setMobileOpen(false)} className="px-4 py-3 text-sm font-semibold text-brand-600 rounded-xl bg-brand-50">{t('nav.account')}</SiteLink>
             {navLinks.map(link => (
               <a
